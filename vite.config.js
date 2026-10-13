@@ -3,7 +3,6 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  // GitHub Pages serves this repository beneath /defchat/.
-  // Other hosts such as Vercel serve from the domain root.
+  // GitHub Pages needs a repository subpath; packaged Electron builds need relative assets.
   base: process.env.GITHUB_ACTIONS ? '/defchat/' : '/',
 });

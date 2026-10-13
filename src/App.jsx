@@ -8,9 +8,121 @@ const db=createClient(url,key);
 const initials=n=>(n||'?').slice(0,2).toUpperCase();
 const color=n=>['#eab308','#8b5cf6','#06b6d4','#f97316','#ec4899'][[...(n||'')].reduce((a,c)=>a+c.charCodeAt(0),0)%5];
 function Avatar({name}){return <div className="avatar" style={{background:color(name)}}>{initials(name)}</div>}
-function Auth({done}){const[mode,setMode]=useState('signup'),[email,E]=useState(''),[password,P]=useState(''),[username,U]=useState(''),[err,S]=useState(''),[busy,B]=useState(false);
-async function submit(e){e.preventDefault();B(true);S('');try{if(mode==='signup'){const{data,error}=await db.auth.signUp({email,password,options:{data:{username:username.trim()}}});if(error)throw error;if(data.session)done(data.session.user);else S('Account created. Check your email to confirm it, then sign in.');}else{const{data,error}=await db.auth.signInWithPassword({email,password});if(error)throw error;done(data.user);}}catch(e){S(e.message||'Could not sign in.')}finally{B(false)}}
-return <main className="auth"><section className="auth-card"><div className="logo">d<span>.</span></div><small>YOUR SPACE. YOUR PEOPLE.</small><h1>{mode==='signup'?'Find your people.':'Welcome back.'}</h1><p>Talk about what you love and build your community.</p><div className="tabs"><button className={mode==='signup'?'chosen':''} onClick={()=>{setMode('signup');S('')}}>Create account</button><button className={mode==='login'?'chosen':''} onClick={()=>{setMode('login');S('')}}>Sign in</button></div><form onSubmit={submit}>{mode==='signup'&&<label>Username<input value={username} onChange={e=>U(e.target.value)} minLength="2" maxLength="24" pattern="[A-Za-z0-9_.-]+" title="Use letters, numbers, dots, underscores or hyphens" required/></label>}<label>Email<input type="email" value={email} onChange={e=>E(e.target.value)} required/></label><label>Password<input type="password" value={password} onChange={e=>P(e.target.value)} minLength="8" required/></label>{err&&<div className="notice">{err}</div>}<button className="primary" disabled={busy}>{busy&&<LoaderCircle className="spin" size={16}/>} {mode==='signup'?'Create your account':'Sign in'}</button></form></section></main>}
+function Auth({done}) {
+  const [mode, setMode] = useState('signup');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [err, setErr] = useState('');
+  const [notice, setNotice] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  function switchMode(next) {
+    setMode(next); setErr(''); setNotice('');
+  }
+
+  async function signInWithGoogle() {
+    setBusy(true); setErr(''); setNotice('');
+    try {
+      const { error } = await db.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin }
+      });
+      if (error) throw error;
+    } catch (e) {
+      setErr(e.message || 'Google sign-in could not start.');
+      setBusy(false);
+    }
+  }
+
+  async function resetPassword() {
+    setErr(''); setNotice('');
+    if (!email.trim()) { setErr('Enter your email address first, then choose Forgot password.'); return; }
+    setBusy(true);
+    try {
+      const { error } = await db.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: window.location.origin
+      });
+      if (error) throw error;
+      setNotice('If an account exists for that email, a password reset link is on its way.');
+    } catch (e) {
+      setErr(e.message || 'Could not send a reset link.');
+    } finally { setBusy(false); }
+  }
+
+  async function submit(e) {
+    e.preventDefault(); setErr(''); setNotice('');
+    if (mode === 'signup' && password !== confirmPassword) {
+      setErr('Your passwords do not match.'); return;
+    }
+    setBusy(true);
+    try {
+      if (mode === 'signup') {
+        const cleanUsername = username.trim();
+        const { data, error } = await db.auth.signUp({
+          email: email.trim(),
+          password,
+          options: { data: { username: cleanUsername } }
+        });
+        if (error) throw error;
+        if (data.session) done(data.session.user);
+        else setNotice('Your account is almost ready! Check your email for a confirmation link, then come back to sign in.');
+      } else {
+        const { data, error } = await db.auth.signInWithPassword({ email: email.trim(), password });
+        if (error) throw error;
+        done(data.user);
+      }
+    } catch (e) {
+      const message = e.message || 'Something went wrong. Please try again.';
+      setErr(message.toLowerCase().includes('invalid login credentials')
+        ? 'That email and password do not match. Check them or reset your password.'
+        : message);
+    } finally { setBusy(false); }
+  }
+
+  return <main className="auth">
+    <section className="auth-card">
+      <div className="logo">d<span>.</span></div>
+      <small>YOUR SPACE. YOUR PEOPLE.</small>
+      <h1>{mode === 'signup' ? 'Find your people.' : 'Welcome back.'}</h1>
+      <p>Talk about what you love and build your community.</p>
+      <div className="tabs">
+        <button type="button" className={mode === 'signup' ? 'chosen' : ''} onClick={() => switchMode('signup')}>Create account</button>
+        <button type="button" className={mode === 'login' ? 'chosen' : ''} onClick={() => switchMode('login')}>Sign in</button>
+      </div>
+      <button type="button" className="google-button" onClick={signInWithGoogle} disabled={busy}>
+        <svg aria-hidden="true" viewBox="0 0 48 48" width="19" height="19"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" transform="translate(0 5)"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.77 7.18l7.73 6C44.41 38.07 46.98 31.94 46.98 24.55z"/><path fill="#FBBC05" d="M10.53 28.59a14.4 14.4 0 0 1 0-9.18l-7.98-6.19a23.9 23.9 0 0 0 0 21.56z" transform="translate(0 5)"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.9-5.8l-7.73-6c-2.15 1.45-4.9 2.3-8.17 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" transform="translate(0 -4)"/></svg>
+        Continue with Google
+      </button>
+      <div className="auth-divider"><span>or continue with email</span></div>
+      <form onSubmit={submit}>
+        {mode === 'signup' && <label>Username
+          <input value={username} onChange={e => setUsername(e.target.value)} autoComplete="username" minLength="2" maxLength="24" pattern="[A-Za-z0-9_.-]+" title="Use letters, numbers, dots, underscores or hyphens" placeholder="yourname" required />
+          <span className="field-hint">2–24 characters · letters, numbers, . _ -</span>
+        </label>}
+        <label>Email address
+          <input type="email" value={email} onChange={e => setEmail(e.target.value)} autoComplete="email" placeholder="you@example.com" required />
+        </label>
+        <label>Password
+          <div className="password-wrap">
+            <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} autoComplete={mode === 'signup' ? 'new-password' : 'current-password'} minLength="8" placeholder="At least 8 characters" required />
+            <button type="button" className="password-toggle" onClick={() => setShowPassword(v => !v)} aria-label={showPassword ? 'Hide password' : 'Show password'}>{showPassword ? 'Hide' : 'Show'}</button>
+          </div>
+        </label>
+        {mode === 'signup' && <label>Confirm password
+          <input type={showPassword ? 'text' : 'password'} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} autoComplete="new-password" minLength="8" placeholder="Enter your password again" required />
+        </label>}
+        {mode === 'login' && <button type="button" className="forgot-link" onClick={resetPassword} disabled={busy}>Forgot password?</button>}
+        {err && <div className="notice error-notice" role="alert">{err}</div>}
+        {notice && <div className="notice success-notice" role="status">{notice}</div>}
+        <button className="primary auth-submit" disabled={busy}>{busy && <LoaderCircle className="spin" size={16}/>} {mode === 'signup' ? 'Create your account' : 'Sign in to defchat'}</button>
+      </form>
+      <div className="auth-legal">By continuing, you agree to use defchat respectfully and keep your account secure.</div>
+    </section>
+  </main>;
+}
 
 export default function App(){
 const[user,setUser]=useState(null),[profile,setProfile]=useState(null),[servers,setServers]=useState([]),[server,setServer]=useState(null),[channels,setChannels]=useState([]),[channel,setChannel]=useState(null),[messages,setMessages]=useState([]),[draft,setDraft]=useState(''),[err,setErr]=useState(''),[busy,setBusy]=useState(false),[loading,setLoading]=useState(true),[nav,setNav]=useState(false),[view,setView]=useState('servers'),[dmList,setDmList]=useState([]),[activeDm,setActiveDm]=useState(null),[dmMessages,setDmMessages]=useState([]),bottom=useRef(null);

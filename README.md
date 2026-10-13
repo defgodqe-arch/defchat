@@ -1,27 +1,46 @@
-# defgodqe
+# defgodqe / defchat
 
-A Discord-inspired community chat MVP built with React, Vite, Supabase, and Electron.
+A Discord-inspired text-first community app built with React, Vite, Supabase Auth, Postgres, Realtime, and an Electron development wrapper. Responsive browser UI works on desktop and mobile browsers.
 
-## Features
-- Email/password signup and login
-- User profiles
-- Communities (servers) and text channels
-- Persistent messages and real-time message updates
-- Row Level Security for database access
-- Browser app and Electron development wrapper
+## Included
 
-## Setup
-1. Create a project at https://supabase.com/dashboard.
-2. Open Supabase SQL Editor and run all of `supabase/schema.sql`.
-3. Copy `.env.example` to `.env` and fill in your Supabase project URL and publishable/anon key. Never use a service-role/secret key in the frontend.
-4. Install Node.js LTS (https://nodejs.org/).
-5. Run `npm install`, then `npm run dev`; open the URL printed by Vite.
-6. To open the Electron development window, keep Vite running and run `npm run desktop` in a second terminal.
+- Email/password sign-up, sign-in, and sign-out
+- User profiles and unique usernames
+- Communities (servers), membership, and text channels
+- Persistent server messages with Supabase Realtime updates
+- Direct messages by exact username, persistent DM history, and Realtime updates
+- Friend-request database tables and row-level access policies
+- Message-reaction database table
+- Row Level Security on exposed app tables
+- Mobile navigation and desktop Electron development wrapper
+- CI build check on pushes and pull requests
 
-For production web hosting, run `npm run build` and deploy `dist/`; configure the same VITE environment variables in the hosting provider. Electron is currently a development wrapper, not a packaged installer.
+## Supabase project
 
-## Security
-Keep Supabase Row Level Security enabled. Test with at least two accounts before inviting people. Public launch still needs abuse prevention/rate limiting, reporting/blocking, account deletion, terms/privacy pages, and backups.
+This repository is wired to the defgodqe Supabase project using its **publishable** key (safe for browser use). Public/publishable keys are not secrets; never add a Supabase secret or service-role key to frontend code.
 
-## Not included yet
-Friends, DMs, invite links, file uploads, voice/video, push notifications, full role management UI, and a Windows installer.
+To use another Supabase project, copy `.env.example` to `.env` and replace the URL and publishable key.
+
+The database already has the schema applied. For a fresh project, run `supabase/schema.sql` once in the Supabase SQL Editor. The script sets up profiles, servers, channels, messages, DMs, friend requests, reactions, policies, and Realtime publication.
+
+## Run locally
+
+1. Install Node.js LTS.
+2. Clone this repository.
+3. Run `npm install`.
+4. Run `npm run dev` and open the local URL printed by Vite.
+5. To use the Electron development window, keep Vite running and run `npm run desktop` in a second terminal.
+
+For web hosting, run `npm run build` and deploy the `dist/` folder. The current code has safe public-key defaults for this Supabase project, so local `.env` configuration is optional for this project. Set environment variables in your hosting provider if using another project.
+
+## Security and launch checklist
+
+- Keep Row Level Security enabled.
+- The server-creation RPC uses a narrow, authenticated-only wrapper; its internal privileged implementation lives in the non-exposed `private` schema and checks `auth.uid()`.
+- Test with at least two separate accounts before inviting people.
+- Before public launch, add abuse rate limits, blocking/reporting UI, account deletion, privacy/terms pages, backup review, and a packaged Windows installer.
+- DMs currently start by entering the recipient's exact username. The friend-request tables are ready, but friend-request UI and invite links are not yet implemented.
+
+## Current limitations
+
+This is a working text-chat MVP, not a full Discord clone. Voice/video, file uploads, push notifications, full server-role management UI, friend-request UI, invite links, and a signed Windows installer are not included yet.

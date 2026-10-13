@@ -15,6 +15,7 @@ export default function VoiceCall({ db, user, peer }) {
   const [muted, setMuted] = useState(false);
   const [cameraOff, setCameraOff] = useState(false);
   const [error, setError] = useState('');
+  const [audioNeedsTap, setAudioNeedsTap] = useState(false);
   const pcRef = useRef(null);
   const streamRef = useRef(null);
   const remoteStreamRef = useRef(null);
@@ -47,6 +48,7 @@ export default function VoiceCall({ db, user, peer }) {
     setBusy(false);
     setMuted(false);
     setCameraOff(false);
+    setAudioNeedsTap(false);
   }, []);
 
   const makePeerConnection = useCallback((recipientId, callId, videoEnabled) => {
@@ -58,8 +60,14 @@ export default function VoiceCall({ db, user, peer }) {
       event.streams[0]?.getTracks().forEach(track => {
         if (!remote.getTracks().some(t => t.id === track.id)) remote.addTrack(track);
       });
-      if (remoteVideoRef.current) remoteVideoRef.current.srcObject = remote;
-      if (remoteAudioRef.current) remoteAudioRef.current.srcObject = remote;
+      if (remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = remote;
+        remoteVideoRef.current.play().catch(() => {});
+      }
+      if (remoteAudioRef.current) {
+        remoteAudioRef.current.srcObject = remote;
+        remoteAudioRef.current.play().then(() => setAudioNeedsTap(false)).catch(() => setAudioNeedsTap(true));
+      }
     };
     pc.onicecandidate = event => {
       if (event.candidate) {
@@ -96,7 +104,7 @@ export default function VoiceCall({ db, user, peer }) {
       await pc.setLocalDescription(offer);
       const next = { id: callId, peerId: peer.user_id, peerName: peer.username || 'User', video: videoEnabled, status: 'Calling…', outgoing: true };
       callRef.current = next; setCall(next);
-      await sendSignal(peer.user_id, callId, 'offer', { sdp: pc.localDescription, video: videoEnabled });
+      await sendSignal(peer.user_id, callId, 'offer', { sdp: pc.localDescription.toJSON(), video: videoEnabled });
     } catch (e) {
       cleanup();
       setError(e.name === 'NotAllowedError' ? 'Allow microphone/camera access in your browser to call.' : (e.message || 'Could not start the call.'));
@@ -120,7 +128,7 @@ export default function VoiceCall({ db, user, peer }) {
       await pc.setLocalDescription(answer);
       const next = { id: offer.call_id, peerId: offer.sender_id, peerName: offer.senderName || 'User', video: videoEnabled, status: 'Connected', outgoing: false };
       callRef.current = next; setCall(next); setIncoming(null); incomingRef.current = null;
-      await sendSignal(offer.sender_id, offer.call_id, 'answer', { sdp: pc.localDescription });
+      await sendSignal(offer.sender_id, offer.call_id, 'answer', { sdp: pc.localDescription.toJSON() });
     } catch (e) {
       setError(e.name === 'NotAllowedError' ? 'Allow microphone/camera access to answer.' : (e.message || 'Could not answer the call.'));
       try { await sendSignal(offer.sender_id, offer.call_id, 'reject'); } catch {}
@@ -197,8 +205,14 @@ export default function VoiceCall({ db, user, peer }) {
 
   useEffect(() => {
     if (localVideoRef.current && streamRef.current) localVideoRef.current.srcObject = streamRef.current;
-    if (remoteVideoRef.current && remoteStreamRef.current) remoteVideoRef.current.srcObject = remoteStreamRef.current;
-    if (remoteAudioRef.current && remoteStreamRef.current) remoteAudioRef.current.srcObject = remoteStreamRef.current;
+    if (remoteVideoRef.current && remoteStreamRef.current) {
+      remoteVideoRef.current.srcObject = remoteStreamRef.current;
+      remoteVideoRef.current.play().catch(() => {});
+    }
+    if (remoteAudioRef.current && remoteStreamRef.current) {
+      remoteAudioRef.current.srcObject = remoteStreamRef.current;
+      remoteAudioRef.current.play().then(() => setAudioNeedsTap(false)).catch(() => setAudioNeedsTap(true));
+    }
   }, [call, incoming]);
 
   if (!incoming && !call && !busy && !error) return null;
@@ -211,6 +225,7 @@ export default function VoiceCall({ db, user, peer }) {
       <button onClick={hangUp} aria-label="Close call panel" style={{ ...actionStyle, padding: 8, background: '#30313a' }}><X size={18}/></button>
     </div>
     {error && <p role="alert" style={{ color: '#fca5a5', fontSize: 13 }}>{error}</p>}
+    {audioNeedsTap && call && <button onClick={() => remoteAudioRef.current?.play().then(() => setAudioNeedsTap(false)).catch(() => setError('Your browser is blocking audio playback. Check the tab audio setting and try again.'))} style={{ ...actionStyle, width: '100%', marginBottom: 12, background: '#4f46e5' }}>Tap to enable sound</button>}
     {call?.video && <div style={{ position: 'relative', background: '#09090b', borderRadius: 14, overflow: 'hidden', aspectRatio: '16 / 9', marginBottom: 14 }}>
       <video ref={remoteVideoRef} autoPlay muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }}/>
       <video ref={localVideoRef} autoPlay muted playsInline style={{ position: 'absolute', width: 96, height: 72, right: 10, bottom: 10, objectFit: 'cover', borderRadius: 10, background: '#27272a' }}/>

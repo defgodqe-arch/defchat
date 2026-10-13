@@ -55,3 +55,83 @@
 .secondary-button{border:1px solid #41444e;background:#2a2c34;color:#d6d8df;border-radius:9px;padding:10px 15px;font-size:12px}.free-note{text-align:center;color:#8c91a0;font-size:10px;margin:16px 0 0}
 .dm-welcome{position:relative}.dm-profile-banner{height:120px;margin:-20px 0 18px;border-radius:10px;background:linear-gradient(120deg,#4b3c0d,#292b38 58%,#5a3a75);background-size:cover;background-position:center}.dm-welcome>div:not(.dm-profile-banner){position:relative}
 @media(max-width:520px){.profile-modal{padding:20px 16px}.profile-modal-heading h2{font-size:18px}.upload-choice{gap:9px;padding:10px}.upload-icon{width:36px;height:36px}.choose-file{padding:7px}.profile-modal-actions .primary{min-width:0}}
+
+
+/* Discord-inspired workspace refresh */
+:root{color-scheme:dark;--rail:#1e1f22;--sidebar:#2b2d31;--chat:#313338;--panel:#383a40;--muted:#949ba4;--accent:#facc15}
+body{background:var(--chat);color:#f2f3f5}
+.app{background:var(--chat)}
+.rail{width:72px;background:var(--rail);padding:12px 0;gap:8px;overflow-y:auto;scrollbar-width:none}
+.rail::-webkit-scrollbar{display:none}
+.rail .logo{border-radius:16px;transition:border-radius .16s,background .16s}
+.rail .logo:hover,.server:hover,.rail-action:hover,.add:hover{border-radius:12px}
+.rail .line{width:32px;background:#3f4147;margin:2px 0}
+.rail-action,.server,.add{width:48px;height:48px;flex-shrink:0;border-radius:50%;transition:border-radius .16s,background .16s,transform .16s}
+.rail-action{background:#313338;color:#dbdee1}
+.rail-action.rail-active{background:var(--accent);color:#232428;border-radius:16px}
+.server{font-size:12px;box-shadow:0 1px 2px #0003}
+.server.selected{outline:0;border-radius:16px;position:relative}
+.server.selected:before{content:"";position:absolute;left:-12px;top:10px;height:28px;width:4px;border-radius:0 5px 5px 0;background:#f2f3f5}
+.add{background:#313338;color:#23a559}
+.add:hover{background:#23a559;color:#fff}
+.sidebar{width:250px;background:var(--sidebar);color:#dbdee1}
+.server-title{height:49px;min-height:49px;padding:0 16px;border-bottom:1px solid #222327;color:#f2f3f5;box-shadow:0 1px 0 #ffffff05;font-size:15px}
+.server-title span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dm-title{display:flex;align-items:center;justify-content:space-between}
+.channel-list{padding:19px 8px;overflow:auto}
+.section{padding:0 8px 8px;color:#949ba4;font-size:10px;letter-spacing:.7px}
+.section button{color:#b5bac1;border-radius:4px;padding:1px}
+.section button:hover,.icon-button:hover{color:#f2f3f5}
+.channel{min-height:36px;padding:7px 9px;gap:8px;border-radius:5px;color:#949ba4;font-size:14px;font-weight:500;margin:1px 0}
+.channel:hover{background:#35373c;color:#dbdee1}
+.channel.active{background:#404249;color:#fff}
+.channel.active svg{color:#dbdee1}
+.channel>svg{flex-shrink:0;color:#80848e}
+.user-row{background:#232428;padding:9px 7px;gap:2px;min-height:58px}
+.user-row .profile-open{gap:8px;padding:0 3px}
+.presence-avatar{position:relative;display:block;width:34px;height:34px;flex-shrink:0}
+.presence-avatar .avatar{width:34px;height:34px}
+.presence-avatar i,.live i{display:inline-block;width:10px;height:10px;border:2px solid #232428;border-radius:50%;background:#23a559;position:absolute;right:-1px;bottom:-1px}
+.user-label{gap:2px}
+.user-label b{font-size:12px;color:#f2f3f5}
+.user-label small{color:#23a559!important;font-size:10px!important}
+.voice-control{display:grid;place-items:center;width:27px;height:32px;padding:0;border:0;border-radius:4px;background:transparent;color:#b5bac1}
+.voice-control:hover{background:#34363c;color:#f2f3f5}
+.chat{background:var(--chat)}
+.chat header{height:49px;min-height:49px;padding:0 16px;gap:11px;border-bottom:1px solid #25262b;box-shadow:0 1px 0 #ffffff03}
+.chat header>svg{color:#b5bac1}
+.chat header b{font-size:15px;font-weight:650}
+.header-divider{width:1px;height:24px;background:#41434a;margin:0 2px}
+.live{display:flex;align-items:center;gap:7px;color:#b5bac1;font-size:12px}
+.live i{position:static;border:0;width:7px;height:7px;background:#23a559}
+.header-action{display:grid;place-items:center;width:30px;height:30px;border:0;border-radius:5px;background:transparent;color:#b5bac1}
+.header-action:hover{background:#3b3d44;color:#fff}
+.messages{padding:24px max(24px,calc((100% - 1000px)/2));scrollbar-color:#1e1f22 transparent}
+.welcome{padding:12px 0 22px;margin-bottom:13px;border-color:#41434a}
+.welcome>div:not(.dm-profile-banner){width:62px;height:62px;background:#404249;color:#dbdee1;margin-bottom:18px}
+.welcome h2{font-size:24px;letter-spacing:-.4px}
+.welcome p{font-size:14px;color:#b5bac1;line-height:1.5}
+.message{gap:15px;padding:7px 8px;margin:0 -8px;border-radius:4px}
+.message:hover{background:#2e3035}
+.message .avatar{width:40px;height:40px}
+.meta{gap:8px;margin:0 0 3px}
+.meta b{font-size:14px;font-weight:600;color:#f2f3f5}
+.meta time{font-size:11px;color:#949ba4}
+.message p{font-size:14px;line-height:1.45;color:#dbdee1}
+.composer{margin:0 max(24px,calc((100% - 1000px)/2));padding:8px 12px;background:#383a40;border-radius:8px;gap:9px;align-items:center}
+.composer:focus-within{box-shadow:0 0 0 1px #555860}
+.composer input{font-size:14px;padding:7px 3px}
+.composer input::placeholder{color:#949ba4}
+.composer button{width:30px;height:30px;background:transparent;color:#b5bac1;border-radius:6px}
+.composer button:hover:not(:disabled){background:#4a4d55;color:#fff}
+footer{padding:9px;color:#949ba4}
+footer b{color:#c6c9ce}
+.error{margin:8px 16px 0;background:#5a252a}
+.empty-dms{padding:12px 9px;color:#949ba4;line-height:1.65}
+.channel .avatar{width:26px;height:26px}
+.dm-welcome .dm-profile-banner{height:140px;border-radius:8px;margin:0 0 18px}
+.dm-welcome>div:not(.dm-profile-banner) .avatar{width:80px;height:80px;border:6px solid var(--chat);margin-top:-30px}
+.primary{background:var(--accent)}
+.primary:hover:not(:disabled){filter:brightness(1.07)}
+@media(max-width:700px){.rail{width:60px}.rail-action,.server,.add{width:40px;height:40px}.sidebar{width:230px}.messages{padding:18px 15px}.composer{margin:0 12px}.chat header{padding:0 12px}.header-divider,.live{display:none}}
+@media(max-width:520px){.sidebar{left:60px}.user-row{padding:8px 5px}.voice-control{width:24px}.chat header{gap:8px}}

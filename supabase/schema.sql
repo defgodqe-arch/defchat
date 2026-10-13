@@ -239,3 +239,7 @@ drop policy if exists "users upload chat media" on storage.objects;
 create policy "users upload chat media" on storage.objects for insert to authenticated with check(bucket_id='chat-media' and (storage.foldername(name))[1]=(select auth.uid())::text);
 drop policy if exists "users delete chat media" on storage.objects;
 create policy "users delete chat media" on storage.objects for delete to authenticated using(bucket_id='chat-media' and (storage.foldername(name))[1]=(select auth.uid())::text);
+
+-- Enable author-only message editing.
+grant update on public.messages to authenticated;
+create policy "message authors can update" on public.messages for update to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());

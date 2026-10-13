@@ -286,3 +286,10 @@ footer b{color:#c6c9ce}
 .shop-toast button{border:0;background:transparent;color:inherit;display:grid;place-items:center}
 @media(max-width:760px){.shop-modal{padding:21px 17px}.shop-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.shop-toolbar{align-items:stretch;flex-direction:column}.shop-search{width:100%}.shop-tabs{gap:3px}.shop-tabs button{padding:8px}.shop-hero h2{font-size:26px}.shop-promo-badge{display:none}}
 @media(max-width:460px){.shop-backdrop{padding:7px}.shop-modal{max-height:97dvh;padding:17px 12px;border-radius:14px}.shop-hero{gap:10px;padding-right:28px}.shop-hero-icon{width:44px;height:44px;border-radius:12px}.shop-hero h2{font-size:23px}.shop-hero p{font-size:11px}.shop-kicker{font-size:8px;letter-spacing:1px}.shop-free-stamp{position:absolute;right:12px;top:17px;padding:6px;font-size:8px}.shop-promo{margin:13px 0;padding:11px;gap:9px}.shop-promo-art{width:31px;height:31px}.shop-promo b{font-size:11px}.shop-promo small{font-size:10px}.shop-tabs{flex-wrap:nowrap;overflow-x:auto;padding-bottom:3px}.shop-tabs button{white-space:nowrap;font-size:10px}.shop-item-art{height:91px}.shop-item-art>span{width:52px;height:52px;font-size:27px}.shop-item-info{padding:10px}.shop-item h3{font-size:12px}.shop-item p{font-size:10px;min-height:42px}.shop-item-bottom{align-items:flex-start;flex-direction:column;margin-top:10px}.shop-item-bottom button{width:100%}.shop-footer{margin-top:14px}.shop-footer button{padding:8px 15px}}
+
+/* Source attribution for real-world cosmetic listings in the free shop */
+.shop-source-link{display:inline-flex;align-items:center;margin-top:9px;color:#aeb6c7;font-size:10px;font-weight:700;text-decoration:none;opacity:.9}
+.shop-source-link:hover{color:#facc15;text-decoration:underline}
+.shop-item-category{display:flex;align-items:center;gap:5px}
+.shop-item-category:after{content:'FREE HERE';font-size:8px;letter-spacing:.45px;color:#8fe4b2;border:1px solid #35694e;border-radius:4px;padding:2px 4px}
+@media(max-width:460px){.shop-source-link{font-size:9px}}

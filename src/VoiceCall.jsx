@@ -111,8 +111,8 @@ export default function VoiceCall({ db, user, peer }) {
       const pc = makePeerConnection(offer.sender_id, offer.call_id, videoEnabled);
       stream.getTracks().forEach(track => pc.addTrack(track, stream));
       await pc.setRemoteDescription(new RTCSessionDescription(offer.sdp));
-      for (const candidate of queuedIceRef.current.splice(0)) {
-        try { await pc.addIceCandidate(new RTCIceCandidate(candidate)); } catch {}
+      for (const queued of queuedIceRef.current.splice(0).filter(item => item.callId === offer.call_id)) {
+        try { await pc.addIceCandidate(new RTCIceCandidate(queued.candidate)); } catch {}
       }
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
@@ -159,20 +159,21 @@ export default function VoiceCall({ db, user, peer }) {
           return;
         }
         if (signal.signal_type === 'ice-candidate') {
-          if (active?.id !== signal.call_id) return;
           const candidate = signal.payload?.candidate;
           if (!candidate) return;
-          if (pcRef.current?.remoteDescription) {
+          if (active?.id === signal.call_id && pcRef.current?.remoteDescription) {
             try { await pcRef.current.addIceCandidate(new RTCIceCandidate(candidate)); } catch {}
-          } else queuedIceRef.current.push(candidate);
+          } else if (active?.id === signal.call_id || incomingRef.current?.call_id === signal.call_id || (!active && !incomingRef.current)) {
+            queuedIceRef.current.push({ callId: signal.call_id, candidate });
+          }
           return;
         }
         if (active?.id !== signal.call_id) return;
         if (signal.signal_type === 'answer' && pcRef.current && signal.payload?.sdp) {
           try {
             await pcRef.current.setRemoteDescription(new RTCSessionDescription(signal.payload.sdp));
-            for (const candidate of queuedIceRef.current.splice(0)) {
-              try { await pcRef.current.addIceCandidate(new RTCIceCandidate(candidate)); } catch {}
+            for (const queued of queuedIceRef.current.splice(0).filter(item => item.callId === active.id)) {
+              try { await pcRef.current.addIceCandidate(new RTCIceCandidate(queued.candidate)); } catch {}
             }
             const next = { ...active, status: 'Connected' }; callRef.current = next; setCall(next);
           } catch (e) { setError(e.message || 'Could not connect the call.'); }

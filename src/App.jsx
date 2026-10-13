@@ -28,7 +28,7 @@ function Auth({done}) {
     try {
       const { error } = await db.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: window.location.origin }
+        options: { redirectTo: window.location.href.split('#')[0] }
       });
       if (error) throw error;
     } catch (e) {
@@ -43,7 +43,7 @@ function Auth({done}) {
     setBusy(true);
     try {
       const { error } = await db.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: window.location.origin
+        redirectTo: window.location.href.split('#')[0]
       });
       if (error) throw error;
       setNotice('If an account exists for that email, a password reset link is on its way.');

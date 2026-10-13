@@ -22,6 +22,7 @@ export default function VoiceCall({ db, user, peer }) {
   const callRef = useRef(null);
   const queuedIceRef = useRef([]);
   const remoteVideoRef = useRef(null);
+  const remoteAudioRef = useRef(null);
   const localVideoRef = useRef(null);
   const seenRef = useRef(new Set());
 
@@ -58,6 +59,7 @@ export default function VoiceCall({ db, user, peer }) {
         if (!remote.getTracks().some(t => t.id === track.id)) remote.addTrack(track);
       });
       if (remoteVideoRef.current) remoteVideoRef.current.srcObject = remote;
+      if (remoteAudioRef.current) remoteAudioRef.current.srcObject = remote;
     };
     pc.onicecandidate = event => {
       if (event.candidate) {
@@ -195,19 +197,22 @@ export default function VoiceCall({ db, user, peer }) {
 
   useEffect(() => {
     if (localVideoRef.current && streamRef.current) localVideoRef.current.srcObject = streamRef.current;
+    if (remoteVideoRef.current && remoteStreamRef.current) remoteVideoRef.current.srcObject = remoteStreamRef.current;
+    if (remoteAudioRef.current && remoteStreamRef.current) remoteAudioRef.current.srcObject = remoteStreamRef.current;
   }, [call, incoming]);
 
   if (!incoming && !call && !busy && !error) return null;
   const panelStyle = { position: 'fixed', zIndex: 10000, right: 22, bottom: 22, width: 'min(430px, calc(100vw - 28px))', maxHeight: 'calc(100vh - 36px)', overflow: 'auto', padding: 20, borderRadius: 20, background: '#15161b', color: '#f8fafc', border: '1px solid #353741', boxShadow: '0 20px 70px #0009', fontFamily: 'inherit' };
   const actionStyle = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, border: 0, borderRadius: 12, padding: '11px 14px', cursor: 'pointer', fontWeight: 700, color: '#fff' };
   return <section style={panelStyle} aria-label="Voice and video call">
+    <audio ref={remoteAudioRef} autoPlay style={{ display: 'none' }}/>
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
       <div style={{ flex: 1 }}><b style={{ fontSize: 16 }}>{incoming && !call ? 'Incoming ' + (incoming.video ? 'video' : 'voice') + ' call' : call ? (call.video ? 'Video call' : 'Voice call') : 'Starting call…'}</b><div style={{ color: '#a1a1aa', fontSize: 13, marginTop: 3 }}>{incoming && !call ? incoming.senderName : call?.peerName || 'Connecting…'}{call?.status ? ' · ' + call.status : ''}</div></div>
       <button onClick={hangUp} aria-label="Close call panel" style={{ ...actionStyle, padding: 8, background: '#30313a' }}><X size={18}/></button>
     </div>
     {error && <p role="alert" style={{ color: '#fca5a5', fontSize: 13 }}>{error}</p>}
     {call?.video && <div style={{ position: 'relative', background: '#09090b', borderRadius: 14, overflow: 'hidden', aspectRatio: '16 / 9', marginBottom: 14 }}>
-      <video ref={remoteVideoRef} autoPlay playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }}/>
+      <video ref={remoteVideoRef} autoPlay muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }}/>
       <video ref={localVideoRef} autoPlay muted playsInline style={{ position: 'absolute', width: 96, height: 72, right: 10, bottom: 10, objectFit: 'cover', borderRadius: 10, background: '#27272a' }}/>
     </div>}
     {incoming && !call && <p style={{ color: '#d4d4d8', fontSize: 14 }}>Someone is calling you on defchat. Allow access to your {incoming.video ? 'camera and microphone' : 'microphone'} to answer.</p>}

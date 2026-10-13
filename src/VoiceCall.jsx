@@ -57,9 +57,11 @@ export default function VoiceCall({ db, user, peer }) {
     const remote = new MediaStream();
     remoteStreamRef.current = remote;
     pc.ontrack = event => {
-      event.streams[0]?.getTracks().forEach(track => {
-        if (!remote.getTracks().some(t => t.id === track.id)) remote.addTrack(track);
+      const tracks = event.streams[0]?.getTracks() || [event.track];
+      tracks.forEach(track => {
+        if (track && !remote.getTracks().some(t => t.id === track.id)) remote.addTrack(track);
       });
+      if (event.track && !remote.getTracks().some(t => t.id === event.track.id)) remote.addTrack(event.track);
       if (remoteVideoRef.current) {
         remoteVideoRef.current.srcObject = remote;
         remoteVideoRef.current.play().catch(() => {});

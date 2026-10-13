@@ -23,6 +23,18 @@ To use another Supabase project, copy `.env.example` to `.env` and replace the U
 
 The database already has the schema applied. For a fresh project, run `supabase/schema.sql` once in the Supabase SQL Editor. The script sets up profiles, servers, channels, messages, DMs, friend requests, reactions, policies, and Realtime publication.
 
+## Google sign-in setup
+
+The app includes a **Continue with Google** button using Supabase OAuth. To activate it for real users:
+
+1. In [Google Cloud Console](https://console.cloud.google.com/auth/clients), create an OAuth Client ID with application type **Web application**.
+2. Add the deployed site's origin (for GitHub Pages, `https://defgodqe-arch.github.io`) to **Authorized JavaScript origins**.
+3. Add the Supabase Auth callback URL `https://jklhnhnxyzqjvmqgfpjs.supabase.co/auth/v1/callback` to **Authorized redirect URIs**.
+4. In [Supabase Google provider settings](https://supabase.com/dashboard/project/jklhnhnxyzqjvmqgfpjs/auth/providers), enable Google and enter the Google Client ID and Client Secret.
+5. In [Supabase URL configuration](https://supabase.com/dashboard/project/jklhnhnxyzqjvmqgfpjs/auth/url-configuration), set the Site URL to `https://defgodqe-arch.github.io/defchat/` and add that same URL to the allowed redirect URLs. Add your local development URL too if needed.
+
+Google sign-in cannot complete until the provider credentials and redirect allow-list are configured in the dashboards. Never commit the Google Client Secret to this repository.
+
 ## Run locally
 
 1. Install Node.js LTS.

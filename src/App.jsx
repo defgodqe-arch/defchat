@@ -199,7 +199,9 @@ function ProfileSettings({profile,username,userId,onClose,onSaved,cosmetics=[]})
 }
 
 
-const LOCKER_SOURCE='https://locker.gg/discord/shop';
+const LOCKER_SOURCE='https://locker.gg/discord';
+const lockerSlug=name=>name.toLowerCase().replace(/['’]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+const lockerRoute=category=>({'Avatar decorations':'avatar-decoration','Profile effects':'profile-effect','Nameplates':'nameplate','Profile frames':'profile-frame'}[category]||'avatar-decoration');
 const LOCKER_ITEMS=[
 ['hexs-hat',"Hex's Hat",'Avatar decorations','🎩','gold'],
 ['grinning-gourds','Grinning Gourds','Avatar decorations','🎃','sunset'],
@@ -211,21 +213,50 @@ const LOCKER_ITEMS=[
 ['bunny-babe','Bunny Babe','Avatar decorations','🐰','cozy'],
 ['lunar-wolf','Lunar Wolf','Avatar decorations','🐺','purple'],
 ['fox-ears','Fox (Ears)','Avatar decorations','🦊','sunset'],
+['boss-bear-polar','Boss Bear (Polar)','Avatar decorations','🐻','gold'],
+['fox-guardian','Fox Guardian','Avatar decorations','🦊','sunset'],
+['red-panda','Red Panda','Avatar decorations','🐼','sunset'],
+['ghost-moth','Ghost Moth','Avatar decorations','🦋','purple'],
+['moonflowers','Moonflowers','Avatar decorations','🌸','cozy'],
+['will-o-the-wisp',"Will-o'-the-Wisp",'Avatar decorations','🧚','neon'],
 ['autumn-garden','Autumn Garden','Profile effects','🍂','sunset'],
 ['witching-hour','Witching Hour','Profile effects','🌙','purple'],
 ['lotties-cauldron',"Lottie's Cauldron",'Profile effects','🧙','purple'],
+['jersey-devil','Jersey Devil','Profile effects','👹','sunset'],
+['la-llorona','La Llorona','Profile effects','👻','purple'],
+['dancing-dolphins','Dancing Dolphins','Profile effects','🐬','neon'],
+['mermaid-muse','Mermaid Muse','Profile effects','🧜','neon'],
 ['night-flight','Night Flight','Nameplates','🌃','neon'],
 ['ghost-moth','Ghost Moth','Nameplates','🦋','purple'],
 ['jersey-devil','Jersey Devil','Nameplates','👹','sunset'],
 ['moonflowers-base','Moonflowers (Base)','Nameplates','🌸','cozy'],
-['witch-dust-nameplate','Witch Dust','Nameplates','🪄','neon'],
+['witch-dust','Witch Dust','Nameplates','🪄','neon'],
+['alt-raccoon','Alt Raccoon','Profile frames','🦝','cozy'],
 ['witchlight','Witchlight','Profile frames','🕯️','gold'],
 ['always-watching','Always Watching','Profile frames','👁️','purple'],
 ['wraithling','Wraithling','Profile frames','👻','purple'],
 ['rose-filigree','Rose Filigree','Profile frames','🌹','sunset'],
 ['spider-man','Spider-Man','Profile frames','🕸️','neon'],
-['venom','Venom','Profile frames','🕷️','purple']
-].map(([id,name,category,icon,preview])=>({id:'locker-'+id,name,category,icon,preview,description:'Real Discord shop cosmetic listed by Locker.gg. Free to claim in defchat.',sourceUrl:LOCKER_SOURCE,sourceLabel:'View Locker.gg listing',real:true}));
+['spider-mans-web',"Spider-Man's Web",'Profile frames','🕸️','neon'],
+['venom','Venom','Profile frames','🕷️','purple'],
+['symbiote','Symbiote','Profile frames','🕷️','purple'],
+['solar-crown','Solar Crown','Profile frames','☀️','gold'],
+['totality','Totality','Profile frames','🌑','purple'],
+['dark-roses-blue','Dark Roses (Blue)','Profile frames','🌹','purple'],
+['dragon-jade','Dragon (Jade)','Profile frames','🐉','neon'],
+['dragon-rose','Dragon (Rose)','Profile frames','🐉','sunset'],
+['dragon-ruby','Dragon (Ruby)','Profile frames','🐉','sunset'],
+['dragon-sapphire','Dragon (Sapphire)','Profile frames','🐉','purple'],
+['fantasy-galaxy-blue','Fantasy Galaxy (Blue)','Profile frames','🌌','neon'],
+['fantasy-galaxy-pink','Fantasy Galaxy (Pink)','Profile frames','🌌','sunset'],
+['fantasy-galaxy-white','Fantasy Galaxy (White)','Profile frames','🌌','gold'],
+['neon-chaos-purple','Neon Chaos (Purple)','Profile frames','⚡','purple'],
+['ocean','Ocean','Profile frames','🌊','neon'],
+['prism-edge-blue','Prism Edge (Blue)','Profile frames','💎','neon'],
+['sakura-spring','Sakura Spring','Profile frames','🌸','sunset'],
+['star-chart','Star Chart','Profile frames','✨','purple'],
+['tropical-symphony','Tropical Symphony','Profile frames','🌴','cozy']
+].map(([id,name,category,icon,preview])=>({id:'locker-'+category.toLowerCase().replace(/[^a-z]+/g,'-')+'-'+id,name,category,icon,preview,description:'Real Discord cosmetic catalog item. Open its Locker.gg listing for the source and item preview.',sourceUrl:LOCKER_SOURCE+'/cosmetics?popup=%2Fdiscord%2Fcosmetics%2F'+lockerRoute(category)+'%2F'+lockerSlug(name),sourceLabel:'View actual item on Locker.gg',real:true}));
 const STARTER_ITEMS=[
 {id:'golden-glow',name:'Golden Glow',category:'Profile effects',description:'A warm yellow glow for your profile.',icon:'✨',preview:'gold'},
 {id:'midnight',name:'Midnight Aura',category:'Profile effects',description:'A cool, cosmic purple aura.',icon:'🌌',preview:'purple'},
@@ -253,11 +284,11 @@ function ShopModal({userId,onClose,onInventoryChange}){
  function claim(item){const owned=inventory.owned||[],equipped=inventory.equipped||[];if(owned.includes(item.id)){let next;if(equipped.includes(item.id)){next=equipped.filter(id=>id!==item.id)}else{const sameSlot=item.category==='Emoji packs'?[]:SHOP_ITEMS.filter(x=>x.category===item.category).map(x=>x.id);next=[...equipped.filter(id=>!sameSlot.includes(id)),item.id]}save({...inventory,equipped:next});setToast(next.includes(item.id)?item.name+' equipped!':item.name+' unequipped.')}else{const sameSlot=item.category==='Emoji packs'?[]:SHOP_ITEMS.filter(x=>x.category===item.category).map(x=>x.id);save({...inventory,owned:[...new Set([...owned,item.id])],equipped:[...equipped.filter(id=>!sameSlot.includes(id)),item.id]});setToast(item.name+' added to your collection!')}}
  return <div className="modal-backdrop shop-backdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}><section className="shop-modal" role="dialog" aria-modal="true" aria-labelledby="shop-title">
  <button className="modal-close" onClick={onClose} aria-label="Close shop"><X size={20}/></button>
- <div className="shop-hero"><div className="shop-hero-icon"><ShoppingBag size={25}/></div><div><div className="shop-kicker">THE DEFGODQE COLLECTION</div><h2 id="shop-title">Shop</h2><p>Real Discord cosmetic listings plus defchat originals. Everything is free to claim here.</p></div><div className="shop-free-stamp"><Gift size={15}/> ALL FREE</div></div>
- <div className="shop-promo"><span className="shop-promo-art">✦</span><div><b>Everything unlocked by you</b><small>Real item names are credited to Locker.gg. Defchat claims are free and do not grant items on Discord.</small></div><span className="shop-promo-badge">FREE FOREVER</span></div>
+ <div className="shop-hero"><div className="shop-hero-icon"><ShoppingBag size={25}/></div><div><div className="shop-kicker">THE DEFGODQE COLLECTION</div><h2 id="shop-title">Shop</h2><p>Real Discord cosmetic catalog items from Locker.gg, alongside defchat originals.</p></div><div className="shop-free-stamp"><Gift size={15}/> ALL FREE</div></div>
+ <div className="shop-promo"><span className="shop-promo-art">✦</span><div><b>Everything unlocked by you</b><small>These are catalog listings, not Discord inventory. Claiming them customizes only your defchat profile.</small></div><span className="shop-promo-badge">FREE FOREVER</span></div>
  <div className="shop-toolbar"><div className="shop-tabs">{categories.map(c=><button key={c} className={category===c?'active':''} onClick={()=>setCategory(c)}>{c}</button>)}</div><label className="shop-search"><Search size={15}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Find an item…"/></label></div>
  <div className="shop-summary"><span>{items.length} items</span><span>✓ {inventory.owned?.length||0} collected</span></div>
- <div className="shop-grid">{items.map(item=>{const owned=(inventory.owned||[]).includes(item.id),equipped=(inventory.equipped||[]).includes(item.id);return <article className="shop-item" key={item.id}><div className={'shop-item-art art-'+item.preview}><span>{item.icon}</span><small>defchat</small></div><div className="shop-item-info"><div className="shop-item-category">{item.category}</div><h3>{item.name}</h3><p>{item.description}</p><div className="shop-item-bottom"><span className="free-price"><Gift size={13}/> Free</span><button className={equipped?'shop-equipped':owned?'shop-own':'shop-claim'} onClick={()=>claim(item)}>{equipped?'✓ Equipped':owned?'Equip':'+ Claim free'}</button></div>{item.real&&<a className="shop-source-link" href={item.sourceUrl} target="_blank" rel="noreferrer">Source: Locker.gg ↗</a>}</div></article>})}{!items.length&&<div className="shop-empty">No items match that search.</div>}</div>
+ <div className="shop-grid">{items.map(item=>{const owned=(inventory.owned||[]).includes(item.id),equipped=(inventory.equipped||[]).includes(item.id);return <article className="shop-item" key={item.id}><div className={'shop-item-art art-'+item.preview}><span>{item.icon}</span><small>defchat</small></div><div className="shop-item-info"><div className="shop-item-category">{item.category}</div><h3>{item.name}</h3><p>{item.description}</p><div className="shop-item-bottom"><span className="free-price"><Gift size={13}/> Free</span><button className={equipped?'shop-equipped':owned?'shop-own':'shop-claim'} onClick={()=>claim(item)}>{equipped?'✓ Equipped':owned?'Equip':'+ Claim free'}</button></div>{item.real&&<a className="shop-source-link" href={item.sourceUrl} target="_blank" rel="noreferrer">View actual item on Locker.gg ↗</a>}</div></article>})}{!items.length&&<div className="shop-empty">No items match that search.</div>}</div>
  <div className="shop-footer"><span>Fan-made collection • not affiliated with Discord or Locker.gg.</span><button onClick={onClose}>Done</button></div>
  {toast&&<div className="shop-toast" role="status">{toast}<button onClick={()=>setToast('')} aria-label="Dismiss"><X size={14}/></button></div>}
  </section></div>

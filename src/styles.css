@@ -165,3 +165,31 @@ footer b{color:#c6c9ce}
 .banner-preview{position:relative;overflow:hidden}.banner-crop-preview{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform-origin:center}.banner-preview span{position:relative;z-index:1}.crop-control{display:grid;grid-template-columns:100px minmax(0,1fr) 42px;align-items:center;gap:12px;margin:12px 0 0;color:#cfd2da;font-size:11px}.crop-control input[type=range]{width:100%;accent-color:#facc15}.crop-control small{text-align:right;color:#facc15;font-size:10px}
 
 .channel .unread-badge{display:grid;place-items:center;min-width:18px;height:18px;margin-left:auto;padding:0 5px;border-radius:10px;background:#f23f42;color:#fff;font-size:10px;font-weight:800;line-height:18px;flex-shrink:0}.channel .unread-badge{overflow:visible}
+
+
+/* Discord-style create-server flow */
+.create-server-backdrop{z-index:35;background:#08090cdb}
+.create-server-modal{position:relative;width:min(100%,510px);max-height:92dvh;overflow:auto;padding:30px;background:#313338;border:1px solid #484a52;border-radius:18px;box-shadow:0 28px 100px #0009}
+.create-server-heading{text-align:center;padding:4px 24px 23px}
+.create-server-mark{width:58px;height:58px;display:grid;place-items:center;margin:0 auto 15px;border-radius:18px;background:linear-gradient(135deg,#facc15,#eab308);color:#242424;box-shadow:0 8px 25px #facc1520}
+.create-server-heading h2{font:700 25px 'Space Grotesk';letter-spacing:-.5px;margin:0 0 9px;color:#f2f3f5}
+.create-server-heading p{font-size:13px;line-height:1.6;color:#b5bac1;margin:0}
+.create-server-templates{display:grid;gap:9px;margin-bottom:23px}
+.template-choice{width:100%;display:flex;align-items:center;gap:13px;padding:12px;border:1px solid #484a52;border-radius:12px;background:#2b2d31;color:#f2f3f5;text-align:left;transition:border-color .15s,background .15s,transform .15s}
+.template-choice:hover{background:#383a40;border-color:#777b85;transform:translateY(-1px)}
+.template-choice.chosen{border-color:#facc15;background:#3a3525;box-shadow:0 0 0 1px #facc1530}
+.template-art{width:48px;height:48px;display:grid;place-items:center;flex-shrink:0;border-radius:12px}
+.gaming-art{background:#43341d;color:#facc15}.friends-art{background:#263f4b;color:#72d4f2}.study-art{background:#39304d;color:#c5a7ff}
+.template-choice>span:nth-child(2){display:grid;gap:4px;flex:1;min-width:0}
+.template-choice b{font-size:13px}.template-choice small{font-size:11px;line-height:1.4;color:#b5bac1}
+.template-choice>svg{color:#949ba4;flex-shrink:0}
+.create-server-label{display:grid;gap:8px;font-size:10px;letter-spacing:.7px;font-weight:800;color:#b5bac1;margin-top:4px}
+.create-server-label input{width:100%;min-width:0;padding:12px 13px;border:1px solid #1e1f22;border-radius:8px;background:#1e1f22;color:#f2f3f5;font-size:13px;letter-spacing:0}
+.create-server-label input:focus{outline:none;border-color:#facc15;box-shadow:0 0 0 2px #facc1520}
+.create-server-hint{display:flex;align-items:center;gap:7px;color:#aeb3bc;font-size:11px;line-height:1.5;margin:12px 0 0}
+.create-server-hint svg{color:#facc15;flex-shrink:0}
+.create-server-actions{display:flex;justify-content:flex-end;align-items:center;gap:10px;border-top:1px solid #45474f;margin:23px -30px -30px;padding:18px 30px;background:#2b2d31;border-radius:0 0 18px 18px}
+.create-server-actions .primary{align-items:center;min-width:150px}
+.create-server-actions .primary:disabled{opacity:.55;cursor:not-allowed}
+.create-server-modal .modal-close:disabled{opacity:.5;cursor:wait}
+@media(max-width:520px){.create-server-backdrop{padding:10px;align-items:center}.create-server-modal{padding:23px 17px;border-radius:15px}.create-server-heading{padding:3px 15px 20px}.create-server-heading h2{font-size:22px}.template-choice{padding:10px;gap:10px}.template-art{width:42px;height:42px}.create-server-actions{margin:20px -17px -23px;padding:15px 17px}.create-server-actions .primary{min-width:0}}

@@ -1,0 +1,115 @@
+import React,{useEffect,useState} from 'react';
+import {X,Users,UserPlus,Check, XCircle, Shield, Bell, Phone, Video, Mic, MicOff, Headphones, MonitorUp, Settings2, Hash, VolumeX, Volume2, Search, LoaderCircle, Plus, Copy, UserRound, MessageCircle, Lock, Unlock, Save, Trash2} from 'lucide-react';
+
+export default function FeatureCenter({db,user,profile,server,onClose,onProfileSaved,onOpenDM,onRefreshServer}) {
+  const [tab,setTab]=useState('friends');
+  const [query,setQuery]=useState('');
+  const [notice,setNotice]=useState('');
+  const [error,setError]=useState('');
+  const [busy,setBusy]=useState(false);
+  const [requests,setRequests]=useState([]);
+  const [friends,setFriends]=useState([]);
+  const [blocks,setBlocks]=useState([]);
+  const [status,setStatus]=useState(profile?.status||'online');
+  const [bio,setBio]=useState(profile?.bio||'');
+  const [roles,setRoles]=useState([]);
+  const [members,setMembers]=useState([]);
+  const [channels,setChannels]=useState([]);
+  const [invites,setInvites]=useState([]);
+  const [channelName,setChannelName]=useState('');
+  const [channelType,setChannelType]=useState('text');
+  const [roleName,setRoleName]=useState('');
+  const [groupName,setGroupName]=useState('');
+  const [groupUsers,setGroupUsers]=useState('');
+  const [muteAll,setMuteAll]=useState(false);
+  const [micOn,setMicOn]=useState(false);
+  const [deafened,setDeafened]=useState(false);
+  const [cameraOn,setCameraOn]=useState(false);
+  const [screenOn,setScreenOn]=useState(false);
+  const [mediaStream,setMediaStream]=useState(null);
+  const [screenStream,setScreenStream]=useState(null);
+
+  useEffect(()=>{loadSocial();if(server)loadServer();return()=>{mediaStream?.getTracks().forEach(t=>t.stop());screenStream?.getTracks().forEach(t=>t.stop())}},[user?.id,server?.id]);
+  async function loadSocial(){
+    if(!user)return;
+    const [{data:req,error:re},{data:bl,error:be}]=await Promise.all([
+      db.from('friend_requests').select('*').or('sender_id.eq.'+user.id+',receiver_id.eq.'+user.id).order('created_at',{ascending:false}),
+      db.from('user_blocks').select('blocked_id').eq('blocker_id',user.id)
+    ]);
+    if(re)setError(re.message); if(be&&!be.message.includes('user_blocks'))setError(be.message);
+    const raw=req||[];const ids=[...new Set(raw.flatMap(r=>[r.sender_id,r.receiver_id]).filter(id=>id!==user.id))];
+    let people={};if(ids.length){const {data:p}=await db.from('profiles').select('id,username,avatar_url,status,bio').in('id',ids);people=Object.fromEntries((p||[]).map(x=>[x.id,x]))}
+    setRequests(raw.filter(r=>r.status==='pending').map(r=>({...r,person:people[r.sender_id===user.id?r.receiver_id:r.sender_id]})));
+    setFriends(raw.filter(r=>r.status==='accepted').map(r=>({...r,person:people[r.sender_id===user.id?r.receiver_id:r.sender_id]})).filter(r=>r.person));
+    setBlocks((bl||[]).map(b=>({...b,person:people[b.blocked_id]})));
+  }
+  async function loadServer(){
+    if(!server)return;
+    const [{data:c,error:ce},{data:r,error:re},{data:m,error:me},{data:i,error:ie}]=await Promise.all([
+      db.from('channels').select('*').eq('server_id',server.id).order('created_at'),
+      db.from('server_roles').select('*').eq('server_id',server.id).order('created_at'),
+      db.from('server_members').select('user_id,role,joined_at').eq('server_id',server.id),
+      db.from('server_invites').select('*').eq('server_id',server.id).order('created_at',{ascending:false}).limit(8)
+    ]);
+    if(ce)setError(ce.message);if(re&&!re.message.includes('server_roles'))setError(re.message);if(me)setError(me.message);if(ie&&!ie.message.includes('server_invites'))setError(ie.message);
+    setChannels(c||[]);setRoles(r||[]);
+    const ids=(m||[]).map(x=>x.user_id);let people={};if(ids.length){const {data:p}=await db.from('profiles').select('id,username,avatar_url,status').in('id',ids);people=Object.fromEntries((p||[]).map(x=>[x.id,x]))}
+    setMembers((m||[]).map(x=>({...x,person:people[x.user_id]})));setInvites(i||[]);
+  }
+  async function addFriend(){
+    setError('');setNotice('');const name=query.trim();if(!name){setError('Enter a username first.');return}
+    setBusy(true);try{
+      const {data:p,error:e}=await db.from('profiles').select('id,username').ilike('username',name).maybeSingle();if(e)throw e;if(!p)throw new Error('No user found with that username.');if(p.id===user.id)throw new Error('You cannot add yourself.');
+      const {data:existing,error:ee}=await db.from('friend_requests').select('id,status,sender_id,receiver_id').or('and(sender_id.eq.'+user.id+',receiver_id.eq.'+p.id+'),and(sender_id.eq.'+p.id+',receiver_id.eq.'+user.id+')').maybeSingle();if(ee)throw ee;
+      if(existing){if(existing.status==='accepted'){setNotice('You are already friends.');return}if(existing.status==='pending'){setNotice(existing.receiver_id===user.id?'They already sent you a request.':'A request is already pending.');return}}
+      const {error:se}=await db.from('friend_requests').insert({sender_id:user.id,receiver_id:p.id,status:'pending'});if(se)throw se;setNotice('Friend request sent to @'+p.username+'.');setQuery('');await loadSocial();
+    }catch(e){setError(e.message||'Could not send friend request.')}finally{setBusy(false)}
+  }
+  async function respond(req,statusValue){const {error:e}=await db.from('friend_requests').update({status:statusValue,updated_at:new Date().toISOString()}).eq('id',req.id).eq('receiver_id',user.id);if(e)setError(e.message);else{setNotice(statusValue==='accepted'?'Friend request accepted.':'Request declined.');await loadSocial()}}
+  async function blockUser(person){if(!person)return;const {error:e}=await db.from('user_blocks').insert({blocker_id:user.id,blocked_id:person.id});if(e)setError(e.message);else{setNotice('User blocked.');await loadSocial()}}
+  async function unblockUser(person){const {error:e}=await db.from('user_blocks').delete().eq('blocker_id',user.id).eq('blocked_id',person.id);if(e)setError(e.message);else{setNotice('User unblocked.');await loadSocial()}}
+  async function saveProfile(){const {data,error:e}=await db.from('profiles').update({bio:bio.trim().slice(0,190),status}).eq('id',user.id).select().single();if(e)setError(e.message);else{onProfileSaved?.(data);setNotice('Profile settings saved.')}}
+  async function createChannel(){
+    const name=channelName.trim().toLowerCase().replace(/[^a-z0-9-]/g,'-').slice(0,40);if(!name||!server)return;
+    const {data,error:e}=await db.from('channels').insert({server_id:server.id,name,type:channelType,is_private:false,topic:''}).select().single();
+    if(e)setError(e.message);else{setChannelName('');setNotice('Channel created.');await loadServer();onRefreshServer?.(data)}
+  }
+  async function togglePrivate(c){const {error:e}=await db.from('channels').update({is_private:!c.is_private}).eq('id',c.id);if(e)setError(e.message);else{setNotice(c.is_private?'Channel made visible.':'Channel marked private.');await loadServer()}}
+  async function saveTopic(c,topic){const {error:e}=await db.from('channels').update({topic:topic.slice(0,180)}).eq('id',c.id);if(e)setError(e.message);else{setNotice('Channel topic saved.');await loadServer()}}
+  async function createRole(){if(!roleName.trim()||!server)return;const {error:e}=await db.from('server_roles').insert({server_id:server.id,name:roleName.trim().slice(0,40),color:'#facc15',permissions:{}});if(e)setError(e.message);else{setRoleName('');setNotice('Role created.');await loadServer()}}
+  async function setMemberRole(member,role){const {error:e}=await db.from('server_members').update({role}).eq('server_id',server.id).eq('user_id',member.user_id);if(e)setError(e.message);else{setNotice('Member role updated.');await loadServer()}}
+  async function makeInvite(){if(!server)return;const {data,error:e}=await db.from('server_invites').insert({server_id:server.id,created_by:user.id}).select('code').single();if(e)setError(e.message);else{const link=window.location.origin+'/invite/'+data.code;try{await navigator.clipboard.writeText(link);setNotice('Invite link copied: '+link)}catch{setNotice('Invite code: '+data.code)}await loadServer()}}
+  async function createGroup(){
+    const names=[...new Set(groupUsers.split(',').map(s=>s.trim()).filter(Boolean))];if(names.length<2){setError('Enter at least two usernames separated by commas for a group DM.');return}
+    setBusy(true);setError('');try{
+      const {data:people,error:e}=await db.from('profiles').select('id,username').in('username',names);if(e)throw e;
+      const found=people||[];const missing=names.filter(n=>!found.some(p=>p.username.toLowerCase()===n.toLowerCase()));if(missing.length)throw new Error('Could not find: '+missing.join(', '));
+      const {data:conv,error:ce}=await db.from('dm_conversations').insert({name:groupName.trim().slice(0,60)||null,is_group:true}).select('id').single();if(ce)throw ce;
+      const members=[user.id,...found.filter(p=>p.id!==user.id).map(p=>p.id)];const {error:me}=await db.from('dm_members').insert(members.map(user_id=>({conversation_id:conv.id,user_id})));if(me)throw me;
+      setNotice('Group DM created. Refresh your conversations to open it.');setGroupUsers('');setGroupName('');onOpenDM?.({id:conv.id,username:groupName.trim()||'Group conversation',is_group:true});setTab('friends');
+    }catch(e){setError(e.message||'Could not create group DM.')}finally{setBusy(false)}
+  }
+  async function toggleMic(){if(micOn){mediaStream?.getTracks().forEach(t=>t.stop());setMediaStream(null);setMicOn(false);return}try{const s=await navigator.mediaDevices.getUserMedia({audio:true});setMediaStream(s);setMicOn(true);setNotice('Microphone permission granted on this device.')}catch(e){setError(e.message||'Microphone permission was denied.')}}
+  async function toggleScreen(){if(screenOn){screenStream?.getTracks().forEach(t=>t.stop());setScreenStream(null);setScreenOn(false);return}try{const s=await navigator.mediaDevices.getDisplayMedia({video:true});setScreenStream(s);setScreenOn(true);s.getVideoTracks()[0].addEventListener('ended',()=>{setScreenStream(null);setScreenOn(false)})}catch(e){setError(e.message||'Screen sharing was cancelled.')}}
+  const incoming=requests.filter(r=>r.receiver_id===user.id),outgoing=requests.filter(r=>r.sender_id===user.id);
+  return <div className="modal-backdrop feature-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}>
+    <section className="feature-modal" role="dialog" aria-modal="true" aria-label="defchat feature center">
+      <aside className="feature-nav"><div className="feature-brand"><span className="logo mini">d<span>.</span></span><div><b>defchat</b><small>Control center</small></div></div>
+        {[['friends',Users,'Friends'],['groups',MessageCircle,'Group DMs'],['server',Shield,'Server settings'],['inbox',Bell,'Inbox & alerts'],['voice',Phone,'Voice & video'],['settings',Settings2,'Account settings']].map(([id,Icon,label])=><button key={id} className={tab===id?'selected':''} onClick={()=>{setTab(id);setNotice('');setError('')}}><Icon size={17}/>{label}{id==='friends'&&incoming.length>0&&<i>{incoming.length}</i>}</button>)}
+        <div className="feature-nav-bottom"><small>Free features for your community</small><button onClick={onClose}><X size={16}/> Close</button></div>
+      </aside>
+      <main className="feature-content"><header><div><small>DEFGODQE / SETTINGS</small><h2>{({friends:'Friends & requests',groups:'Group messages',server:'Community settings',inbox:'Inbox & notifications',voice:'Voice & video',settings:'Account settings'})[tab]}</h2></div><button className="modal-close" onClick={onClose}><X size={19}/></button></header>
+        <div className="feature-scroll">
+        {error&&<div className="notice error-notice">{error}</div>}{notice&&<div className="notice success-notice">{notice}</div>}
+        {tab==='friends'&&<><div className="feature-card"><h3><UserPlus size={17}/> Add a friend</h3><p>Use their exact defchat username. Friend requests are free.</p><div className="feature-inline"><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Enter username"/><button className="primary" onClick={addFriend} disabled={busy}>{busy?<LoaderCircle size={16} className="spin"/>:<UserPlus size={16}/>} Send request</button></div></div><div className="feature-card"><h3>Incoming requests <span className="feature-count">{incoming.length}</span></h3>{incoming.length?incoming.map(r=><div className="feature-person" key={r.id}><div className="feature-person-main"><div className="feature-avatar">{(r.person?.username||'?').slice(0,2).toUpperCase()}</div><div><b>{r.person?.username||'Unknown user'}</b><small>Wants to connect</small></div></div><button title="Accept" onClick={()=>respond(r,'accepted')}><Check size={17}/></button><button title="Decline" onClick={()=>respond(r,'declined')}><XCircle size={17}/></button></div>):<p className="feature-empty">You’re all caught up.</p>}</div><div className="feature-card"><h3>Friends <span className="feature-count">{friends.length}</span></h3>{friends.length?friends.map(r=><div className="feature-person" key={r.id}><div className="feature-person-main"><div className="feature-avatar">{(r.person?.username||'?').slice(0,2).toUpperCase()}</div><div><b>{r.person?.username||'Friend'}</b><small>{r.person?.status||'online'}</small></div></div><button title="Message" onClick={()=>onOpenDM?.(r.person)}><MessageCircle size={17}/></button><button title="Block" onClick={()=>blockUser(r.person)}><UserMinusIcon/></button></div>):<p className="feature-empty">Friends you accept will appear here.</p>}</div><div className="feature-card"><h3>Blocked users</h3>{blocks.map(b=><div className="feature-person" key={b.blocked_id}><div className="feature-person-main"><div className="feature-avatar">{(b.person?.username||'?').slice(0,2).toUpperCase()}</div><b>{b.person?.username||'Blocked user'}</b></div><button onClick={()=>unblockUser(b.person)}><Unlock size={16}/> Unblock</button></div>)}{!blocks.length&&<p className="feature-empty">No blocked users.</p>}</div></>}
+        {tab==='groups'&&<><div className="feature-card"><h3><Users size={17}/> Create a group DM</h3><p>Start a private group conversation with two or more people. Separate usernames with commas.</p><label>Group name (optional)<input value={groupName} onChange={e=>setGroupName(e.target.value)} maxLength={60} placeholder="Weekend squad"/></label><label>Members<input value={groupUsers} onChange={e=>setGroupUsers(e.target.value)} placeholder="alex, sam, gamer123"/></label><button className="primary" onClick={createGroup} disabled={busy}>{busy?<LoaderCircle size={16} className="spin"/>:<Plus size={16}/>} Create group DM</button></div><div className="feature-card"><h3>What group chats include</h3><div className="feature-checklist"><span><Check/> Private messages</span><span><Check/> Image attachments</span><span><Check/> Message editing and deletion</span><span><Check/> Reactions and emoji</span></div></div></>}
+        {tab==='server'&&<>{!server?<p className="feature-empty">Choose a community first.</p>:<><div className="feature-card"><h3><Hash size={17}/> Channels in {server.name}</h3><div className="feature-inline"><input value={channelName} onChange={e=>setChannelName(e.target.value)} placeholder="new-channel"/><select value={channelType} onChange={e=>setChannelType(e.target.value)}><option value="text">Text channel</option><option value="voice">Voice channel</option></select><button className="primary" onClick={createChannel}><Plus size={16}/> Add</button></div>{channels.map(c=><div className="feature-channel" key={c.id}><div><b>{c.type==='voice'?'◖ ))':'#'} {c.name}</b><small>{c.topic|| (c.is_private?'Private channel':'Visible to members')}</small></div><button title="Toggle private" onClick={()=>togglePrivate(c)}>{c.is_private?<Lock size={16}/>:<Unlock size={16}/>}</button><button title="Edit topic" onClick={()=>{const topic=window.prompt('Channel topic',c.topic||'');if(topic!==null)saveTopic(c,topic)}}><Settings2 size={16}/></button></div>)}</div><div className="feature-card"><h3><Shield size={17}/> Roles & member permissions</h3><div className="feature-inline"><input value={roleName} onChange={e=>setRoleName(e.target.value)} placeholder="Role name (e.g. Moderator)"/><button className="primary" onClick={createRole}><Plus size={16}/> Create role</button></div>{roles.map(r=><div className="feature-channel" key={r.id}><div><b style={{color:r.color}}>{r.name}</b><small>Community role</small></div><span className="role-chip">Custom</span></div>)}<p className="feature-muted">Member assignments</p>{members.map(m=><div className="feature-person" key={m.user_id}><div className="feature-person-main"><div className="feature-avatar">{(m.person?.username||'?').slice(0,2).toUpperCase()}</div><div><b>{m.person?.username||'Member'}</b><small>Joined {new Date(m.joined_at).toLocaleDateString()}</small></div></div><select value={m.role||'member'} onChange={e=>setMemberRole(m,e.target.value)}><option value="member">Member</option><option value="moderator">Moderator</option><option value="admin">Admin</option><option value="owner">Owner</option></select></div>)}</div><div className="feature-card"><h3><UserPlus size={17}/> Invite people</h3><p>Generate a community invite code and copy it to share.</p><button className="primary" onClick={makeInvite}><Copy size={16}/> Create invite link</button>{invites.slice(0,4).map(i=><div className="feature-channel" key={i.id}><div><b>{i.code}</b><small>Created {new Date(i.created_at).toLocaleDateString()} · {i.uses||0} uses</small></div><button onClick={()=>navigator.clipboard?.writeText(window.location.origin+'/invite/'+i.code).then(()=>setNotice('Invite copied.')).catch(()=>setNotice('Invite code: '+i.code))}><Copy size={16}/></button></div>)}</div></>}</>}
+        {tab==='inbox'&&<><div className="feature-card"><h3><Bell size={17}/> Notification preferences</h3><p>Manage the alerts shown in this workspace.</p><div className="setting-row"><div><b>Mute all notifications</b><small>Silence badges and alert sounds on this device.</small></div><button className={muteAll?'toggle on':'toggle'} onClick={()=>setMuteAll(v=>!v)} aria-pressed={muteAll}><i/></button></div><div className="setting-row"><div><b>Unread message tracking</b><small>Unread badges appear on conversations when enabled.</small></div><span className="role-chip">Enabled</span></div><div className="setting-row"><div><b>Desktop notifications</b><small>Allow browser notifications for new messages.</small></div><button className="secondary-button" onClick={async()=>{if(!('Notification'in window)){setError('This browser does not support notifications.');return}const p=await Notification.requestPermission();setNotice('Browser notification permission: '+p)}}>Enable</button></div></div><div className="feature-card"><h3>Recent conversations</h3><p>Open a DM to catch up on messages.</p><button className="secondary-button" onClick={()=>{onClose();onOpenDM?.(null)}}><MessageCircle size={16}/> Go to messages</button></div></>}
+        {tab==='voice'&&<><div className="feature-card"><h3><Phone size={17}/> Voice & video controls</h3><p>Device permissions and controls are available here. Live multi-user calling needs the realtime call transport to be connected.</p><div className="voice-grid"><button className={micOn?'voice-tile active':'voice-tile'} onClick={toggleMic}>{micOn?<Mic size={22}/>:<MicOff size={22}/>}<b>{micOn?'Microphone on':'Turn on microphone'}</b><small>{micOn?'Browser has microphone access':'Local device permission'}</small></button><button className={deafened?'voice-tile active':'voice-tile'} onClick={()=>setDeafened(v=>!v)}>{deafened?<VolumeX size={22}/>:<Headphones size={22}/>}<b>{deafened?'Deafened':'Deafen'}</b><small>Mute incoming audio</small></button><button className={cameraOn?'voice-tile active':'voice-tile'} onClick={()=>setCameraOn(v=>!v)}>{cameraOn?<Video size={22}/>:<Camera size={22}/>}<b>{cameraOn?'Camera enabled':'Camera'}</b><small>Preview control</small></button><button className={screenOn?'voice-tile active':'voice-tile'} onClick={toggleScreen}>{screenOn?<MonitorUp size={22}/>:<MonitorUp size={22}/>}<b>{screenOn?'Stop screen share':'Share screen'}</b><small>{screenOn?'Sharing locally':'Choose a window or screen'}</small></button></div>{screenStream&&<video className="screen-preview" autoPlay muted playsInline ref={el=>{if(el&&el.srcObject!==screenStream)el.srcObject=screenStream}}/>}<div className="voice-notice">Voice/video controls are ready in the UI. Real multi-person audio/video calls and remote screen sharing are not yet connected to a WebRTC room.</div></div></>}
+        {tab==='settings'&&<><div className="feature-card"><h3><Settings2 size={17}/> Profile & presence</h3><label>About me<textarea value={bio} onChange={e=>setBio(e.target.value.slice(0,190))} maxLength={190} placeholder="Tell people a little about yourself…"/></label><small className="feature-muted">{bio.length}/190 characters</small><label>Presence<select value={status} onChange={e=>setStatus(e.target.value)}><option value="online">Online</option><option value="idle">Idle</option><option value="dnd">Do not disturb</option><option value="invisible">Invisible</option></select></label><button className="primary" onClick={saveProfile}><Save size={16}/> Save account settings</button></div><div className="feature-card"><h3>Free customization</h3><p>Animated profile pictures, banners, bio and community emoji are free. Use Profile Settings to crop and zoom profile media.</p><button className="secondary-button" onClick={()=>{onClose();window.dispatchEvent(new CustomEvent('defchat:open-profile'))}}>Open profile editor</button></div><div className="feature-card"><h3>Account</h3><p>Signed in as {user.email||profile?.username||'your account'}.</p><button className="secondary-button" onClick={async()=>{await db.auth.signOut();onClose()}}>Sign out</button></div></>}
+        </div>
+      </main>
+    </section>
+  </div>;
+}
+function UserMinusIcon(){return <UserRound size={16}/>}

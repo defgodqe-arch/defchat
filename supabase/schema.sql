@@ -98,3 +98,18 @@ create policy "Server members can react to messages" on public.message_reactions
 drop policy if exists "Users can remove their reactions" on public.message_reactions;
 create policy "Users can remove their reactions" on public.message_reactions for delete to authenticated using(user_id=(select auth.uid()));
 do $$ begin if not exists(select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='dm_messages') then alter publication supabase_realtime add table public.dm_messages; end if; end $$;
+
+
+-- Free animated profile pictures and banners.
+alter table public.profiles add column if not exists banner_url text;
+insert into storage.buckets (id,name,public,file_size_limit,allowed_mime_types)
+values ('profile-media','profile-media',true,8388608,array['image/png','image/jpeg','image/webp','image/gif'])
+on conflict (id) do update set public=true,file_size_limit=8388608,allowed_mime_types=array['image/png','image/jpeg','image/webp','image/gif'];
+drop policy if exists "Public profile media read" on storage.objects;
+create policy "Public profile media read" on storage.objects for select to public using (bucket_id='profile-media');
+drop policy if exists "Users upload own profile media" on storage.objects;
+create policy "Users upload own profile media" on storage.objects for insert to authenticated with check (bucket_id='profile-media' and (storage.foldername(name))[1]=(select auth.uid())::text);
+drop policy if exists "Users update own profile media" on storage.objects;
+create policy "Users update own profile media" on storage.objects for update to authenticated using (bucket_id='profile-media' and (storage.foldername(name))[1]=(select auth.uid())::text) with check (bucket_id='profile-media' and (storage.foldername(name))[1]=(select auth.uid())::text);
+drop policy if exists "Users delete own profile media" on storage.objects;
+create policy "Users delete own profile media" on storage.objects for delete to authenticated using (bucket_id='profile-media' and (storage.foldername(name))[1]=(select auth.uid())::text);

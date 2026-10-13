@@ -1,0 +1,13 @@
+{
+  "id": "./",
+  "name": "defchat",
+  "short_name": "defchat",
+  "description": "Your communities, messages, and friends in one place.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#111318",
+  "theme_color": "#111318",
+  "icons": [{"src":"./icons/defchat.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}

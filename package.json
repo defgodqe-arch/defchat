@@ -1,6 +1,7 @@
 {
-  "name": "defgodqe",
-  "version": "0.1.0",
+  "name": "defchat",
+  "productName": "defchat",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "main": "electron.cjs",
@@ -8,7 +9,11 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview",
-    "desktop": "electron ."
+    "desktop": "electron .",
+    "desktop:package": "vite build --base=./ && electron-builder --publish never",
+    "desktop:win": "vite build --base=./ && electron-builder --win nsis --publish never",
+    "desktop:mac": "vite build --base=./ && electron-builder --mac dmg --publish never",
+    "desktop:linux": "vite build --base=./ && electron-builder --linux AppImage --publish never"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.0",
@@ -19,6 +24,44 @@
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",
     "electron": "^33.2.1",
+    "electron-builder": "^26.0.12",
     "vite": "^6.0.5"
+  },
+  "build": {
+    "appId": "gg.defgodqe.defchat",
+    "productName": "defchat",
+    "asar": true,
+    "files": [
+      "dist/**/*",
+      "electron.cjs",
+      "package.json"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "artifactName": "defchat-${version}-${os}-${arch}.${ext}",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "defchat"
+    },
+    "mac": {
+      "target": ["dmg"],
+      "category": "public.app-category.social-networking"
+    },
+    "linux": {
+      "target": ["AppImage"],
+      "category": "Network;InstantMessaging;"
+    }
   }
 }

@@ -8,7 +8,7 @@ const key=import.meta.env.VITE_SUPABASE_ANON_KEY||'sb_publishable_MMXxKZkJT0H7-o
 const db=createClient(url,key);
 const initials=n=>(n||'?').slice(0,2).toUpperCase();
 const color=n=>['#eab308','#8b5cf6','#06b6d4','#f97316','#ec4899'][[...(n||'')].reduce((a,c)=>a+c.charCodeAt(0),0)%5];
-function Avatar({name,url,className=''}){return <div className={'avatar '+className} style={!url?{background:color(name)}:undefined}>{url?<img src={url} alt={`${name||'User'} avatar`}/>:initials(name)}</div>}
+function Avatar({name,url,className='',zoom=1}){return <div className={'avatar '+className} style={!url?{background:color(name)}:undefined}>{url?<img src={url} style={{transform:'scale('+zoom+')'}} alt={`${name||'User'} avatar`}/>:initials(name)}</div>}
 function messageParts(text,items){return (text||'').split(/(:[A-Za-z0-9_]{2,32}:)/g).map((s,i)=>{const n=s.match(/^:([A-Za-z0-9_]{2,32}):$/);const found=n&&items.find(x=>x.name===n[1]);return found?<img key={i} className="inline-custom-emoji" src={found.image_url} alt={found.name}/>:s})}
 function Auth({done}) {
   const [savedDraft] = useState(() => {
@@ -143,16 +143,22 @@ function Auth({done}) {
 
 
 function ProfileSettings({profile,username,userId,onClose,onSaved}) {
-  const [avatar,setAvatar]=useState(null),[banner,setBanner]=useState(null),[bio,setBio]=useState(profile?.bio||''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
+  const [avatar,setAvatar]=useState(null),[banner,setBanner]=useState(null),[avatarZoom,setAvatarZoom]=useState(1),[bannerZoom,setBannerZoom]=useState(1),[bio,setBio]=useState(profile?.bio||''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
   const avatarPreview=avatar?URL.createObjectURL(avatar):profile?.avatar_url;
   const bannerPreview=banner?URL.createObjectURL(banner):profile?.banner_url;
+  async function cropImage(file,kind,zoom){
+    if(file.type==='image/gif'||zoom===1)return file;
+    const imageUrl=URL.createObjectURL(file);
+    try{return await new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>{const width=kind==='avatar'?512:1500,height=kind==='avatar'?512:500,canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;const scale=Math.max(width/img.width,height/img.height)*zoom;const w=img.width*scale,h=img.height*scale;canvas.getContext('2d').drawImage(img,(width-w)/2,(height-h)/2,w,h);canvas.toBlob(blob=>{if(!blob){reject(new Error('Could not crop this image.'));return}resolve(new File([blob],kind+'-cropped.png',{type:'image/png'}))},'image/png')};img.onerror=()=>reject(new Error('Could not read this image.'));img.src=imageUrl})}finally{URL.revokeObjectURL(imageUrl)}
+  }
   async function save(){
     if(!avatar&&!banner&&bio===(profile?.bio||'')){setError('Make a change before saving.');return}
     setBusy(true);setError('');setNotice('');
     try{
       const patch={bio:bio.trim().slice(0,190)};
-      for(const [kind,file] of [['avatar',avatar],['banner',banner]]){
-        if(!file)continue;
+      for(const [kind,original] of [['avatar',avatar],['banner',banner]]){
+        if(!original)continue;
+        const file=await cropImage(original,kind,kind==='avatar'?avatarZoom:bannerZoom);
         if(!['image/png','image/jpeg','image/webp','image/gif'].includes(file.type))throw new Error('Use a PNG, JPG, WebP, or GIF image.');
         const max=kind==='avatar'?5:8;
         if(file.size>max*1024*1024)throw new Error(kind==='avatar'?'Avatar must be 5 MB or smaller.':'Banner must be 8 MB or smaller.');
@@ -165,7 +171,7 @@ function ProfileSettings({profile,username,userId,onClose,onSaved}) {
       }
       const {data,error:saveError}=await db.from('profiles').update(patch).eq('id',userId).select().single();
       if(saveError)throw saveError;
-      onSaved(data);setNotice('Your profile customization is saved!');setAvatar(null);setBanner(null);
+      onSaved(data);setNotice('Your profile customization is saved!');setAvatar(null);setBanner(null);setAvatarZoom(1);setBannerZoom(1);
     }catch(e){setError(e.message||'Could not save your profile images.')}
     finally{setBusy(false)}
   }
@@ -174,9 +180,11 @@ function ProfileSettings({profile,username,userId,onClose,onSaved}) {
       <button className="modal-close" onClick={onClose} aria-label="Close settings"><X size={20}/></button>
       <div className="profile-modal-heading"><span className="settings-icon"><Camera size={20}/></span><div><h2 id="profile-settings-title">Customize your profile</h2><p>Make your defchat profile yours — all for free.</p></div></div>
       <div className="profile-preview">
-        <div className="banner-preview" style={bannerPreview?{backgroundImage:'url("'+bannerPreview+'")'}:undefined}>{!bannerPreview&&<span><ImagePlus size={20}/> Your profile banner</span>}</div>
-        <Avatar name={username} url={avatarPreview} className="preview-avatar"/>
+        <div className="banner-preview">{bannerPreview?<img className="banner-crop-preview" src={bannerPreview} style={{transform:'scale('+bannerZoom+')'}} alt="Banner crop preview"/>:<span><ImagePlus size={20}/> Your profile banner</span>}</div>
+        <Avatar name={username} url={avatarPreview} className="preview-avatar" zoom={avatarZoom}/>
         <div className="preview-name">{username}<small>Preview</small></div>
+        {avatar&&avatar.type!=='image/gif'&&<label className="crop-control">Avatar zoom <input type="range" min="1" max="2.2" step="0.05" value={avatarZoom} onChange={e=>setAvatarZoom(Number(e.target.value))}/><small>{Math.round(avatarZoom*100)}%</small></label>}
+        {banner&&banner.type!=='image/gif'&&<label className="crop-control">Banner zoom <input type="range" min="1" max="2.2" step="0.05" value={bannerZoom} onChange={e=>setBannerZoom(Number(e.target.value))}/><small>{Math.round(bannerZoom*100)}%</small></label>}
       </div>
       <label className="bio-field">About me <textarea value={bio} onChange={e=>setBio(e.target.value.slice(0,190))} maxLength={190} placeholder="A little about yourself…"/><small>{bio.length}/190 characters</small></label>
       <div className="upload-options">

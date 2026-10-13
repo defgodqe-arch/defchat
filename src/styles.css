@@ -10,3 +10,29 @@
 .dm-welcome>div{background:transparent;width:auto;height:auto;display:flex}
 .inline-primary{display:inline-flex;margin-top:14px;border:0;align-items:center}
 @media(max-width:700px){.rail-action{width:40px;height:40px}}
+
+/* Authentication polish */
+.auth-card{max-width:440px}
+.google-button{width:100%;min-height:45px;display:flex;align-items:center;justify-content:center;gap:11px;border:1px solid #41434d;border-radius:9px;background:#f8f8f8;color:#24252a;font-size:13px;font-weight:700;transition:background .15s,border-color .15s}
+.google-button:hover:not(:disabled){background:#fff;border-color:#777}
+.google-button:disabled{opacity:.65;cursor:wait}
+.auth-divider{display:flex;align-items:center;gap:12px;color:#777d8a;font-size:11px;margin:19px 0}
+.auth-divider:before,.auth-divider:after{content:"";height:1px;background:#343741;flex:1}
+.auth form{gap:13px}
+.auth label{gap:7px}
+.auth input{width:100%;transition:border-color .15s,box-shadow .15s}
+.auth input:focus{outline:none;border-color:#eab308;box-shadow:0 0 0 3px #eab30820}
+.auth input::placeholder{color:#686d7a}
+.field-hint{font-size:10px;color:#777d8a;font-weight:400}
+.password-wrap{position:relative;display:flex;align-items:center}
+.password-wrap input{padding-right:60px}
+.password-toggle{position:absolute;right:9px;border:0;background:transparent;color:#eab308;font-size:11px;font-weight:700;padding:7px}
+.forgot-link{justify-self:end;border:0;background:transparent;color:#eab308;font-size:11px;padding:0;text-align:right}
+.forgot-link:disabled{opacity:.6}
+.auth-submit{width:100%;min-height:44px;margin-top:3px;align-items:center;transition:filter .15s,transform .15s}
+.auth-submit:hover:not(:disabled){filter:brightness(1.08)}
+.auth-submit:disabled{opacity:.7;cursor:wait}
+.error-notice{background:#49252a;color:#ffc5cb}
+.success-notice{background:#183b2c;color:#a9f2c7}
+.auth-legal{margin-top:18px;text-align:center;color:#737987;font-size:10px;line-height:1.6}
+@media(max-width:520px){.auth{padding:14px}.auth-card{padding:25px 19px}.auth-card h1{font-size:27px}}

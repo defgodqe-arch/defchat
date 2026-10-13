@@ -56,3 +56,10 @@ For web hosting, run `npm run build` and deploy the `dist/` folder. The current 
 ## Current limitations
 
 This is a working text-chat MVP, not a full Discord clone. Voice/video, file uploads, push notifications, full server-role management UI, friend-request UI, invite links, and a signed Windows installer are not included yet.
+
+
+## Free animated profile pictures and banners
+
+Signed-in users can click their profile area in the lower-left corner to upload a profile picture and banner. Animated GIFs are supported at no subscription cost. Accepted formats are PNG, JPG, WebP, and GIF; profile pictures are limited to 5 MB and banners to 8 MB. Supabase Storage uses the public `profile-media` bucket for displaying images, while upload permissions restrict each user to their own folder.
+
+If setting up a fresh Supabase project, run the complete `supabase/schema.sql` script in the SQL Editor to create the profile banner column, storage bucket, and storage access policies.

@@ -35,7 +35,7 @@ The hosted site has an installable app manifest and standalone display mode. And
 ## Supabase configuration
 The app uses the defgodqe Supabase project with its public/publishable key. Never put a Supabase secret or service-role key in frontend code.
 
-To use another Supabase project, configure `.env` using `.env.example`. For a fresh project, run `supabase/schema.sql` in the Supabase SQL Editor. Google sign-in requires valid OAuth credentials and matching Supabase redirect URLs.
+To use another Supabase project, configure `.env` using `.env.example`. For a fresh project, run `supabase/schema.sql` in the Supabase SQL Editor. To add the Phase 1 feature tables (message threads, pins, polls, scheduled events and RSVPs) to an existing setup, run `supabase/discord_features_phase1.sql` after the base schema. This migration adds membership-aware row-level security policies; the new features still need their UI integrations before they appear in the app. Google sign-in requires valid OAuth credentials and matching Supabase redirect URLs.
 
 ## Packaging
 - Windows installer: `npm run desktop:win`

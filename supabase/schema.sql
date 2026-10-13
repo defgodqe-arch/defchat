@@ -113,3 +113,129 @@ drop policy if exists "Users update own profile media" on storage.objects;
 create policy "Users update own profile media" on storage.objects for update to authenticated using (bucket_id='profile-media' and (storage.foldername(name))[1]=(select auth.uid())::text) with check (bucket_id='profile-media' and (storage.foldername(name))[1]=(select auth.uid())::text);
 drop policy if exists "Users delete own profile media" on storage.objects;
 create policy "Users delete own profile media" on storage.objects for delete to authenticated using (bucket_id='profile-media' and (storage.foldername(name))[1]=(select auth.uid())::text);
+
+
+-- Yapper-inspired features for defchat: bios, free custom emoji, media, friend requests,
+-- group conversations, server invitations, roles, private channels, and voice signaling.
+alter table public.profiles add column if not exists bio text not null default '' check(char_length(bio)<=190);
+alter table public.profiles add column if not exists status text not null default 'online' check(status in('online','idle','dnd','invisible'));
+alter table public.channels drop constraint if exists channels_type_check;
+alter table public.channels add constraint channels_type_check check(type in('text','voice'));
+alter table public.channels add column if not exists is_private boolean not null default false;
+alter table public.channels add column if not exists topic text not null default '' check(char_length(topic)<=180);
+alter table public.messages add column if not exists reply_to uuid references public.messages(id) on delete set null;
+alter table public.messages add column if not exists attachment_url text;
+alter table public.messages add column if not exists attachment_name text;
+alter table public.messages add column if not exists attachment_type text;
+alter table public.dm_messages add column if not exists reply_to uuid references public.dm_messages(id) on delete set null;
+alter table public.dm_messages add column if not exists attachment_url text;
+alter table public.dm_messages add column if not exists attachment_name text;
+alter table public.dm_messages add column if not exists attachment_type text;
+
+create table if not exists public.server_roles(
+ id uuid primary key default gen_random_uuid(), server_id uuid not null references public.servers(id) on delete cascade,
+ name text not null check(char_length(name) between 1 and 40), color text not null default '#facc15',
+ permissions jsonb not null default '{}'::jsonb, created_at timestamptz not null default now(), unique(server_id,name), unique(id,server_id)
+);
+create table if not exists public.member_roles(
+ server_id uuid not null references public.servers(id) on delete cascade,
+ user_id uuid not null references auth.users(id) on delete cascade,
+ role_id uuid not null references public.server_roles(id) on delete cascade,
+ primary key(server_id,user_id,role_id)
+);
+create table if not exists public.channel_role_access(
+ channel_id uuid not null references public.channels(id) on delete cascade,
+ role_id uuid not null references public.server_roles(id) on delete cascade,
+ primary key(channel_id,role_id)
+);
+create table if not exists public.server_invites(
+ id uuid primary key default gen_random_uuid(), server_id uuid not null references public.servers(id) on delete cascade,
+ code text not null unique default encode(gen_random_bytes(8),'hex'),
+ created_by uuid not null references auth.users(id) on delete cascade,
+ expires_at timestamptz, max_uses integer, uses integer not null default 0, created_at timestamptz not null default now()
+);
+create table if not exists public.custom_emojis(
+ id uuid primary key default gen_random_uuid(), server_id uuid references public.servers(id) on delete cascade,
+ name text not null check(name ~ '^[a-zA-Z0-9_]{2,32}$'), image_url text not null,
+ uploaded_by uuid not null references auth.users(id) on delete cascade, created_at timestamptz not null default now(),
+ unique(server_id,name)
+);
+create table if not exists public.dm_settings(
+ conversation_id uuid not null references public.dm_conversations(id) on delete cascade,
+ user_id uuid not null references auth.users(id) on delete cascade,
+ muted boolean not null default false, last_read_at timestamptz not null default now(),
+ primary key(conversation_id,user_id)
+);
+create table if not exists public.user_blocks(
+ blocker_id uuid not null references auth.users(id) on delete cascade,
+ blocked_id uuid not null references auth.users(id) on delete cascade,
+ created_at timestamptz not null default now(), primary key(blocker_id,blocked_id), check(blocker_id<>blocked_id)
+);
+create table if not exists public.voice_signals(
+ id bigint generated always as identity primary key,
+ channel_id uuid not null references public.channels(id) on delete cascade,
+ sender_id uuid not null references auth.users(id) on delete cascade,
+ recipient_id uuid not null references auth.users(id) on delete cascade,
+ signal jsonb not null, created_at timestamptz not null default now()
+);
+create index if not exists voice_signals_recipient_idx on public.voice_signals(recipient_id,created_at);
+
+alter table public.server_roles enable row level security;
+alter table public.member_roles enable row level security;
+alter table public.channel_role_access enable row level security;
+alter table public.server_invites enable row level security;
+alter table public.custom_emojis enable row level security;
+alter table public.dm_settings enable row level security;
+alter table public.user_blocks enable row level security;
+alter table public.voice_signals enable row level security;
+
+grant select,insert,update,delete on public.server_roles,public.member_roles,public.channel_role_access,public.server_invites,public.custom_emojis,public.dm_settings,public.user_blocks,public.voice_signals to authenticated;
+drop policy if exists "server roles visible to members" on public.server_roles;
+create policy "server roles visible to members" on public.server_roles for select to authenticated using(private.is_server_member(server_id,auth.uid()));
+drop policy if exists "admins manage server roles" on public.server_roles;
+create policy "admins manage server roles" on public.server_roles for all to authenticated using(exists(select 1 from public.server_members sm where sm.server_id=server_roles.server_id and sm.user_id=auth.uid() and sm.role in('owner','admin'))) with check(exists(select 1 from public.server_members sm where sm.server_id=server_roles.server_id and sm.user_id=auth.uid() and sm.role in('owner','admin')));
+drop policy if exists "members view role assignments" on public.member_roles;
+create policy "members view role assignments" on public.member_roles for select to authenticated using(private.is_server_member(server_id,auth.uid()));
+drop policy if exists "admins manage role assignments" on public.member_roles;
+create policy "admins manage role assignments" on public.member_roles for all to authenticated using(exists(select 1 from public.server_members sm where sm.server_id=member_roles.server_id and sm.user_id=auth.uid() and sm.role in('owner','admin'))) with check(exists(select 1 from public.server_members sm where sm.server_id=member_roles.server_id and sm.user_id=auth.uid() and sm.role in('owner','admin')));
+drop policy if exists "channel role access visible to members" on public.channel_role_access;
+create policy "channel role access visible to members" on public.channel_role_access for select to authenticated using(exists(select 1 from public.channels c where c.id=channel_id and private.is_server_member(c.server_id,auth.uid())));
+drop policy if exists "admins manage channel access" on public.channel_role_access;
+create policy "admins manage channel access" on public.channel_role_access for all to authenticated using(exists(select 1 from public.channels c join public.server_members sm on sm.server_id=c.server_id where c.id=channel_role_access.channel_id and sm.user_id=auth.uid() and sm.role in('owner','admin'))) with check(exists(select 1 from public.channels c join public.server_members sm on sm.server_id=c.server_id where c.id=channel_role_access.channel_id and sm.user_id=auth.uid() and sm.role in('owner','admin')));
+drop policy if exists "members can see invites" on public.server_invites;
+create policy "members can see invites" on public.server_invites for select to authenticated using(private.is_server_member(server_id,auth.uid()));
+drop policy if exists "members create invites" on public.server_invites;
+create policy "members create invites" on public.server_invites for insert to authenticated with check(created_by=auth.uid() and private.is_server_member(server_id,auth.uid()));
+drop policy if exists "members see custom emojis" on public.custom_emojis;
+create policy "members see custom emojis" on public.custom_emojis for select to authenticated using(server_id is null or private.is_server_member(server_id,auth.uid()));
+drop policy if exists "members add custom emojis" on public.custom_emojis;
+create policy "members add custom emojis" on public.custom_emojis for insert to authenticated with check(uploaded_by=auth.uid() and (server_id is null or private.is_server_member(server_id,auth.uid())));
+drop policy if exists "uploader deletes custom emojis" on public.custom_emojis;
+create policy "uploader deletes custom emojis" on public.custom_emojis for delete to authenticated using(uploaded_by=auth.uid());
+drop policy if exists "users manage own dm settings" on public.dm_settings;
+create policy "users manage own dm settings" on public.dm_settings for all to authenticated using(user_id=auth.uid() and private.is_dm_member(conversation_id,auth.uid())) with check(user_id=auth.uid() and private.is_dm_member(conversation_id,auth.uid()));
+drop policy if exists "users manage their blocks" on public.user_blocks;
+create policy "users manage their blocks" on public.user_blocks for all to authenticated using(blocker_id=auth.uid()) with check(blocker_id=auth.uid());
+drop policy if exists "voice signals sender insert" on public.voice_signals;
+create policy "voice signals sender insert" on public.voice_signals for insert to authenticated with check(sender_id=auth.uid() and exists(select 1 from public.channels c where c.id=channel_id and c.type='voice' and private.is_server_member(c.server_id,auth.uid())) and exists(select 1 from public.server_members sm where sm.server_id=(select c.server_id from public.channels c where c.id=channel_id) and sm.user_id=recipient_id));
+drop policy if exists "voice signals recipient read" on public.voice_signals;
+create policy "voice signals recipient read" on public.voice_signals for select to authenticated using(recipient_id=auth.uid());
+drop policy if exists "voice signals recipient delete" on public.voice_signals;
+create policy "voice signals recipient delete" on public.voice_signals for delete to authenticated using(recipient_id=auth.uid());
+
+-- Realtime updates for DMs, reactions, and voice signaling.
+do $$ begin
+ if not exists(select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='voice_signals') then alter publication supabase_realtime add table public.voice_signals; end if;
+ if not exists(select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='message_reactions') then alter publication supabase_realtime add table public.message_reactions; end if;
+end $$;
+
+-- Optional public bucket for chat image and emoji uploads (GIF stays animated).
+insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
+values('chat-media','chat-media',true,12582912,array['image/png','image/jpeg','image/webp','image/gif'])
+on conflict(id) do update set public=true,file_size_limit=12582912,allowed_mime_types=array['image/png','image/jpeg','image/webp','image/gif'];
+drop policy if exists "chat media public read" on storage.objects;
+create policy "chat media public read" on storage.objects for select to public using(bucket_id='chat-media');
+drop policy if exists "users upload chat media" on storage.objects;
+create policy "users upload chat media" on storage.objects for insert to authenticated with check(bucket_id='chat-media' and (storage.foldername(name))[1]=(select auth.uid())::text);
+drop policy if exists "users delete chat media" on storage.objects;
+create policy "users delete chat media" on storage.objects for delete to authenticated using(bucket_id='chat-media' and (storage.foldername(name))[1]=(select auth.uid())::text);

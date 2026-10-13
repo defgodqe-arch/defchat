@@ -1,5 +1,5 @@
 import React,{useEffect,useRef,useState} from 'react';
-import {ArrowLeft,Compass,Heart,Play,RotateCcw,Sparkles,Star,Volume2,VolumeX} from 'lucide-react';
+import {ArrowLeft,BookOpen,Compass,Heart,Moon,Play,RotateCcw,Sparkles,Star,Volume2,VolumeX,Wind} from 'lucide-react';
 
 const W=1000,H=560,GOAL=7;
 const makeWorld=()=>({x:500,y:280,shards:[{x:170,y:135},{x:355,y:90},{x:790,y:120},{x:860,y:330},{x:680,y:460},{x:350,y:440},{x:125,y:350}],collected:[],shadows:[{x:290,y:250,phase:0},{x:730,y:265,phase:2.1}],time:0,health:3,won:false,lost:false});

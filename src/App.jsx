@@ -9,15 +9,25 @@ const initials=n=>(n||'?').slice(0,2).toUpperCase();
 const color=n=>['#eab308','#8b5cf6','#06b6d4','#f97316','#ec4899'][[...(n||'')].reduce((a,c)=>a+c.charCodeAt(0),0)%5];
 function Avatar({name}){return <div className="avatar" style={{background:color(name)}}>{initials(name)}</div>}
 function Auth({done}) {
-  const [mode, setMode] = useState('signup');
-  const [email, setEmail] = useState('');
+  const [savedDraft] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('defchat:signup-draft') || '{}'); }
+    catch { return {}; }
+  });
+  const [mode, setMode] = useState(savedDraft.mode || 'signup');
+  const [email, setEmail] = useState(savedDraft.email || '');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState(savedDraft.username || '');
   const [showPassword, setShowPassword] = useState(false);
   const [err, setErr] = useState('');
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('defchat:signup-draft', JSON.stringify({ mode, email, username }));
+    } catch {}
+  }, [mode, email, username]);
 
   function switchMode(next) {
     setMode(next); setErr(''); setNotice('');
@@ -67,8 +77,13 @@ function Auth({done}) {
           options: { data: { username: cleanUsername } }
         });
         if (error) throw error;
-        if (data.session) done(data.session.user);
-        else setNotice('Your account is almost ready! Check your email for a confirmation link, then come back to sign in.');
+        if (data.session) {
+          try { localStorage.removeItem('defchat:signup-draft'); } catch {}
+          done(data.session.user);
+        } else {
+          setNotice('Email confirmation is still enabled on the server. Your email and username are saved on this device; after confirming, return here and sign in.');
+          switchMode('login');
+        }
       } else {
         const { data, error } = await db.auth.signInWithPassword({ email: email.trim(), password });
         if (error) throw error;

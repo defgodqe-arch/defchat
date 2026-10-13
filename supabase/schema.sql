@@ -242,4 +242,5 @@ create policy "users delete chat media" on storage.objects for delete to authent
 
 -- Enable author-only message editing.
 grant update on public.messages to authenticated;
+drop policy if exists "message authors can update" on public.messages;
 create policy "message authors can update" on public.messages for update to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());

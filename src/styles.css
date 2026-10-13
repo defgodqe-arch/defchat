@@ -293,3 +293,25 @@ footer b{color:#c6c9ce}
 .shop-item-category{display:flex;align-items:center;gap:5px}
 .shop-item-category:after{content:'FREE HERE';font-size:8px;letter-spacing:.45px;color:#8fe4b2;border:1px solid #35694e;border-radius:4px;padding:2px 4px}
 @media(max-width:460px){.shop-source-link{font-size:9px}}
+
+/* Equipped cosmetics: live profile, avatar, and chat presentation */
+.avatar{position:relative;overflow:visible}
+.cosmetic-avatar-deco{position:absolute;right:-5px;bottom:-5px;z-index:3;display:grid;place-items:center;width:23px;height:23px;border-radius:50%;background:#24262d;border:2px solid #111318;font-size:14px;line-height:1;box-shadow:0 2px 8px #0007}
+.cosmetic-frame{outline:2px solid #facc15;outline-offset:2px;box-shadow:0 0 0 4px #facc1528,0 0 12px #facc1540}
+.cosmetic-aura{box-shadow:0 0 0 3px #facc1520,0 0 17px #facc1570}
+.cosmetic-nameplate{display:inline-flex;align-items:center;gap:5px;border-radius:5px;padding:1px 5px;background:linear-gradient(100deg,#facc1530,#facc1508);}
+.cosmetic-nameplate-icon{font-size:.9em;line-height:1}
+.cosmetic-gold{background-image:linear-gradient(100deg,#ffe58a,#facc15,#fff1b8);background-clip:text;-webkit-background-clip:text;color:transparent!important}
+.cosmetic-purple{background-image:linear-gradient(100deg,#d8b4fe,#a78bfa,#f0abfc);background-clip:text;-webkit-background-clip:text;color:transparent!important}
+.cosmetic-sunset{background-image:linear-gradient(100deg,#fb7185,#fb923c,#facc15);background-clip:text;-webkit-background-clip:text;color:transparent!important}
+.cosmetic-neon{background-image:linear-gradient(100deg,#67e8f9,#a78bfa,#f0abfc);background-clip:text;-webkit-background-clip:text;color:transparent!important}
+.cosmetic-cozy{background-image:linear-gradient(100deg,#fbcfe8,#ddd6fe,#bfdbfe);background-clip:text;-webkit-background-clip:text;color:transparent!important}
+.cosmetic-heart{background-image:linear-gradient(100deg,#f9a8d4,#fb7185);background-clip:text;-webkit-background-clip:text;color:transparent!important}
+.message.cosmetic-chat{border-radius:9px;padding:5px 8px;margin:2px 0 2px -8px;border-left:2px solid #facc15;background:linear-gradient(90deg,#facc1510,transparent 75%)}
+.message.cosmetic-chat.cosmetic-comet{border-left-color:#67e8f9;background:linear-gradient(90deg,#67e8f916,transparent 80%)}
+.message.cosmetic-chat.cosmetic-party{border-left-color:#fb7185;background:linear-gradient(90deg,#fb718516,#a78bfa08,transparent 85%)}
+.message.cosmetic-chat.cosmetic-sparkles{border-left-color:#f0abfc;background:linear-gradient(90deg,#f0abfc16,transparent 80%)}
+.message.cosmetic-chat.cosmetic-stars{border-left-color:#facc15;background:linear-gradient(90deg,#facc1518,transparent 80%)}
+.message.cosmetic-chat.cosmetic-game{border-left-color:#4ade80;background:linear-gradient(90deg,#4ade8018,transparent 80%)}
+.message.cosmetic-chat.cosmetic-fruit{border-left-color:#fb7185;background:linear-gradient(90deg,#fb718516,transparent 80%)}
+.message.cosmetic-chat .message-content{border-radius:5px}

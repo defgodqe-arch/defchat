@@ -1,65 +1,48 @@
-# defgodqe / defchat
+# defchat
 
-A Discord-inspired text-first community app built with React, Vite, Supabase Auth, Postgres, Realtime, and an Electron development wrapper. Responsive browser UI works on desktop and mobile browsers.
+defchat is a Discord-inspired, text-first community app with Supabase Auth, Postgres, and Realtime.
 
-## Included
+## Run as a desktop app (no browser tabs or address bar)
 
+### Windows
+1. Install [Node.js LTS](https://nodejs.org/) and [Git](https://git-scm.com/downloads).
+2. Clone this repository, or download the repository ZIP and extract it.
+3. Open a terminal in the project folder.
+4. Run `npm install`.
+5. Run `npm run desktop:win`.
+6. Open the `release` folder and run the generated `defchat-1.0.0-win-x64.exe` installer.
+7. Launch **defchat** from the Start menu or desktop shortcut.
+
+The installed Windows version opens in its own desktop window, without a browser address bar or tabs. You do not need to keep a terminal or development server open after installation.
+
+### macOS / Linux
+- macOS: `npm install`, then `npm run desktop:mac`. Open the generated DMG in `release`.
+- Linux: `npm install`, then `npm run desktop:linux`. Run the generated AppImage from `release`.
+
+For development, run `npm run dev` in one terminal and `npm run desktop` in another.
+
+## Install on a phone
+The hosted site has an installable app manifest and standalone display mode. Android: open the site in Chrome and choose **Install app**. iPhone: open it in Safari, tap **Share**, then **Add to Home Screen**. It launches from the home-screen icon without normal browser tabs. This is not yet a signed native Android APK or iOS App Store build.
+
+## Features
 - Email/password sign-up, sign-in, and sign-out
 - User profiles and unique usernames
 - Communities (servers), membership, and text channels
-- Persistent server messages with Supabase Realtime updates
-- Direct messages by exact username, persistent DM history, and Realtime updates
-- Friend-request database tables and row-level access policies
-- Message-reaction database table
-- Row Level Security on exposed app tables
-- Mobile navigation and desktop Electron development wrapper
-- CI build check on pushes and pull requests
+- Persistent server messages and direct messages with Supabase Realtime
+- Friends, reactions, and cosmetic support where implemented
+- Responsive mobile layout and free cosmetic shop
 
-## Supabase project
+## Supabase configuration
+The app uses the defgodqe Supabase project with its public/publishable key. Never put a Supabase secret or service-role key in frontend code.
 
-This repository is wired to the defgodqe Supabase project using its **publishable** key (safe for browser use). Public/publishable keys are not secrets; never add a Supabase secret or service-role key to frontend code.
+To use another Supabase project, configure `.env` using `.env.example`. For a fresh project, run `supabase/schema.sql` in the Supabase SQL Editor. Google sign-in requires valid OAuth credentials and matching Supabase redirect URLs.
 
-To use another Supabase project, copy `.env.example` to `.env` and replace the URL and publishable key.
+## Packaging
+- Windows installer: `npm run desktop:win`
+- macOS DMG: `npm run desktop:mac`
+- Linux AppImage: `npm run desktop:linux`
 
-The database already has the schema applied. For a fresh project, run `supabase/schema.sql` once in the Supabase SQL Editor. The script sets up profiles, servers, channels, messages, DMs, friend requests, reactions, policies, and Realtime publication.
-
-## Google sign-in setup
-
-The app includes a **Continue with Google** button using Supabase OAuth. To activate it for real users:
-
-1. In [Google Cloud Console](https://console.cloud.google.com/auth/clients), create an OAuth Client ID with application type **Web application**.
-2. Add the deployed site's origin (for GitHub Pages, `https://defgodqe-arch.github.io`) to **Authorized JavaScript origins**.
-3. Add the Supabase Auth callback URL `https://jklhnhnxyzqjvmqgfpjs.supabase.co/auth/v1/callback` to **Authorized redirect URIs**.
-4. In [Supabase Google provider settings](https://supabase.com/dashboard/project/jklhnhnxyzqjvmqgfpjs/auth/providers), enable Google and enter the Google Client ID and Client Secret.
-5. In [Supabase URL configuration](https://supabase.com/dashboard/project/jklhnhnxyzqjvmqgfpjs/auth/url-configuration), set the Site URL to `https://defgodqe-arch.github.io/defchat/` and add that same URL to the allowed redirect URLs. Add your local development URL too if needed.
-
-Google sign-in cannot complete until the provider credentials and redirect allow-list are configured in the dashboards. Never commit the Google Client Secret to this repository.
-
-## Run locally
-
-1. Install Node.js LTS.
-2. Clone this repository.
-3. Run `npm install`.
-4. Run `npm run dev` and open the local URL printed by Vite.
-5. To use the Electron development window, keep Vite running and run `npm run desktop` in a second terminal.
-
-For web hosting, run `npm run build` and deploy the `dist/` folder. The current code has safe public-key defaults for this Supabase project, so local `.env` configuration is optional for this project. Set environment variables in your hosting provider if using another project.
-
-## Security and launch checklist
-
-- Keep Row Level Security enabled.
-- The server-creation RPC uses a narrow, authenticated-only wrapper; its internal privileged implementation lives in the non-exposed `private` schema and checks `auth.uid()`.
-- Test with at least two separate accounts before inviting people.
-- Before public launch, add abuse rate limits, blocking/reporting UI, account deletion, privacy/terms pages, backup review, and a packaged Windows installer.
-- DMs currently start by entering the recipient's exact username. The friend-request tables are ready, but friend-request UI and invite links are not yet implemented.
+Desktop release packages are built by GitHub Actions when a `v*` tag is pushed. Unsigned installers may show an operating-system security warning.
 
 ## Current limitations
-
-This is a working text-chat MVP, not a full Discord clone. Voice/video, file uploads, push notifications, full server-role management UI, friend-request UI, invite links, and a signed Windows installer are not included yet.
-
-
-## Free animated profile pictures and banners
-
-Signed-in users can click their profile area in the lower-left corner to upload a profile picture and banner. Animated GIFs are supported at no subscription cost. Accepted formats are PNG, JPG, WebP, and GIF; profile pictures are limited to 5 MB and banners to 8 MB. Supabase Storage uses the public `profile-media` bucket for displaying images, while upload permissions restrict each user to their own folder.
-
-If setting up a fresh Supabase project, run the complete `supabase/schema.sql` script in the SQL Editor to create the profile banner column, storage bucket, and storage access policies.
+This is an MVP, not a full Discord replacement. Voice/video, push notifications, and file uploads are not included. Native mobile store packages and signed desktop installers are not yet included.

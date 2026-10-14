@@ -34,7 +34,7 @@ The hosted site has an installable app manifest and standalone display mode. And
 - Personal accent themes (yellow, purple, cyan, rose, green), compact chat density, adjustable message text size, and reduced-motion mode
 - Keyboard shortcuts for message search, settings, emoji picker, and focusing the composer
 - Export the currently loaded conversation as JSON, plain text, or CSV
-- Per-device preferences and a notification-permission control
+- Per-device preferences, a notification-permission control, and separate auto-saved drafts for every channel and DM
 
 ## Supabase configuration
 The app uses the defgodqe Supabase project with its public/publishable key. Never put a Supabase secret or service-role key in frontend code.

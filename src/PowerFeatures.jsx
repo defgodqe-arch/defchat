@@ -53,7 +53,7 @@ export default function PowerFeatures({ open, onClose, userId, messages = [], co
         event.preventDefault(); onToggleEmoji?.();
       } else if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key.toLowerCase() === 'm') {
         event.preventDefault(); document.querySelector('.composer input:not([type=file])')?.focus();
-      } else if (event.key === 'Escape' && open) onClose?.();
+      } else if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key.toLowerCase() === 'b') { event.preventDefault(); window.dispatchEvent(new CustomEvent('defchat:open-saved-messages')); } else if (event.key === 'Escape' && open) onClose?.();
     };
     window.addEventListener('keydown', handle);
     return () => window.removeEventListener('keydown', handle);
@@ -119,7 +119,7 @@ export default function PowerFeatures({ open, onClose, userId, messages = [], co
         </>}
         {tab === 'shortcuts' && <>
           <div className="power-section-title"><h3>Keyboard shortcuts</h3><p>Jump around defchat without leaving the keyboard.</p></div>
-          <div className="power-shortcuts">{[['Ctrl / ⌘ + K','Search messages'],['Ctrl / ⌘ + ,','Open power settings'],['Ctrl / ⌘ + Shift + M','Focus message composer'],['Ctrl / ⌘ + Shift + E','Open emoji picker'],['Esc','Close the current settings dialog']].map(([keys, label]) => <div className="power-shortcut" key={keys}><span>{label}</span><kbd>{keys}</kbd></div>)}</div>
+          <div className="power-shortcuts">{[['Ctrl / ⌘ + K','Search messages'],['Ctrl / ⌘ + ,','Open power settings'],['Ctrl / ⌘ + Shift + M','Focus message composer'],['Ctrl / ⌘ + Shift + E','Open emoji picker'],['Ctrl / ⌘ + Shift + B','Open saved messages'],['Esc','Close the current settings dialog']].map(([keys, label]) => <div className="power-shortcut" key={keys}><span>{label}</span><kbd>{keys}</kbd></div>)}</div>
           <button className="power-secondary" onClick={() => { onClose?.(); onOpenSearch?.(); }}><Search size={16}/> Try message search</button>
         </>}
         {notice && <div className="power-notice" role="status">{notice}<button onClick={() => setNotice('')} aria-label="Dismiss notice"><X size={13}/></button></div>}

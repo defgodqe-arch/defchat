@@ -7,7 +7,7 @@ import AvatarDecorationStudio from './AvatarDecorationStudio.jsx';
 import SavedMessages from './SavedMessages.jsx';
 import MascotCompanion,{MascotMark} from './MascotCompanion.jsx';
 import {createClient} from '@supabase/supabase-js';
-import {Hash,Plus,LogOut,Send,LoaderCircle,ChevronDown,Users,Menu,X,MessageCircle,ArrowLeft,Search,MessageSquare,Camera,ImagePlus,Check,Settings,Headphones,Mic,Inbox,HelpCircle,Compass,ChevronRight,Smile,Trash2,Paperclip,MoreHorizontal,Pencil,UserPlus,Bell,VolumeX,Phone,Video,Upload,CornerUpLeft,Gamepad2,GraduationCap,Sparkles,ArrowRight,Globe,ShoppingBag,Gift,SlidersHorizontal,Bookmark} from 'lucide-react';
+import {Hash,Plus,LogOut,Send,LoaderCircle,ChevronDown,Users,Menu,X,MessageCircle,ArrowLeft,Search,MessageSquare,Camera,ImagePlus,Check,Settings,Headphones,Mic,Inbox,HelpCircle,Compass,ChevronRight,Smile,Trash2,Paperclip,MoreHorizontal,Pencil,UserPlus,Bell,VolumeX,Phone,Video,Upload,CornerUpLeft,Gamepad2,GraduationCap,Sparkles,ArrowRight,Globe,ShoppingBag,Gift,SlidersHorizontal,Bookmark,UserRound} from 'lucide-react';
 
 const url=import.meta.env.VITE_SUPABASE_URL||'https://jklhnhnxyzqjvmqgfpjs.supabase.co';
 const key=import.meta.env.VITE_SUPABASE_ANON_KEY||'sb_publishable_MMXxKZkJT0H7-oayT60ddA_8nC0kFjn';

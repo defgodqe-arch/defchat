@@ -651,3 +651,11 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--dc-accent);outline-
 .mascot-mood-excited .mascot-float{animation:mascot-hop .42s ease-in-out 3}
 @keyframes mascot-greeting-in{from{opacity:0;transform:translateY(6px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(max-width:520px){.mascot-dock{right:12px;bottom:12px}.mascot-launcher{width:86px;height:86px;border-radius:28px}.mascot-launcher .mascot-buddy{width:72px!important;height:72px!important}.mascot-greeting{right:91px;bottom:38px;padding:8px 10px;font-size:10px}.mascot-launcher-level{min-width:24px;height:24px}}
+
+/* Fire-breathing dragon pet effects */
+.mascot-fire-breath{transform-origin:102px 66px;animation:dragon-fire-burst .52s ease-out both;filter:drop-shadow(0 0 7px #ff7a20aa)}
+.mascot-mood-fire .mascot-float{animation:mascot-hop .42s ease-in-out 2}
+.mascot-fire-button{border-color:#ff8a3d66!important;background:linear-gradient(135deg,#ff7b221c,#facc1512)!important;color:#ffd1a1!important}
+.mascot-fire-button>span{font-size:15px}
+@keyframes dragon-fire-burst{0%{opacity:.1;transform:scaleX(.2)}45%{opacity:1;transform:scaleX(1.08)}100%{opacity:.85;transform:scaleX(1)}}
+@media(prefers-reduced-motion:reduce){.mascot-fire-breath{animation:none!important}}

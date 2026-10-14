@@ -637,3 +637,17 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--dc-accent);outline-
 @keyframes mascot-bob{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-6px) rotate(1deg)}}@keyframes mascot-hop{0%,100%{transform:translateY(0) scale(1)}45%{transform:translateY(-15px) scale(1.04)}}@keyframes mascot-sleep{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(3px) rotate(2deg)}}@keyframes mascot-sparkle{0%,100%{opacity:.65;transform:scale(.9) rotate(-8deg)}50%{opacity:1;transform:scale(1.12) rotate(12deg)}}@keyframes mascot-glow{0%,100%{opacity:.55;transform:scale(.92)}50%{opacity:1;transform:scale(1.1)}}@keyframes mascot-arrive{from{opacity:0;transform:translateY(15px) scale(.8)}to{opacity:1;transform:translateY(0) scale(1)}}@keyframes mascot-panel-in{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(max-width:520px){.mascot-dock{right:12px;bottom:12px}.mascot-launcher{width:64px;height:64px;border-radius:22px}.mascot-launcher .mascot-buddy{width:54px!important;height:54px!important}.mascot-panel{right:0;bottom:76px;padding:13px;border-radius:17px;max-height:76dvh}.mascot-stage{min-height:150px}.mascot-variants{gap:5px}.mascot-variant{padding:6px 2px}.mascot-variant-art{width:55px;height:54px}}
 @media(prefers-reduced-motion:reduce){.mascot-buddy,.mascot-float,.mascot-launcher-spark,.mascot-stage-glow,.mascot-launcher{animation:none!important;transition:none!important}}
+
+/* Buddy is a visible, interactive part of the chat—not just a tiny corner icon. */
+.mascot-dock{right:26px;bottom:24px}
+.mascot-launcher-wrap{position:relative;display:flex;justify-content:flex-end;align-items:flex-end;pointer-events:none}
+.mascot-launcher{pointer-events:auto;width:104px;height:104px;border-radius:34px;background:radial-gradient(ellipse at 50% 34%,#facc1525,transparent 66%),linear-gradient(145deg,#41371ced,#22242ded);box-shadow:0 14px 38px #0007,0 0 0 5px #facc1514,0 0 30px #facc1510}
+.mascot-launcher .mascot-buddy{width:88px!important;height:88px!important}
+.mascot-launcher:hover{transform:translateY(-5px) scale(1.025);border-radius:30px}
+.mascot-launcher-spark{top:10px;right:10px}
+.mascot-launcher-level{min-width:27px;height:27px;font-size:11px}
+.mascot-greeting{position:absolute;right:112px;bottom:48px;white-space:nowrap;padding:10px 13px;border:1px solid #facc1540;border-radius:14px 14px 4px 14px;background:#2a2b32;color:#f8edbd;font-size:12px;font-weight:800;box-shadow:0 8px 28px #0005;animation:mascot-greeting-in .35s ease-out both;pointer-events:none}
+.mascot-greeting span{color:#facc15;margin-left:4px}
+.mascot-mood-excited .mascot-float{animation:mascot-hop .42s ease-in-out 3}
+@keyframes mascot-greeting-in{from{opacity:0;transform:translateY(6px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:520px){.mascot-dock{right:12px;bottom:12px}.mascot-launcher{width:86px;height:86px;border-radius:28px}.mascot-launcher .mascot-buddy{width:72px!important;height:72px!important}.mascot-greeting{right:91px;bottom:38px;padding:8px 10px;font-size:10px}.mascot-launcher-level{min-width:24px;height:24px}}

@@ -1,0 +1,54 @@
+{
+  "pets": [
+    {
+      "name": "Sunflare",
+      "path": "/dragon-assets/pets/sunflare.svg"
+    },
+    {
+      "name": "Violet Fang",
+      "path": "/dragon-assets/pets/violet-fang.svg"
+    },
+    {
+      "name": "Tideflame",
+      "path": "/dragon-assets/pets/tideflame.svg"
+    },
+    {
+      "name": "Emberclaw",
+      "path": "/dragon-assets/pets/emberclaw.svg"
+    },
+    {
+      "name": "Moonscale",
+      "path": "/dragon-assets/pets/moonscale.svg"
+    },
+    {
+      "name": "Glitchfire",
+      "path": "/dragon-assets/pets/glitchfire.svg"
+    }
+  ],
+  "cosmetics": [
+    {
+      "name": "Halo",
+      "path": "/dragon-assets/cosmetics/halo.svg"
+    },
+    {
+      "name": "Crown",
+      "path": "/dragon-assets/cosmetics/crown.svg"
+    },
+    {
+      "name": "Sunflower",
+      "path": "/dragon-assets/cosmetics/sunflower.svg"
+    },
+    {
+      "name": "Orbit Stars",
+      "path": "/dragon-assets/cosmetics/orbit-stars.svg"
+    },
+    {
+      "name": "Party Hat",
+      "path": "/dragon-assets/cosmetics/party-hat.svg"
+    },
+    {
+      "name": "None",
+      "path": "/dragon-assets/cosmetics/none.svg"
+    }
+  ]
+}

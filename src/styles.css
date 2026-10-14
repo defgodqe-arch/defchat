@@ -729,6 +729,6 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--dc-accent);outline-
 @media(max-width:600px){.avatar-customizer-heading{align-items:flex-start;flex-direction:column;gap:10px;padding:12px}.avatar-customizer-heading a{width:100%;text-align:center;box-sizing:border-box}.avatar-customizer-frame{height:65dvh;min-height:400px}.avatar-customizer-heading p{font-size:11px}}
 
 
-.avatar-studio-launch{display:inline-flex;align-items:center;justify-content:center;gap:8px;flex-shrink:0;border:1px solid #facc1560;border-radius:9px;padding:9px 12px;background:#facc1510;color:#fceca4;font:700 12px inherit;cursor:pointer}
+.avatar-studio-launch{display:inline-flex;align-items:center;justify-content:center;gap:8px;flex-shrink:0;border:1px solid #facc1560;border-radius:9px;padding:9px 12px;background:#facc1510;color:#fceca4;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
 .avatar-studio-launch:hover{background:#facc1528}
 .avatar-studio-launch:focus-visible{outline:2px solid #facc15;outline-offset:3px}

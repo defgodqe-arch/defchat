@@ -1,9 +1,8 @@
 # defchat Profile Frames
 
-These are transparent, circular SVG frame overlays designed to sit around a user's avatar. The style uses the kind of expressive, collectible, themed profile cosmetics found in chat and gaming apps: luminous rings, ornamental corners, petals, webs, stars, elemental motifs, and layered colors. The designs are original defchat artwork rather than exact copies of Discord's proprietary frames.
+This folder contains original transparent profile-frame artwork for defchat.
 
-## Customize
+- **Animated GIFs** (`*.gif`) are used by the live app. Each loops with a subtle light pulse and orbiting glints.
+- **SVGs** (`*.svg`) are the original editable source artwork used to create the GIF versions.
 
-Edit any SVG and adjust its `primary`/accent colors, ring strokes, or decorative paths. The empty center is intentionally transparent so the user's avatar remains visible underneath. Keep the same filename to replace the art at its current path.
-
-See the [shop asset manifest](../manifest.json) for item paths. The live shop needs to load these SVGs as image previews to display the artwork; the SVG library itself is separate from the current CSS/emoji previews.
+The frames are transparent overlays intended to sit around a user's avatar. The empty center keeps the user's avatar visible. To change a frame, edit its SVG source and regenerate its matching GIF, preserving the filename.

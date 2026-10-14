@@ -48,7 +48,7 @@ function Buddy({variant='sunny',accessory='none',size=100,mood='happy',onClick,c
     {accessory==='party'&&<path d="M39 26 58 1 78 28Z" fill="#ff78ac" stroke="#b83c7b" strokeWidth="2" />}
    </g>
   </svg>
- </button>
+ </div>
 }
 export function MascotMark({size=36}){return <span className="mascot-mark">{markSvg(size)}</span>}
 export default function MascotCompanion({userId,username='friend',onOpenCollection}) {

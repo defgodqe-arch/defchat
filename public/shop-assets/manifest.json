@@ -1,0 +1,525 @@
+{
+  "generatedFor": "defchat shop",
+  "items": [
+    {
+      "id": "locker-avatar-decorations-hexs-hat",
+      "name": "Hex's Hat",
+      "category": "Avatar decorations",
+      "icon": "🎩",
+      "theme": "gold",
+      "path": "/shop-assets/avatar-decorations/hexs-hat.svg"
+    },
+    {
+      "id": "locker-avatar-decorations-grinning-gourds",
+      "name": "Grinning Gourds",
+      "category": "Avatar decorations",
+      "icon": "🎃",
+      "theme": "sunset",
+      "path": "/shop-assets/avatar-decorations/grinning-gourds.svg"
+    },
+    {
+      "id": "locker-avatar-decorations-summoning-circle",
+      "name": "Summoning Circle",
+      "category": "Avatar decorations",
+      "icon": "🔮",
+      "theme": "purple",
+      "path": "/shop-assets/avatar-decorations/summoning-circle.svg"
+    },
+    {
+      "id": "locker-avatar-decorations-witch-dust",
+      "name": "Witch Dust",
+      "category": "Avatar decorations",
+      "icon": "✨",
+      "theme": "sparkles",
+      "path": "/shop-assets/avatar-decorations/witch-dust.svg"
+    },
+    {
+      "id": "locker-avatar-decorations-alt-raccoon",
+      "name": "Alt Raccoon",
+      "category": "Avatar decorations",
+      "icon": "🦝",
+      "theme": "cozy",
+      "path": "/shop-assets/avatar-decorations/alt-raccoon.svg"
+    },
+    {
+      "id": "locker-avatar-decorations-snow-leopard",
+      "name": "Snow Leopard",
+      "category": "Avatar decorations",
+      "icon": "🐆",
+      "theme": "purple",
+      "path": "/shop-assets/avatar-decorations/snow-leopard.svg"
+    },
+    {
+      "id": "locker-avatar-decorations-ribbon-kitten",
+      "name": "Ribbon Kitten",
+      "category": "Avatar decorations",
+      "icon": "🐱",
+      "theme": "heart",
+      "path": "/shop-assets/avatar-decorations/ribbon-kitten.svg"
+    },
+    {
+      "id": "locker-avatar-decorations-bunny-babe",
+      "name": "Bunny Babe",
+      "category": "Avatar decorations",
+      "icon": "🐰",
+      "theme": "cozy",
+      "path": "/shop-assets/avatar-decorations/bunny-babe.svg"
+    },
+    {
+      "id": "locker-avatar-decorations-lunar-wolf",
+      "name": "Lunar Wolf",
+      "category": "Avatar decorations",
+      "icon": "🐺",
+      "theme": "purple",
+      "path": "/shop-assets/avatar-decorations/lunar-wolf.svg"
+    },
+    {
+      "id": "locker-avatar-decorations-fox-ears",
+      "name": "Fox (Ears)",
+      "category": "Avatar decorations",
+      "icon": "🦊",
+      "theme": "sunset",
+      "path": "/shop-assets/avatar-decorations/fox-ears.svg"
+    },
+    {
+      "id": "locker-avatar-decorations-boss-bear-polar",
+      "name": "Boss Bear (Polar)",
+      "category": "Avatar decorations",
+      "icon": "🐻",
+      "theme": "gold",
+      "path": "/shop-assets/avatar-decorations/boss-bear-polar.svg"
+    },
+    {
+      "id": "locker-avatar-decorations-fox-guardian",
+      "name": "Fox Guardian",
+      "category": "Avatar decorations",
+      "icon": "🦊",
+      "theme": "sunset",
+      "path": "/shop-assets/avatar-decorations/fox-guardian.svg"
+    },
+    {
+      "id": "locker-avatar-decorations-red-panda",
+      "name": "Red Panda",
+      "category": "Avatar decorations",
+      "icon": "🐼",
+      "theme": "sunset",
+      "path": "/shop-assets/avatar-decorations/red-panda.svg"
+    },
+    {
+      "id": "locker-avatar-decorations-ghost-moth",
+      "name": "Ghost Moth",
+      "category": "Avatar decorations",
+      "icon": "🦋",
+      "theme": "purple",
+      "path": "/shop-assets/avatar-decorations/ghost-moth.svg"
+    },
+    {
+      "id": "locker-avatar-decorations-moonflowers",
+      "name": "Moonflowers",
+      "category": "Avatar decorations",
+      "icon": "🌸",
+      "theme": "cozy",
+      "path": "/shop-assets/avatar-decorations/moonflowers.svg"
+    },
+    {
+      "id": "locker-avatar-decorations-will-o-the-wisp",
+      "name": "Will-o'-the-Wisp",
+      "category": "Avatar decorations",
+      "icon": "🧚",
+      "theme": "neon",
+      "path": "/shop-assets/avatar-decorations/will-o-the-wisp.svg"
+    },
+    {
+      "id": "locker-profile-effects-autumn-garden",
+      "name": "Autumn Garden",
+      "category": "Profile effects",
+      "icon": "🍂",
+      "theme": "sunset",
+      "path": "/shop-assets/profile-effects/autumn-garden.svg"
+    },
+    {
+      "id": "locker-profile-effects-witching-hour",
+      "name": "Witching Hour",
+      "category": "Profile effects",
+      "icon": "🌙",
+      "theme": "purple",
+      "path": "/shop-assets/profile-effects/witching-hour.svg"
+    },
+    {
+      "id": "locker-profile-effects-lotties-cauldron",
+      "name": "Lottie's Cauldron",
+      "category": "Profile effects",
+      "icon": "🧙",
+      "theme": "purple",
+      "path": "/shop-assets/profile-effects/lotties-cauldron.svg"
+    },
+    {
+      "id": "locker-profile-effects-jersey-devil",
+      "name": "Jersey Devil",
+      "category": "Profile effects",
+      "icon": "👹",
+      "theme": "sunset",
+      "path": "/shop-assets/profile-effects/jersey-devil.svg"
+    },
+    {
+      "id": "locker-profile-effects-la-llorona",
+      "name": "La Llorona",
+      "category": "Profile effects",
+      "icon": "👻",
+      "theme": "purple",
+      "path": "/shop-assets/profile-effects/la-llorona.svg"
+    },
+    {
+      "id": "locker-profile-effects-dancing-dolphins",
+      "name": "Dancing Dolphins",
+      "category": "Profile effects",
+      "icon": "🐬",
+      "theme": "neon",
+      "path": "/shop-assets/profile-effects/dancing-dolphins.svg"
+    },
+    {
+      "id": "locker-profile-effects-mermaid-muse",
+      "name": "Mermaid Muse",
+      "category": "Profile effects",
+      "icon": "🧜",
+      "theme": "neon",
+      "path": "/shop-assets/profile-effects/mermaid-muse.svg"
+    },
+    {
+      "id": "locker-nameplates-night-flight",
+      "name": "Night Flight",
+      "category": "Nameplates",
+      "icon": "🌃",
+      "theme": "neon",
+      "path": "/shop-assets/nameplates/night-flight.svg"
+    },
+    {
+      "id": "locker-nameplates-ghost-moth",
+      "name": "Ghost Moth",
+      "category": "Nameplates",
+      "icon": "🦋",
+      "theme": "purple",
+      "path": "/shop-assets/nameplates/ghost-moth.svg"
+    },
+    {
+      "id": "locker-nameplates-jersey-devil",
+      "name": "Jersey Devil",
+      "category": "Nameplates",
+      "icon": "👹",
+      "theme": "sunset",
+      "path": "/shop-assets/nameplates/jersey-devil.svg"
+    },
+    {
+      "id": "locker-nameplates-moonflowers-base",
+      "name": "Moonflowers (Base)",
+      "category": "Nameplates",
+      "icon": "🌸",
+      "theme": "cozy",
+      "path": "/shop-assets/nameplates/moonflowers-base.svg"
+    },
+    {
+      "id": "locker-nameplates-witch-dust",
+      "name": "Witch Dust",
+      "category": "Nameplates",
+      "icon": "🪄",
+      "theme": "neon",
+      "path": "/shop-assets/nameplates/witch-dust.svg"
+    },
+    {
+      "id": "locker-profile-frames-alt-raccoon",
+      "name": "Alt Raccoon",
+      "category": "Profile frames",
+      "icon": "🦝",
+      "theme": "cozy",
+      "path": "/shop-assets/profile-frames/alt-raccoon.svg"
+    },
+    {
+      "id": "locker-profile-frames-witchlight",
+      "name": "Witchlight",
+      "category": "Profile frames",
+      "icon": "🕯️",
+      "theme": "gold",
+      "path": "/shop-assets/profile-frames/witchlight.svg"
+    },
+    {
+      "id": "locker-profile-frames-always-watching",
+      "name": "Always Watching",
+      "category": "Profile frames",
+      "icon": "👁️",
+      "theme": "purple",
+      "path": "/shop-assets/profile-frames/always-watching.svg"
+    },
+    {
+      "id": "locker-profile-frames-wraithling",
+      "name": "Wraithling",
+      "category": "Profile frames",
+      "icon": "👻",
+      "theme": "purple",
+      "path": "/shop-assets/profile-frames/wraithling.svg"
+    },
+    {
+      "id": "locker-profile-frames-rose-filigree",
+      "name": "Rose Filigree",
+      "category": "Profile frames",
+      "icon": "🌹",
+      "theme": "sunset",
+      "path": "/shop-assets/profile-frames/rose-filigree.svg"
+    },
+    {
+      "id": "locker-profile-frames-spider-man",
+      "name": "Spider-Man",
+      "category": "Profile frames",
+      "icon": "🕸️",
+      "theme": "neon",
+      "path": "/shop-assets/profile-frames/spider-man.svg"
+    },
+    {
+      "id": "locker-profile-frames-spider-mans-web",
+      "name": "Spider-Man's Web",
+      "category": "Profile frames",
+      "icon": "🕸️",
+      "theme": "neon",
+      "path": "/shop-assets/profile-frames/spider-mans-web.svg"
+    },
+    {
+      "id": "locker-profile-frames-venom",
+      "name": "Venom",
+      "category": "Profile frames",
+      "icon": "🕷️",
+      "theme": "purple",
+      "path": "/shop-assets/profile-frames/venom.svg"
+    },
+    {
+      "id": "locker-profile-frames-symbiote",
+      "name": "Symbiote",
+      "category": "Profile frames",
+      "icon": "🕷️",
+      "theme": "purple",
+      "path": "/shop-assets/profile-frames/symbiote.svg"
+    },
+    {
+      "id": "locker-profile-frames-solar-crown",
+      "name": "Solar Crown",
+      "category": "Profile frames",
+      "icon": "☀️",
+      "theme": "gold",
+      "path": "/shop-assets/profile-frames/solar-crown.svg"
+    },
+    {
+      "id": "locker-profile-frames-totality",
+      "name": "Totality",
+      "category": "Profile frames",
+      "icon": "🌑",
+      "theme": "purple",
+      "path": "/shop-assets/profile-frames/totality.svg"
+    },
+    {
+      "id": "locker-profile-frames-dark-roses-blue",
+      "name": "Dark Roses (Blue)",
+      "category": "Profile frames",
+      "icon": "🌹",
+      "theme": "purple",
+      "path": "/shop-assets/profile-frames/dark-roses-blue.svg"
+    },
+    {
+      "id": "locker-profile-frames-dragon-jade",
+      "name": "Dragon (Jade)",
+      "category": "Profile frames",
+      "icon": "🐉",
+      "theme": "neon",
+      "path": "/shop-assets/profile-frames/dragon-jade.svg"
+    },
+    {
+      "id": "locker-profile-frames-dragon-rose",
+      "name": "Dragon (Rose)",
+      "category": "Profile frames",
+      "icon": "🐉",
+      "theme": "sunset",
+      "path": "/shop-assets/profile-frames/dragon-rose.svg"
+    },
+    {
+      "id": "locker-profile-frames-dragon-ruby",
+      "name": "Dragon (Ruby)",
+      "category": "Profile frames",
+      "icon": "🐉",
+      "theme": "sunset",
+      "path": "/shop-assets/profile-frames/dragon-ruby.svg"
+    },
+    {
+      "id": "locker-profile-frames-dragon-sapphire",
+      "name": "Dragon (Sapphire)",
+      "category": "Profile frames",
+      "icon": "🐉",
+      "theme": "purple",
+      "path": "/shop-assets/profile-frames/dragon-sapphire.svg"
+    },
+    {
+      "id": "locker-profile-frames-fantasy-galaxy-blue",
+      "name": "Fantasy Galaxy (Blue)",
+      "category": "Profile frames",
+      "icon": "🌌",
+      "theme": "neon",
+      "path": "/shop-assets/profile-frames/fantasy-galaxy-blue.svg"
+    },
+    {
+      "id": "locker-profile-frames-fantasy-galaxy-pink",
+      "name": "Fantasy Galaxy (Pink)",
+      "category": "Profile frames",
+      "icon": "🌌",
+      "theme": "sunset",
+      "path": "/shop-assets/profile-frames/fantasy-galaxy-pink.svg"
+    },
+    {
+      "id": "locker-profile-frames-fantasy-galaxy-white",
+      "name": "Fantasy Galaxy (White)",
+      "category": "Profile frames",
+      "icon": "🌌",
+      "theme": "gold",
+      "path": "/shop-assets/profile-frames/fantasy-galaxy-white.svg"
+    },
+    {
+      "id": "locker-profile-frames-neon-chaos-purple",
+      "name": "Neon Chaos (Purple)",
+      "category": "Profile frames",
+      "icon": "⚡",
+      "theme": "purple",
+      "path": "/shop-assets/profile-frames/neon-chaos-purple.svg"
+    },
+    {
+      "id": "locker-profile-frames-ocean",
+      "name": "Ocean",
+      "category": "Profile frames",
+      "icon": "🌊",
+      "theme": "neon",
+      "path": "/shop-assets/profile-frames/ocean.svg"
+    },
+    {
+      "id": "locker-profile-frames-prism-edge-blue",
+      "name": "Prism Edge (Blue)",
+      "category": "Profile frames",
+      "icon": "💎",
+      "theme": "neon",
+      "path": "/shop-assets/profile-frames/prism-edge-blue.svg"
+    },
+    {
+      "id": "locker-profile-frames-sakura-spring",
+      "name": "Sakura Spring",
+      "category": "Profile frames",
+      "icon": "🌸",
+      "theme": "sunset",
+      "path": "/shop-assets/profile-frames/sakura-spring.svg"
+    },
+    {
+      "id": "locker-profile-frames-star-chart",
+      "name": "Star Chart",
+      "category": "Profile frames",
+      "icon": "✨",
+      "theme": "purple",
+      "path": "/shop-assets/profile-frames/star-chart.svg"
+    },
+    {
+      "id": "locker-profile-frames-tropical-symphony",
+      "name": "Tropical Symphony",
+      "category": "Profile frames",
+      "icon": "🌴",
+      "theme": "cozy",
+      "path": "/shop-assets/profile-frames/tropical-symphony.svg"
+    },
+    {
+      "id": "locker-profile-effects-golden-glow",
+      "name": "Golden Glow",
+      "category": "Profile effects",
+      "icon": "✨",
+      "theme": "gold",
+      "path": "/shop-assets/profile-effects/golden-glow.svg"
+    },
+    {
+      "id": "locker-profile-effects-midnight",
+      "name": "Midnight Aura",
+      "category": "Profile effects",
+      "icon": "🌌",
+      "theme": "purple",
+      "path": "/shop-assets/profile-effects/midnight.svg"
+    },
+    {
+      "id": "locker-profile-effects-pixel-heart",
+      "name": "Pixel Heart",
+      "category": "Profile effects",
+      "icon": "💛",
+      "theme": "heart",
+      "path": "/shop-assets/profile-effects/pixel-heart.svg"
+    },
+    {
+      "id": "locker-nameplates-sunset",
+      "name": "Sunset Nameplate",
+      "category": "Nameplates",
+      "icon": "🌅",
+      "theme": "sunset",
+      "path": "/shop-assets/nameplates/sunset.svg"
+    },
+    {
+      "id": "locker-nameplates-neon",
+      "name": "Neon Nameplate",
+      "category": "Nameplates",
+      "icon": "💫",
+      "theme": "neon",
+      "path": "/shop-assets/nameplates/neon.svg"
+    },
+    {
+      "id": "locker-nameplates-cozy",
+      "name": "Cozy Nameplate",
+      "category": "Nameplates",
+      "icon": "☁️",
+      "theme": "cozy",
+      "path": "/shop-assets/nameplates/cozy.svg"
+    },
+    {
+      "id": "locker-chat-effects-sparkles",
+      "name": "Chat Sparkles",
+      "category": "Chat effects",
+      "icon": "✨",
+      "theme": "sparkles",
+      "path": "/shop-assets/chat-effects/sparkles.svg"
+    },
+    {
+      "id": "locker-chat-effects-comet",
+      "name": "Comet Trail",
+      "category": "Chat effects",
+      "icon": "☄️",
+      "theme": "comet",
+      "path": "/shop-assets/chat-effects/comet.svg"
+    },
+    {
+      "id": "locker-chat-effects-party",
+      "name": "Party Popper",
+      "category": "Chat effects",
+      "icon": "🎉",
+      "theme": "party",
+      "path": "/shop-assets/chat-effects/party.svg"
+    },
+    {
+      "id": "locker-emoji-packs-star",
+      "name": "Star Emoji Pack",
+      "category": "Emoji packs",
+      "icon": "⭐",
+      "theme": "stars",
+      "path": "/shop-assets/emoji-packs/star.svg"
+    },
+    {
+      "id": "locker-emoji-packs-fruit",
+      "name": "Fruit Emoji Pack",
+      "category": "Emoji packs",
+      "icon": "🍓",
+      "theme": "fruit",
+      "path": "/shop-assets/emoji-packs/fruit.svg"
+    },
+    {
+      "id": "locker-emoji-packs-game",
+      "name": "Gamer Emoji Pack",
+      "category": "Emoji packs",
+      "icon": "🎮",
+      "theme": "game",
+      "path": "/shop-assets/emoji-packs/game.svg"
+    }
+  ]
+}

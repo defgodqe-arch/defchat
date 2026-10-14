@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title>tideflame</title><desc>Editable defchat dragon pet asset. Replace or recolor this SVG to customize it.</desc>
+  
+  <g stroke="#20202A" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M81 98 34 57 45 115 76 135" fill="#0891B2"/>
+    <path d="M174 98 222 57 211 115 180 135" fill="#0891B2"/>
+    <path d="M83 115 63 82 96 98 111 120" fill="#67E8F9"/>
+    <path d="M173 115 193 82 160 98 145 120" fill="#67E8F9"/>
+    <path d="M78 161 Q53 183 43 211 Q74 219 101 190" fill="#0891B2"/>
+    <path d="M178 161 Q203 183 213 211 Q182 219 155 190" fill="#0891B2"/>
+    <ellipse cx="128" cy="146" rx="61" ry="67" fill="#67E8F9"/>
+    <ellipse cx="128" cy="163" rx="34" ry="43" fill="#FDE68A"/>
+    <path d="M89 91 94 47 119 81" fill="#0891B2"/>
+    <path d="M167 91 162 47 137 81" fill="#0891B2"/>
+    <ellipse cx="128" cy="107" rx="57" ry="45" fill="#67E8F9"/>
+    <ellipse cx="107" cy="105" rx="10" ry="14" fill="#FFFFFF"/>
+    <ellipse cx="149" cy="105" rx="10" ry="14" fill="#FFFFFF"/>
+    <ellipse cx="109" cy="108" rx="4" ry="7" fill="#20202A" stroke="none"/>
+    <ellipse cx="147" cy="108" rx="4" ry="7" fill="#20202A" stroke="none"/>
+    <path d="M111 128 Q128 138 145 128" fill="none"/>
+    <ellipse cx="128" cy="122" rx="20" ry="11" fill="#0891B2"/>
+    <circle cx="119" cy="122" r="2.8" fill="#20202A" stroke="none"/>
+    <circle cx="137" cy="122" r="2.8" fill="#20202A" stroke="none"/>
+    <path d="M92 192 82 219 109 219 119 195" fill="#67E8F9"/>
+    <path d="M137 195 147 219 174 219 164 192" fill="#67E8F9"/>
+    <path d="M88 218 98 214 M100 219 109 215 M151 219 160 215" fill="none"/>
+  </g>
+</svg>

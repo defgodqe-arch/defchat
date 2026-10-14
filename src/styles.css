@@ -667,3 +667,9 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--dc-accent);outline-
 .shop-item-art:has(.shop-frame-demo){min-height:174px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;overflow:hidden}
 .shop-item-art:has(.shop-frame-demo)>small{position:relative;z-index:2}
 @media(max-width:560px){.shop-frame-demo{width:102px;height:102px}.shop-frame-avatar{width:68px;height:68px}.shop-item-art:has(.shop-frame-demo){min-height:150px}}
+
+
+/* Real collectible frame artwork should sit above the avatar without a second generic CSS ring. */
+.cosmetic-frame-art-real{border:0!important;box-shadow:none!important;background:transparent!important;overflow:visible!important;border-radius:0!important}
+.cosmetic-frame-art-real>img{position:absolute;inset:-5px;width:calc(100% + 10px);height:calc(100% + 10px);display:block;object-fit:contain;max-width:none;pointer-events:none}
+.shop-frame-demo>img{filter:drop-shadow(0 3px 5px rgba(0,0,0,.4))}

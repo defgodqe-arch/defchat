@@ -17,7 +17,8 @@ const SETS=[
 const makeWorld=()=>({x:500,y:280,shards:[{x:170,y:135},{x:355,y:90},{x:790,y:120},{x:860,y:330},{x:680,y:460},{x:350,y:440},{x:125,y:350}],collected:[],shadows:[{x:290,y:250,phase:0},{x:730,y:265,phase:2.1}],time:0,health:3,won:false,lost:false});
 export default function AstralProjection({user,onClose}){
  const canvas=useRef(null),world=useRef(makeWorld()),keys=useRef({}),lastHud=useRef(0);
- const [hud,setHud]=useState({shards:0,health:3,energy:100,chapter:0,started:false,won:false,lost:false,paused:true}),[muted,setMuted]=useState(true);\n const [journal,setJournal]=useState(false);
+ const [hud,setHud]=useState({shards:0,health:3,energy:100,chapter:0,started:false,won:false,lost:false,paused:true}),[muted,setMuted]=useState(true);
+ const [journal,setJournal]=useState(false);
  const storageKey='defchat:astral:'+((user&&user.id)||'guest');
  const [best,setBest]=useState(()=>{try{return Number(localStorage.getItem(storageKey+':best')||0)}catch{return 0}});
  useEffect(()=>{const down=e=>{if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault();keys.current[e.key.toLowerCase()]=true;if(e.key.toLowerCase()==='e'||e.key==='Enter')interact();if(e.key==='Escape')setHud(h=>({...h,paused:!h.paused}))};const up=e=>{keys.current[e.key.toLowerCase()]=false};window.addEventListener('keydown',down);window.addEventListener('keyup',up);return()=>{window.removeEventListener('keydown',down);window.removeEventListener('keyup',up)}},[]);

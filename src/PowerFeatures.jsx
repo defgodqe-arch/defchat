@@ -107,7 +107,7 @@ export default function PowerFeatures({ open, onClose, userId, messages = [], co
         </>}
         {tab === 'behavior' && <>
           <div className="power-section-title"><h3>Chat behavior</h3><p>Fine-tune how messages are composed and alerts work.</p></div>
-          <Toggle label="Enter sends messages" description="When disabled, Enter inserts a new line where supported." checked={settings.enterToSend} onChange={value => change('enterToSend', value)} />
+          <Toggle label="Enter sends messages" description="When disabled, use the send button instead." checked={settings.enterToSend} onChange={value => change('enterToSend', value)} />
           <Toggle label="Enable message sound" description="Preference saved for future sound integrations." checked={settings.sound} onChange={value => change('sound', value)} icon={<Volume2 size={17}/>} />
           <div className="power-setting"><div><b>Browser notifications</b><small>Request permission for this site on this device.</small></div><button className="power-secondary" onClick={enableNotifications}><Bell size={15}/> {settings.notifications ? 'Enabled' : 'Enable'}</button></div>
           <div className="power-safe-note"><ShieldCheck size={17}/><span>These preferences are stored locally in this browser or desktop profile. They do not change server-wide settings.</span></div>

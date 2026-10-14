@@ -801,3 +801,25 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--dc-accent);outline-
   -webkit-appearance: none;
   appearance: none;
 }
+
+
+/* Hard reset for every clickable username: no white button fill, border, or focus rectangle. */
+button.message-author-name,
+button.message-author-name:hover,
+button.message-author-name:active,
+button.message-author-name:focus,
+button.message-author-name:focus-visible,
+button.dm-welcome-profile-name,
+button.dm-welcome-profile-name:hover,
+button.dm-welcome-profile-name:active,
+button.dm-welcome-profile-name:focus,
+button.dm-welcome-profile-name:focus-visible {
+  outline: 0 !important;
+  outline-offset: 0 !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  background-color: transparent !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  -webkit-tap-highlight-color: transparent;
+}

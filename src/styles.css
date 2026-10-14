@@ -747,3 +747,40 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--dc-accent);outline-
 .avatar-customizer-embed{margin:4px 0 14px;min-width:0;border:1px solid #3b3d48;border-radius:12px;overflow:hidden;background:#0b0b10}
 .avatar-customizer-frame{display:block;width:100%;height:clamp(440px,62dvh,620px);min-height:440px;border:0;border-radius:0;background:#0b0b10;overflow:auto}
 @media(max-width:600px){.avatar-customizer-frame{height:68dvh;min-height:420px}}
+
+
+/* Public user profiles */
+.message-author-avatar{display:flex;align-self:flex-start;padding:0;border:0;background:transparent;border-radius:50%;cursor:pointer;transition:transform .2s ease,filter .2s ease}
+.message-author-avatar:hover{transform:translateY(-2px) scale(1.055);filter:drop-shadow(0 0 10px #facc1540)}
+.message-author-name{padding:0;border:0;background:transparent;color:inherit;font:inherit;font-weight:700;text-align:left;cursor:pointer;transition:color .18s ease,transform .18s ease}
+.message-author-name:hover{color:#facc15;transform:translateX(2px)}
+.public-profile-backdrop{z-index:150;display:grid;place-items:center;padding:20px;animation:profile-backdrop-in .2s ease both}
+.public-profile-card{position:relative;width:min(560px,100%);max-height:min(780px,92vh);overflow:auto;border:1px solid #ffffff20;border-radius:22px;background:#17181d;color:#f5f5f7;box-shadow:0 28px 100px #0009;animation:profile-card-in .36s cubic-bezier(.2,.85,.25,1.15) both;transform-origin:center}
+.public-profile-close{z-index:3;background:#17181dcc!important;backdrop-filter:blur(12px)}
+.public-profile-banner{height:150px;position:relative;overflow:hidden;background:radial-gradient(ellipse at 20% 0%,#facc1566,transparent 50%),radial-gradient(ellipse at 80% 30%,#8b5cf655,transparent 55%),linear-gradient(125deg,#242630,#393342 55%,#22242d);background-position:center;background-size:cover}
+.public-profile-banner:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,#17181d 100%)}
+.public-profile-banner-glow{position:absolute;width:210px;height:210px;border-radius:50%;left:35%;top:-140px;background:#facc15;filter:blur(70px);opacity:.24;animation:profile-glow 5s ease-in-out infinite alternate}
+.public-profile-main{padding:0 26px 24px}
+.public-profile-avatar{position:relative;width:104px;height:104px;margin-top:-62px;margin-bottom:14px;z-index:1;animation:profile-avatar-in .5s .06s cubic-bezier(.2,.85,.25,1.2) both}
+.public-profile-avatar>.avatar{width:104px;height:104px;border:5px solid #17181d;box-shadow:0 8px 30px #0005;font-size:28px}
+.public-profile-status{position:absolute;right:1px;bottom:6px;padding:4px 8px;border:2px solid #17181d;border-radius:999px;background:#252730;color:#d8d9e0;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+.public-profile-name{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
+.public-profile-name h2{margin:0;font-size:25px;letter-spacing:-.04em;overflow-wrap:anywhere}
+.public-profile-name>div:first-child>span{display:block;margin-top:3px;color:#a2a4b2;font-size:13px}
+.public-profile-actions{display:flex;gap:8px;flex-wrap:wrap}
+.public-profile-actions button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:36px;padding:8px 12px;border-radius:10px;font-size:12px}
+.public-profile-self{padding:7px 10px;border:1px solid #ffffff18;border-radius:9px;color:#d3d4dc;font-size:12px}
+.public-profile-divider{height:1px;margin:22px 0 18px;background:#ffffff13}
+.public-profile-section-title{display:flex;align-items:center;gap:8px;color:#aeb0bd;font-size:11px;font-weight:800;letter-spacing:.12em}
+.public-profile-section-title svg{color:#facc15}
+.public-profile-bio{min-height:54px;margin:10px 0 18px;padding:14px 15px;border:1px solid #ffffff0d;border-radius:12px;background:#ffffff05;color:#e2e3e9;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere}
+.public-profile-meta{display:flex;justify-content:space-between;align-items:center;gap:10px;color:#9a9ca9;font-size:12px}
+.public-profile-meta>span{display:flex;align-items:center;gap:7px}
+.profile-status-dot{width:8px;height:8px;border-radius:50%;background:#a1a1aa;box-shadow:0 0 0 3px #a1a1aa20}
+.profile-status-dot.is-online{background:#3ddc97;box-shadow:0 0 0 3px #3ddc9720}
+@keyframes profile-backdrop-in{from{opacity:0}to{opacity:1}}
+@keyframes profile-card-in{from{opacity:0;transform:translateY(18px) scale(.94);filter:blur(5px)}to{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
+@keyframes profile-avatar-in{from{opacity:0;transform:translateY(14px) scale(.78)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes profile-glow{from{transform:translateX(-25px);opacity:.15}to{transform:translateX(25px);opacity:.32}}
+@media(max-width:520px){.public-profile-backdrop{padding:10px}.public-profile-card{border-radius:18px}.public-profile-banner{height:120px}.public-profile-main{padding:0 17px 20px}.public-profile-name h2{font-size:22px}.public-profile-actions{width:100%}.public-profile-actions button{flex:1}.public-profile-avatar{width:88px;height:88px;margin-top:-52px}.public-profile-avatar>.avatar{width:88px;height:88px}}
+@media(prefers-reduced-motion:reduce){.public-profile-backdrop,.public-profile-card,.public-profile-avatar,.public-profile-banner-glow,.message-author-avatar,.message-author-name{animation:none!important;transition:none!important}}

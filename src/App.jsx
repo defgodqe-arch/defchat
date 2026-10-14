@@ -317,7 +317,7 @@ function ShopModal({userId,onClose,onInventoryChange}){
  const storageKey='defchat:shop:'+userId;
  const [category,setCategory]=useState('All items');
  const [inventory,setInventory]=useState(()=>{try{return JSON.parse(localStorage.getItem(storageKey)||'{\"owned\":[],\"equipped\":[]}')}catch{return {owned:[],equipped:[]}}});
- const [search,setSearch]=useState(''),[toast,setToast]=useState('');
+ const [search,setSearch]=useState(''),[toast,setToast]=useState(''),[studioOpen,setStudioOpen]=useState(false);
  const frameInput=useRef(null);
  useEffect(()=>{let live=true;db.from('user_cosmetics').select('owned,equipped').eq('user_id',userId).maybeSingle().then(async({data,error})=>{if(!live)return;if(data){const next={owned:data.owned||[],equipped:data.equipped||[]};setInventory(next);try{localStorage.setItem(storageKey,JSON.stringify(next))}catch{}onInventoryChange?.(next)}else if(!error){let cached={owned:[],equipped:[]};try{cached=JSON.parse(localStorage.getItem(storageKey)||'{\"owned\":[],\"equipped\":[]}')}catch{}if(cached.owned?.length||cached.equipped?.length){const saved=await db.from('user_cosmetics').upsert({user_id:userId,owned:cached.owned||[],equipped:cached.equipped||[]},{onConflict:'user_id'});if(!saved.error&&live)onInventoryChange?.(cached)}}});return()=>{live=false}},[userId]);
  const categories=['All items','Avatar decorations','Profile effects','Nameplates','Profile frames','Chat effects','Emoji packs'];
@@ -333,7 +333,8 @@ function ShopModal({userId,onClose,onInventoryChange}){
  <div className="shop-promo"><span className="shop-promo-art">✦</span><div><b>Everything unlocked by you</b><small>These are catalog listings, not Discord inventory. Claiming them customizes only your defchat profile.</small></div><span className="shop-promo-badge">FREE FOREVER</span></div>
   <div className="shop-toolbar"><div className="shop-tabs">{categories.map(c=><button key={c} className={category===c?'active':''} onClick={()=>setCategory(c)}>{c}</button>)}</div><label className="shop-search"><Search size={15}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Find an item…"/></label></div>
   {category==='Profile frames' && <section className="avatar-customizer-embed">
-    <div className="avatar-customizer-heading"><div><b>Your frame collection</b><p>These are the actual frame files in defchat, including animated GIF versions where available.</p></div></div>
+    <div className="avatar-customizer-heading"><div><b>Your frame collection</b><p>Preview animated frames from your collection, or create a custom avatar decoration without leaving the Shop.</p></div><button className="avatar-studio-launch" onClick={()=>setStudioOpen(true)}><Sparkles size={15}/> Customize avatar</button></div>
+    <div className="shop-frame-preview-strip">{items.filter(x=>x.category==='Profile frames'&&x.real).slice(0,4).map(item=><div className="shop-frame-preview-tile" key={item.id}><div className="shop-frame-preview-art"><img src={import.meta.env.BASE_URL+'shop-assets/profile-frames/'+item.id.replace('locker-profile-frames-','')+'.gif'} onError={e=>{e.currentTarget.onerror=null;e.currentTarget.src=import.meta.env.BASE_URL+'shop-assets/profile-frames/'+item.id.replace('locker-profile-frames-','')+'.svg'}} alt={item.name}/><span className="shop-frame-preview-avatar">{item.icon}</span></div><span>{item.name}</span></div>)}</div>
    </section>}
    <>
     <div className="shop-summary"><span>{items.length} items</span><span>✓ {idsOf(inventory.owned).length} collected</span></div>
@@ -341,7 +342,7 @@ function ShopModal({userId,onClose,onInventoryChange}){
    </>
   <div className="shop-footer"><span>Fan-made collection • not affiliated with Discord or Locker.gg.</span><button onClick={onClose}>Done</button></div>
  {toast&&<div className="shop-toast" role="status">{toast}<button onClick={()=>setToast('')} aria-label="Dismiss"><X size={14}/></button></div>}
- </section></div>
+ </section>{studioOpen&&<AvatarDecorationStudio onClose={()=>setStudioOpen(false)} />}</div>
 }
 
 export default function App(){

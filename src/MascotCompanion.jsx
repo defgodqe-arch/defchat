@@ -23,29 +23,41 @@ function load(userId){try{return JSON.parse(localStorage.getItem('defchat:mascot
 function markSvg(size=36){return <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="mascot-gold" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#fff0a0"/><stop offset=".55" stopColor="#facc15"/><stop offset="1" stopColor="#e89a08"/></linearGradient></defs><path d="M50 10 61 31 84 28 74 49 88 66 64 69 52 91 39 72 16 76 25 54 10 36 34 34Z" fill="url(#mascot-gold)" stroke="#eaa40a" strokeWidth="2.5" strokeLinejoin="round"/><ellipse cx="40" cy="49" rx="5" ry="7" fill="#29251b"/><ellipse cx="60" cy="49" rx="5" ry="7" fill="#29251b"/><path d="M41 62 Q50 70 59 62" fill="none" stroke="#29251b" strokeWidth="3.5" strokeLinecap="round"/><circle cx="74" cy="20" r="7" fill="#fff4b5" stroke="#facc15" strokeWidth="2"/></svg>}
 function Buddy({variant='sunny',accessory='none',size=100,mood='happy',onClick,compact=false}) {
  const v=variants.find(x=>x.id===variant)||variants[0];
+ const face=v.kind==='moon'?'moon':v.kind==='glitch'?'glitch':'creature';
+ const bodyFill='url(#buddy-coat-'+v.id+')';
  return <div className={'mascot-buddy mascot-mood-'+mood+(compact?' mascot-compact':'')} style={{'--buddy-body':v.body,'--buddy-shadow':v.shadow,'--buddy-light':v.accent,'--buddy-eye':v.eye,width:size,height:size}} onClick={onClick} role={onClick?'button':'img'} tabIndex={onClick?0:undefined} onKeyDown={onClick?e=>{if(e.key==='Enter'||e.key===' ')onClick()}:undefined} aria-label={'Play with your defchat mascot: '+v.name}>
   <svg viewBox="0 0 120 120" width="100%" height="100%" role="img" aria-label={v.name}>
-   <defs><linearGradient id={'body-'+v.id} x1="0" y1="0" x2="1" y2="1"><stop stopColor={v.accent}/><stop offset=".48" stopColor={v.body}/><stop offset="1" stopColor={v.shadow}/></linearGradient><filter id="buddy-glow"><feGaussianBlur stdDeviation="3"/></filter></defs>
-   <ellipse cx="60" cy="103" rx="29" ry="7" fill={v.shadow} opacity=".22"/>
-   {v.kind==='star'?<path d="M60 10 73 32 99 27 88 51 107 69 81 76 70 101 52 83 27 91 32 65 12 48 38 42Z" fill={v.shadow} opacity=".22" transform="translate(0 4)"/>:null}
+   <defs>
+    <linearGradient id={'buddy-coat-'+v.id} x1="0" y1="0" x2=".85" y2="1"><stop stopColor={v.accent}/><stop offset=".42" stopColor={v.body}/><stop offset="1" stopColor={v.shadow}/></linearGradient>
+    <linearGradient id={'buddy-belly-'+v.id} x1="0" y1="0" x2="0" y2="1"><stop stopColor="#fff9e8"/><stop offset="1" stopColor="#f0dfbd"/></linearGradient>
+   </defs>
+   <ellipse cx="60" cy="105" rx="25" ry="5.5" fill="#171717" opacity=".12"/>
    <g className="mascot-float">
-    {v.kind==='moon'?<path d="M78 18 A43 43 0 1 0 99 78 A34 34 0 0 1 78 18Z" fill={'url(#body-'+v.id+')'} stroke={v.shadow} strokeWidth="2.5"/>:
-     v.kind==='star'?<path d="M60 10 73 32 99 27 88 51 107 69 81 76 70 101 52 83 27 91 32 65 12 48 38 42Z" fill={'url(#body-'+v.id+')'} stroke={v.shadow} strokeWidth="2.5" strokeLinejoin="round"/>:
-     v.kind==='glitch'?<path d="M29 23H78L94 39V79L77 96H30L17 79V38Z" fill={'url(#body-'+v.id+')'} stroke={v.shadow} strokeWidth="3"/>:
-     <path d="M60 12 C85 12 103 30 103 57 C103 83 84 98 60 98 C35 98 17 82 17 57 C17 31 36 12 60 12Z" fill={'url(#body-'+v.id+')'} stroke={v.shadow} strokeWidth="2.5"/>}
-    <path d="M45 17 Q41 5 54 7" fill="none" stroke={v.shadow} strokeWidth="4" strokeLinecap="round"/>
-    <circle cx="55" cy="8" r="6" fill={v.accent} stroke={v.shadow} strokeWidth="2"/>
-    <path d="M22 56 Q6 47 9 64 Q12 77 25 73" fill={v.body} stroke={v.shadow} strokeWidth="2.5"/>
-    <path d="M97 57 Q114 46 112 63 Q110 76 96 73" fill={v.body} stroke={v.shadow} strokeWidth="2.5"/>
-    <ellipse cx="44" cy="52" rx="6" ry={mood==='sleepy'?2:8} fill={v.eye}/><ellipse cx="75" cy="52" rx="6" ry={mood==='sleepy'?2:8} fill={v.eye}/>
-    <circle cx="46" cy="49" r="2.2" fill="#fff"/><circle cx="77" cy="49" r="2.2" fill="#fff"/>
-    {mood==='excited'?<path d="M45 66 Q60 87 76 66Z" fill={v.eye}/>:mood==='sleepy'?<path d="M50 67 Q60 73 70 67" fill="none" stroke={v.eye} strokeWidth="3.5" strokeLinecap="round"/>:<path d="M48 65 Q60 76 72 65" fill="none" stroke={v.eye} strokeWidth="3.5" strokeLinecap="round"/>}
-    <ellipse cx="31" cy="62" rx="6" ry="3" fill="#ff8791" opacity=".65"/><ellipse cx="88" cy="62" rx="6" ry="3" fill="#ff8791" opacity=".65"/>
-    {accessory==='halo'&&<ellipse cx="60" cy="9" rx="17" ry="5" fill="none" stroke="#fff2a8" strokeWidth="4"/>}
-    {accessory==='crown'&&<path d="M38 21 34 8 48 16 60 3 72 16 87 8 81 24Z" fill="#ffdb57" stroke="#c18a17" strokeWidth="2" strokeLinejoin="round"/>}
-    {accessory==='flower'&&<g transform="translate(85 26)"><circle cy="-6" r="5" fill="#ff8eb0"/><circle cx="6" cy="-1" r="5" fill="#ff8eb0"/><circle cx="4" cy="6" r="5" fill="#ff8eb0"/><circle cx="-4" cy="6" r="5" fill="#ff8eb0"/><circle cx="-6" cy="-1" r="5" fill="#ff8eb0"/><circle r="4" fill="#ffdc56"/></g>}
-    {accessory==='star'&&<g fill="#fff1a8"><path d="M92 35l3 7 7 3-7 3-3 7-3-7-7-3 7-3Z"/><path d="M27 28l2 5 5 2-5 2-2 5-2-5-5-2 5-2Z"/></g>}
-    {accessory==='party'&&<path d="M39 26 58 1 78 28Z" fill="#ff78ac" stroke="#b83c7b" strokeWidth="2" />}
+    {face==='moon'?<path d="M77 14C53 14 35 33 35 57c0 24 18 42 42 42 11 0 21-4 29-12-22 2-39-15-39-36 0-15 8-28 21-34-4-2-7-3-11-3Z" fill={bodyFill} stroke={v.shadow} strokeWidth="2.6" strokeLinejoin="round"/>:
+    face==='glitch'?<path d="M36 18h37l9 10h9v14l8 8v28l-14 3-8 13H39l-5-12-10-4V39l12-4Z" fill={bodyFill} stroke={v.shadow} strokeWidth="2.6" strokeLinejoin="round"/>:
+    <g>
+     <path d="M30 45 25 21Q24 16 29 20L48 36Q60 31 72 36L91 20Q96 16 95 23L91 47Q101 59 96 78 88 99 61 100 34 100 24 80 17 62 30 45Z" fill={v.shadow} opacity=".24" transform="translate(0 3)"/>
+     <path d="M30 43 25 19Q24 14 29 19L49 36Q60 31 72 36L92 19Q97 15 95 23L91 46Q102 59 96 78 88 98 61 99 34 99 24 79 17 61 30 43Z" fill={bodyFill} stroke={v.shadow} strokeWidth="2.6" strokeLinejoin="round"/>
+     <path d="M31 28 31 39 43 36Z" fill={v.accent} opacity=".9"/><path d="M89 28 88 39 77 36Z" fill={v.accent} opacity=".9"/>
+     <path d="M42 77Q60 88 79 77 75 94 60 94 46 94 42 77Z" fill={'url(#buddy-belly-'+v.id+')'} opacity=".92"/>
+    </g>}
+    {face==='moon'?<g/>:<g>
+     <path d="M43 42Q49 37 54 43" fill="none" stroke={v.shadow} strokeWidth="2.5" strokeLinecap="round"/>
+     <path d="M68 43Q74 37 80 42" fill="none" stroke={v.shadow} strokeWidth="2.5" strokeLinecap="round"/>
+     <ellipse cx="48" cy="53" rx="5.2" ry={mood==='sleepy'?1.8:7} fill={v.eye}/>
+     <ellipse cx="74" cy="53" rx="5.2" ry={mood==='sleepy'?1.8:7} fill={v.eye}/>
+     {mood!=='sleepy'&&<g fill="#fff"><circle cx="49.5" cy="50.5" r="2"/><circle cx="75.5" cy="50.5" r="2"/></g>}
+     <path d={mood==='excited'?'M50 65Q61 81 73 65Q69 78 61 78Q53 78 50 65Z':'M51 66Q61 74 71 66'} fill={mood==='excited'?v.eye:'none'} stroke={v.eye} strokeWidth="2.8" strokeLinecap="round"/>
+     <path d="M30 63q5-4 10 0M81 63q5-4 10 0" fill="none" stroke="#d96d68" strokeWidth="3.5" strokeLinecap="round" opacity=".65"/>
+     <path d="M59 58l3 2-3 2-3-2Z" fill={v.shadow} opacity=".85"/>
+    </g>}
+    {face==='moon'&&<g><circle cx="65" cy="55" r="3.5" fill={v.eye}/><path d="M63 66q6 5 12 0" fill="none" stroke={v.eye} strokeWidth="2.5" strokeLinecap="round"/><circle cx="84" cy="38" r="2" fill={v.accent}/></g>}
+    {face==='glitch'&&<g><path d="M42 46h12v12H42zM68 46h12v12H68z" fill={v.eye}/><path d="M48 72h23" stroke={v.eye} strokeWidth="3" strokeLinecap="square"/><path d="M20 50h8M93 67h8M33 87h8" stroke={v.accent} strokeWidth="3" strokeLinecap="square"/></g>}
+    {accessory==='halo'&&<ellipse cx="60" cy="13" rx="15" ry="4.5" fill="none" stroke="#fff4c5" strokeWidth="3.5"/>}
+    {accessory==='crown'&&<path d="M39 27 35 12 48 20 60 6 72 20 86 12 81 29Z" fill="#f5c94e" stroke="#9e711b" strokeWidth="2" strokeLinejoin="round"/>}
+    {accessory==='flower'&&<g transform="translate(88 30)" stroke="#a56b38" strokeWidth="1"><circle cy="-5" r="4.5" fill="#ff91ad"/><circle cx="5" cy="-1" r="4.5" fill="#ff91ad"/><circle cx="3" cy="5" r="4.5" fill="#ff91ad"/><circle cx="-3" cy="5" r="4.5" fill="#ff91ad"/><circle cx="-5" cy="-1" r="4.5" fill="#ff91ad"/><circle r="3.5" fill="#f7d35a"/></g>}
+    {accessory==='star'&&<g fill="#fff0a1" stroke="#d3a22d" strokeWidth="1"><path d="M94 37l2.5 5.5 6 2-6 2.5-2.5 5.5-2.5-5.5-6-2.5 6-2Z"/><path d="M25 30l2 4 4 1.5-4 2-2 4-2-4-4-2 4-1.5Z"/></g>}
+    {accessory==='party'&&<g><path d="M42 27 59 3 77 28Z" fill="#f18ab0" stroke="#9d456b" strokeWidth="2" strokeLinejoin="round"/><circle cx="59" cy="4" r="3" fill="#f7d15d"/></g>}
    </g>
   </svg>
  </div>

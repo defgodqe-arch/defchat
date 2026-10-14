@@ -673,3 +673,8 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--dc-accent);outline-
 .cosmetic-frame-art-real{border:0!important;box-shadow:none!important;background:transparent!important;overflow:visible!important;border-radius:0!important}
 .cosmetic-frame-art-real>img{position:absolute;inset:-5px;width:calc(100% + 10px);height:calc(100% + 10px);display:block;object-fit:contain;max-width:none;pointer-events:none}
 .shop-frame-demo>img{filter:drop-shadow(0 3px 5px rgba(0,0,0,.4))}
+
+/* Use the original full-frame SVGs; animate them in CSS instead of broken half-rendered GIFs. */
+.cosmetic-frame-art-real>img,.shop-frame-demo>img{animation:profile-frame-glow 3.2s ease-in-out infinite;transform-origin:center;}
+@keyframes profile-frame-glow{0%,100%{filter:brightness(1) drop-shadow(0 0 3px rgba(250,204,21,.12))}50%{filter:brightness(1.16) drop-shadow(0 0 7px rgba(250,204,21,.34))}}
+@media(prefers-reduced-motion:reduce){.cosmetic-frame-art-real>img,.shop-frame-demo>img{animation:none}}

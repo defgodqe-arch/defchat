@@ -45,7 +45,7 @@ function Buddy({variant='sunny',accessory='none',size=100,mood='happy',onClick,c
     {accessory==='crown'&&<path d="M38 21 34 8 48 16 60 3 72 16 87 8 81 24Z" fill="#ffdb57" stroke="#c18a17" strokeWidth="2" strokeLinejoin="round"/>}
     {accessory==='flower'&&<g transform="translate(85 26)"><circle cy="-6" r="5" fill="#ff8eb0"/><circle cx="6" cy="-1" r="5" fill="#ff8eb0"/><circle cx="4" cy="6" r="5" fill="#ff8eb0"/><circle cx="-4" cy="6" r="5" fill="#ff8eb0"/><circle cx="-6" cy="-1" r="5" fill="#ff8eb0"/><circle r="4" fill="#ffdc56"/></g>}
     {accessory==='star'&&<g fill="#fff1a8"><path d="M92 35l3 7 7 3-7 3-3 7-3-7-7-3 7-3Z"/><path d="M27 28l2 5 5 2-5 2-2 5-2-5-5-2 5-2Z"/></g>}
-    {accessory==='party'&&<path d="M39 26 58 1 78 28Z" fill="#ff78ac" stroke="#b83c7b" strokeWidth="2"/ >}
+    {accessory==='party'&&<path d="M39 26 58 1 78 28Z" fill="#ff78ac" stroke="#b83c7b" strokeWidth="2" />}
    </g>
   </svg>
  </button>

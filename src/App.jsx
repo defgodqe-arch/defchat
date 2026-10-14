@@ -342,7 +342,7 @@ function ShopModal({userId,onClose,onInventoryChange}){
    </>
   <div className="shop-footer"><span>Fan-made collection • not affiliated with Discord or Locker.gg.</span><button onClick={onClose}>Done</button></div>
  {toast&&<div className="shop-toast" role="status">{toast}<button onClick={()=>setToast('')} aria-label="Dismiss"><X size={14}/></button></div>}
- </section>{studioOpen&&<div className="modal-backdrop avatar-site-backdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget)setStudioOpen(false)}}><section className="avatar-site-modal" role="dialog" aria-modal="true" aria-label="Avatar Decoration Studio"><header className="avatar-site-header"><b>Avatar Decoration Studio</b><a href="https://avatardecoration.com/" target="_blank" rel="noreferrer">Open in new tab ↗</a><button className="modal-close" onClick={()=>setStudioOpen(false)} aria-label="Close"><X size={20}/></button></header><iframe className="avatar-site-frame" src="https://avatardecoration.com/" title="AvatarDecoration customization tool" loading="lazy"/><p className="avatar-site-fallback">If it does not load here, <a href="https://avatardecoration.com/" target="_blank" rel="noreferrer">open AvatarDecoration in a new tab</a>.</p></section></div>}</div>
+ </section>{studioOpen&&<AvatarDecorationStudio onClose={()=>setStudioOpen(false)} />}</div>
 }
 
 export default function App(){

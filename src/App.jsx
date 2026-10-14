@@ -342,7 +342,7 @@ function ShopModal({userId,onClose,onInventoryChange}){
     <div className="shop-studio-section-title"><div><h3>Live preview</h3><p>Choose an item to preview it here before equipping it.</p></div><span className="shop-preview-live">LIVE</span></div>
     <div className="shop-avatar-stage">
      <div className={'shop-avatar-composite '+(featuredItem?.category==='Profile effects'?'shop-avatar-with-effect':'')}>
-      <div className="shop-avatar-base" style={{transform:'scale('+previewZoom/100+')'}}>{previewAvatar?<img src={previewAvatar} alt="Avatar preview"/>:<span>DG</span>}</div>
+      <div className="shop-avatar-base" style={{transform:'scale('+(previewZoom/100)+')'}}>{previewAvatar?<img src={previewAvatar} alt="Avatar preview"/>:<span>DG</span>}</div>
       {featuredItem?.customImageUrl?<img className="shop-avatar-overlay" src={featuredItem.customImageUrl} alt={featuredItem.name}/>:featuredItem?.real?<img className="shop-avatar-overlay" src={assetUrl(featuredItem,featuredItem.category==='Profile frames'?'gif':'svg')} onError={e=>{if(featuredItem.category==='Profile frames'&&!e.currentTarget.dataset.fallback){e.currentTarget.dataset.fallback='1';e.currentTarget.src=assetUrl(featuredItem,'svg')}else{e.currentTarget.style.display='none'}}} alt={featuredItem.name}/>:<span className={'shop-avatar-emoji shop-avatar-emoji-'+(featuredItem?.preview||'gold')}>{featuredItem?.icon||'✦'}</span>}
      </div>
      <div className="shop-preview-item-name">{featuredItem?.name||'Choose an item'}</div>

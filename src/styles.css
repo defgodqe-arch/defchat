@@ -784,3 +784,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--dc-accent);outline-
 @keyframes profile-glow{from{transform:translateX(-25px);opacity:.15}to{transform:translateX(25px);opacity:.32}}
 @media(max-width:520px){.public-profile-backdrop{padding:10px}.public-profile-card{border-radius:18px}.public-profile-banner{height:120px}.public-profile-main{padding:0 17px 20px}.public-profile-name h2{font-size:22px}.public-profile-actions{width:100%}.public-profile-actions button{flex:1}.public-profile-avatar{width:88px;height:88px;margin-top:-52px}.public-profile-avatar>.avatar{width:88px;height:88px}}
 @media(prefers-reduced-motion:reduce){.public-profile-backdrop,.public-profile-card,.public-profile-avatar,.public-profile-banner-glow,.message-author-avatar,.message-author-name{animation:none!important;transition:none!important}}
+
+.dm-sidebar-username{position:relative;z-index:1;cursor:pointer}.dm-sidebar-username:hover{color:#facc15;text-decoration:underline;text-underline-offset:3px}
+.dm-welcome-profile-name{display:inline-block;margin:7px auto 0;padding:2px 7px;border:0;border-radius:8px;background:transparent;color:inherit;font:inherit;font-size:22px;font-weight:800;cursor:pointer;transition:color .18s ease,background .18s ease}
+.dm-welcome-profile-name:hover{color:#facc15;background:#facc1512}

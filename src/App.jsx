@@ -333,7 +333,11 @@ function ShopModal({userId,onClose,onInventoryChange}){
  <div className="shop-promo"><span className="shop-promo-art">✦</span><div><b>Everything unlocked by you</b><small>These are catalog listings, not Discord inventory. Claiming them customizes only your defchat profile.</small></div><span className="shop-promo-badge">FREE FOREVER</span></div>
   <div className="shop-toolbar"><div className="shop-tabs">{categories.map(c=><button key={c} className={category===c?'active':''} onClick={()=>setCategory(c)}>{c}</button>)}</div><label className="shop-search"><Search size={15}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Find an item…"/></label></div>
   {category==='Profile frames' && <section className="avatar-customizer-embed" aria-label="Avatar customization">
-    <iframe className="avatar-customizer-frame" title="Avatar Decoration Studio" src="https://defgodqe-arch.github.io/avatar-custom/?embed=1" loading="lazy" allow="clipboard-write" />
+    <div className="avatar-customizer-heading">
+      <div><b>Avatar Decoration Studio</b><p>Create a decoration with the original AvatarDecoration tool. Your design is created on their website; download it and upload it to defchat to use it on your profile.</p></div>
+      <a href="https://avatardecoration.com/" target="_blank" rel="noreferrer">Open in new tab ↗</a>
+    </div>
+    <iframe className="avatar-customizer-frame" title="Avatar Decoration Studio" src="https://avatardecoration.com/" loading="lazy" referrerPolicy="strict-origin-when-cross-origin" allow="clipboard-write" />
    </section>}
    <>
     <div className="shop-summary"><span>{items.length} items</span><span>✓ {idsOf(inventory.owned).length} collected</span></div>

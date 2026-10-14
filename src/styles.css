@@ -659,3 +659,11 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--dc-accent);outline-
 .mascot-fire-button>span{font-size:15px}
 @keyframes dragon-fire-burst{0%{opacity:.1;transform:scaleX(.2)}45%{opacity:1;transform:scaleX(1.08)}100%{opacity:.85;transform:scaleX(1)}}
 @media(prefers-reduced-motion:reduce){.mascot-fire-breath{animation:none!important}}
+
+/* Collectible avatar frame previews — the frame SVG overlays a sample avatar. */
+.shop-frame-demo{position:relative;width:118px;height:118px;display:grid;place-items:center;margin:0 auto 4px;isolation:isolate}
+.shop-frame-avatar{width:78px;height:78px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#fde68a,#a78bfa 55%,#334155);color:#fff;font-size:27px;font-weight:800;box-shadow:0 0 0 3px rgba(255,255,255,.13);z-index:0}
+.shop-frame-demo>img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:1;filter:drop-shadow(0 0 5px rgba(167,139,250,.32))}
+.shop-item-art:has(.shop-frame-demo){min-height:174px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;overflow:hidden}
+.shop-item-art:has(.shop-frame-demo)>small{position:relative;z-index:2}
+@media(max-width:560px){.shop-frame-demo{width:102px;height:102px}.shop-frame-avatar{width:68px;height:68px}.shop-item-art:has(.shop-frame-demo){min-height:150px}}

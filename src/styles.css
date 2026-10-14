@@ -788,3 +788,16 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--dc-accent);outline-
 .dm-sidebar-username{position:relative;z-index:1;cursor:pointer}.dm-sidebar-username:hover{color:#facc15;text-decoration:underline;text-underline-offset:3px}
 .dm-welcome-profile-name{display:inline-block;margin:7px auto 0;padding:2px 7px;border:0;border-radius:8px;background:transparent;color:inherit;font:inherit;font-size:22px;font-weight:800;cursor:pointer;transition:color .18s ease,background .18s ease}
 .dm-welcome-profile-name:hover{color:#facc15;background:#facc1512}
+
+/* Keep clickable usernames visually clean; remove the browser's white focus ring. */
+.message-author-name,
+.message-author-name:focus,
+.message-author-name:focus-visible,
+.dm-welcome-profile-name,
+.dm-welcome-profile-name:focus,
+.dm-welcome-profile-name:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-appearance: none;
+  appearance: none;
+}

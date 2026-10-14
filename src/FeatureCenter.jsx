@@ -1,8 +1,8 @@
 import React,{useEffect,useState} from 'react';
 import {X,Users,UserPlus,Check, XCircle, Shield, Bell, Phone, Video, Mic, MicOff, Headphones, MonitorUp, Settings2, Hash, VolumeX, Volume2, Search, LoaderCircle, Plus, Copy, UserRound, MessageCircle, Lock, Unlock, Save, Trash2} from 'lucide-react';
 
-export default function FeatureCenter({db,user,profile,server,onClose,onProfileSaved,onOpenDM,onRefreshServer,onJoinedServer}) {
-  const [tab,setTab]=useState('friends');
+export default function FeatureCenter({db,user,profile,server,onClose,onProfileSaved,onOpenDM,onRefreshServer,onJoinedServer,initialTab='friends'}) {
+  const [tab,setTab]=useState(initialTab);
   const [query,setQuery]=useState('');
   const [notice,setNotice]=useState('');
   const [error,setError]=useState('');
@@ -29,7 +29,7 @@ export default function FeatureCenter({db,user,profile,server,onClose,onProfileS
   const [mediaStream,setMediaStream]=useState(null);
   const [screenStream,setScreenStream]=useState(null);
 
-  useEffect(()=>{loadSocial();if(server)loadServer();return()=>{mediaStream?.getTracks().forEach(t=>t.stop());screenStream?.getTracks().forEach(t=>t.stop())}},[user?.id,server?.id]);
+  useEffect(()=>{setTab(initialTab);loadSocial();if(server)loadServer();return()=>{mediaStream?.getTracks().forEach(t=>t.stop());screenStream?.getTracks().forEach(t=>t.stop())}},[user?.id,server?.id,initialTab]);
   async function loadSocial(){
     if(!user)return;
     const [{data:req,error:re},{data:bl,error:be}]=await Promise.all([

@@ -7,7 +7,7 @@ import AvatarDecorationStudio from './AvatarDecorationStudio.jsx';
 import SavedMessages from './SavedMessages.jsx';
 import MascotCompanion,{MascotMark} from './MascotCompanion.jsx';
 import {createClient} from '@supabase/supabase-js';
-import {Hash,Plus,LogOut,Send,LoaderCircle,ChevronDown,Users,Menu,X,MessageCircle,ArrowLeft,Search,MessageSquare,Camera,ImagePlus,Check,Settings,Headphones,Mic,Inbox,HelpCircle,Compass,ChevronRight,Smile,Trash2,Paperclip,MoreHorizontal,Pencil,UserPlus,Bell,VolumeX,Phone,Video,Upload,CornerUpLeft,Gamepad2,GraduationCap,Sparkles,ArrowRight,Globe,ShoppingBag,Gift,SlidersHorizontal,Bookmark,UserRound} from 'lucide-react';
+import {Hash,Plus,LogOut,Send,LoaderCircle,ChevronDown,Users,Menu,X,MessageCircle,ArrowLeft,Search,MessageSquare,Camera,ImagePlus,Check,Settings,Headphones,Mic,Inbox,HelpCircle,Compass,ChevronRight,Smile,Trash2,Paperclip,MoreHorizontal,Pencil,UserPlus,Bell,VolumeX,Phone,Video,Upload,CornerUpLeft,Gamepad2,GraduationCap,Sparkles,ArrowRight,Globe,ShoppingBag,Gift,SlidersHorizontal,Bookmark} from 'lucide-react';
 
 const url=import.meta.env.VITE_SUPABASE_URL||'https://jklhnhnxyzqjvmqgfpjs.supabase.co';
 const key=import.meta.env.VITE_SUPABASE_ANON_KEY||'sb_publishable_MMXxKZkJT0H7-oayT60ddA_8nC0kFjn';
@@ -358,7 +358,7 @@ function PublicUserProfile({db,userId,person,onClose,onMessage}) {
     <div className="public-profile-banner" style={person.banner_url?{backgroundImage:'url("'+person.banner_url+'")'}:undefined}><div className="public-profile-banner-glow"/></div>
     <div className="public-profile-main"><div className="public-profile-avatar"><Avatar name={person.username} url={person.avatar_url}/><span className="public-profile-status">{person.status||'online'}</span></div>
       <div className="public-profile-name"><div><h2>{person.username||'member'}</h2><span>@{person.username||'member'}</span></div>{person.id===userId?<span className="public-profile-self">Your account</span>:<div className="public-profile-actions">{relation==='none'&&<button className="primary" onClick={addFriend} disabled={busy}><UserPlus size={16}/>{busy?'Sending…':'Add friend'}</button>}{relation==='sent'&&<button className="secondary-button" disabled><Check size={16}/>Request sent</button>}{relation==='received'&&<><button className="primary" onClick={()=>respond('accepted')} disabled={busy}><Check size={16}/>Accept request</button><button className="secondary-button" onClick={()=>respond('declined')} disabled={busy}>Decline</button></>}{relation==='friends'&&<button className="secondary-button" disabled><Check size={16}/>Friends</button>}<button className="secondary-button" onClick={()=>onMessage(person)}><MessageCircle size={16}/>Message</button></div>}</div>
-      <div className="public-profile-divider"/><div className="public-profile-section-title"><UserRound size={15}/> ABOUT ME</div><p className="public-profile-bio">{person.bio?.trim()||'This user has not added a bio yet.'}</p>
+      <div className="public-profile-divider"/><div className="public-profile-section-title"><Users size={15}/> ABOUT ME</div><p className="public-profile-bio">{person.bio?.trim()||'This user has not added a bio yet.'}</p>
       {error&&<div className="notice error-notice">{error}</div>}{notice&&<div className="notice success-notice">{notice}</div>}
       <div className="public-profile-meta"><span><i className={'profile-status-dot '+((person.status||'online')==='online'?'is-online':'')}/>{person.status||'online'}</span><span>defchat member</span></div>
     </div>

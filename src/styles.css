@@ -604,3 +604,19 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--dc-accent);outline-
 .saved-footer span{color:#898f9e;font-size:11px}
 .saved-footer .primary{min-width:92px}
 @media(max-width:560px){.saved-modal{width:calc(100vw - 12px);max-height:94dvh;border-radius:15px}.saved-heading{padding:16px}.saved-list{padding:3px 11px 12px}.saved-search{margin:11px}.saved-footer{padding:12px 15px}}
+
+
+/* Discord-style navigation and no-default-server state */
+.rail{overflow-y:auto;scrollbar-width:thin;scrollbar-color:#353842 transparent}
+.rail .rail-action{flex-shrink:0}
+.rail .server,.rail .add{flex-shrink:0}
+.empty-server-actions{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;margin-top:18px}
+.empty-server-actions .primary,.empty-server-actions .secondary-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:0 15px;border-radius:8px;font-size:13px;font-weight:700}
+.empty-server-actions .secondary-button{border:1px solid #ffffff18;background:#30333b;color:#e7e9f0}
+.empty-server-actions .secondary-button:hover{background:#3a3d47}
+.server-title{cursor:pointer}
+.server-title:hover{background:#ffffff08}
+.channel{transition:background .12s ease,color .12s ease}
+.channel:hover{background:#ffffff0b;color:#f2f3f5}
+.channel.active{background:#404249;color:#fff}
+@media(max-width:700px){.empty-server-actions{flex-direction:column}.empty-server-actions>*{width:100%;max-width:260px}}

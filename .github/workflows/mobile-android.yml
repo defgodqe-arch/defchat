@@ -52,11 +52,11 @@ jobs:
       - name: Publish APK download
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: android-build-\${{ github.run_number }}
-          name: defchat Android build \${{ github.run_number }}
+          tag_name: android-build-${{ github.run_number }}
+          name: defchat Android build ${{ github.run_number }}
           body: |
             Installable Android APK for defchat.
             
-            On your Android phone, download \`defchat-android.apk\`, open it, and allow installation from this source if Android asks. This is a debug-signed APK for direct testing, not a Play Store release.
+            On your Android phone, download `defchat-android.apk`, open it, and allow installation from this source if Android asks. This is a debug-signed APK for direct testing, not a Play Store release.
           files: release/defchat-android.apk
           make_latest: true

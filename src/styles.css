@@ -823,3 +823,37 @@ button.dm-welcome-profile-name:focus-visible {
   appearance: none !important;
   -webkit-tap-highlight-color: transparent;
 }
+
+
+/* In-app notification center */
+.notification-bell-button{position:relative}
+.notification-count{position:absolute;right:-4px;top:-4px;min-width:17px;height:17px;padding:0 4px;display:grid;place-items:center;border:2px solid var(--chat,#313338);border-radius:999px;background:#ed4245;color:#fff;font-size:9px;line-height:1;font-weight:800}
+.notification-panel-backdrop{position:fixed;inset:0;z-index:1800;display:flex;justify-content:flex-end;align-items:flex-start;padding:62px 18px 18px;background:#0005;backdrop-filter:blur(3px);animation:notification-fade-in .16s ease both}
+.notification-panel{width:min(420px,calc(100vw - 24px));max-height:min(690px,calc(100dvh - 85px));display:flex;flex-direction:column;overflow:hidden;border:1px solid #41434d;border-radius:16px;background:#202229;box-shadow:0 24px 80px #0009;animation:notification-panel-in .2s cubic-bezier(.2,.8,.2,1) both}
+.notification-panel-header{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:19px 18px 15px;border-bottom:1px solid #ffffff10}
+.notification-panel-header h2{display:flex;align-items:center;gap:9px;margin:0;color:#f2f3f5;font:700 18px 'Space Grotesk',sans-serif}
+.notification-panel-header h2 svg{color:#facc15}
+.notification-panel-header p{margin:6px 0 0 28px;color:#949ba4;font-size:11px}
+.notification-panel-actions{display:flex;justify-content:flex-end;gap:7px;padding:10px 13px;border-bottom:1px solid #ffffff0a}
+.notification-panel-actions button{border:1px solid #41434d;border-radius:7px;background:#2b2d35;color:#c9ccd5;padding:7px 9px;font-size:10px;font-weight:700}
+.notification-panel-actions button:hover{border-color:#facc1560;color:#facc15}
+.notification-list{overflow:auto;padding:7px;scrollbar-width:thin;scrollbar-color:#41434d transparent}
+.notification-item{position:relative;display:flex;align-items:flex-start;gap:11px;width:100%;padding:12px 10px;border:0;border-radius:10px;background:transparent;color:#dbdee1;text-align:left;transition:background .15s ease,transform .15s ease}
+.notification-item:hover{background:#ffffff0b;transform:translateX(2px)}
+.notification-unread{background:#facc150b}
+.notification-unread:hover{background:#facc1515}
+.notification-type-icon{display:grid;place-items:center;flex-shrink:0;width:36px;height:36px;border-radius:11px;background:#343640;color:#b5bac5}
+.notification-type-friend{background:#facc1518;color:#facc15}
+.notification-type-dm{background:#a78bfa18;color:#b8a0ff}
+.notification-item-copy{display:grid;gap:4px;min-width:0;flex:1}
+.notification-item-copy b{font-size:12px;font-weight:750;color:#f2f3f5}
+.notification-item-copy>span{font-size:12px;line-height:1.45;color:#b5bac1;overflow-wrap:anywhere}
+.notification-item-copy small{margin-top:3px;color:#858b98;font-size:10px}
+.notification-unread-dot{width:7px;height:7px;flex-shrink:0;margin-top:6px;border-radius:50%;background:#facc15;box-shadow:0 0 10px #facc1545}
+.notification-empty{display:grid;justify-items:center;text-align:center;padding:48px 22px;color:#949ba4}
+.notification-empty>span{display:grid;place-items:center;width:58px;height:58px;margin-bottom:14px;border-radius:18px;background:#facc1512;color:#facc15}
+.notification-empty b{font-size:13px;color:#f2f3f5}
+.notification-empty p{max-width:230px;margin:7px 0 0;font-size:11px;line-height:1.6}
+@keyframes notification-fade-in{from{opacity:0}to{opacity:1}}
+@keyframes notification-panel-in{from{opacity:0;transform:translateY(-8px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:560px){.notification-panel-backdrop{padding:56px 8px 8px}.notification-panel{width:100%;max-height:calc(100dvh - 65px);border-radius:14px}.notification-panel-header{padding:15px}.notification-item{padding:11px 8px}}

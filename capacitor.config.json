@@ -1,0 +1,13 @@
+{
+  "appId": "gg.defgodqe.defchat",
+  "appName": "defchat",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "ios": {
+    "contentInset": "automatic",
+    "preferredContentMode": "mobile"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}

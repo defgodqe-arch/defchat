@@ -857,3 +857,56 @@ button.dm-welcome-profile-name:focus-visible {
 @keyframes notification-fade-in{from{opacity:0}to{opacity:1}}
 @keyframes notification-panel-in{from{opacity:0;transform:translateY(-8px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(max-width:560px){.notification-panel-backdrop{padding:56px 8px 8px}.notification-panel{width:100%;max-height:calc(100dvh - 65px);border-radius:14px}.notification-panel-header{padding:15px}.notification-item{padding:11px 8px}}
+
+
+/* Mobile layout hardening: prevent desktop-width panels and horizontal overflow. */
+*, *::before, *::after { box-sizing: border-box; }
+html { width: 100%; min-width: 0; min-height: 100%; overflow-x: clip; -webkit-text-size-adjust: 100%; }
+body, #root { width: 100%; min-width: 0; min-height: 100%; margin: 0; overflow-x: clip; }
+img, video, canvas, svg { max-width: 100%; }
+input, textarea, select, button { max-width: 100%; }
+button, [role="button"], a { touch-action: manipulation; }
+:where(*):focus-visible { outline-offset: 2px; }
+@supports (height: 100dvh) {
+  .app, .app-shell, .chat-app, .app-layout, .main-layout { min-height: 100dvh; }
+}
+@media (max-width: 760px) {
+  body { overscroll-behavior-x: none; }
+  #root { min-height: 100dvh; }
+  .app, .app-shell, .chat-app, .app-layout, .main-layout, .main-content,
+  .chat-layout, .chat-main, .content, .page-content {
+    min-width: 0 !important;
+    max-width: 100vw;
+  }
+  .app, .app-shell, .chat-app, .app-layout, .main-layout { height: 100dvh; }
+  .sidebar, .server-sidebar, .channel-sidebar, .dm-sidebar {
+    max-width: min(86vw, 320px);
+  }
+  .modal, .modal-content, .dialog, .settings-modal, .shop-modal,
+  .profile-modal, .overlay-card {
+    width: calc(100vw - 24px) !important;
+    max-width: calc(100vw - 24px) !important;
+    max-height: calc(100dvh - 24px) !important;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  .public-profile-backdrop { padding: 10px; }
+  .public-profile-card { width: 100%; max-width: 100%; max-height: calc(100dvh - 20px); }
+  .public-profile-main { min-width: 0; overflow-wrap: anywhere; }
+  .notification-panel-backdrop { padding-left: 8px; padding-right: 8px; }
+  .notification-panel { min-width: 0; }
+  textarea, input, select { font-size: 16px; }
+  .message, .message-content, .message-text, .chat-message { min-width: 0; overflow-wrap: anywhere; }
+}
+@media (max-width: 420px) {
+  .public-profile-name h2 { font-size: 20px; }
+  .public-profile-main { padding-left: 13px; padding-right: 13px; }
+  .notification-panel-header { gap: 8px; }
+  .notification-item { gap: 8px; }
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  .modal, .modal-content, .dialog, .settings-modal, .shop-modal,
+  .profile-modal, .overlay-card, .public-profile-card {
+    max-height: calc(100dvh - 12px) !important;
+  }
+}

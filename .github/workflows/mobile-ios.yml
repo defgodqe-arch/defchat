@@ -1,0 +1,52 @@
+name: Build defchat for iOS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ios:
+    runs-on: macos-15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install
+      - name: Build bundled web app
+        run: npm run mobile:build
+        env:
+          CAPACITOR_BUILD: '1'
+      - name: Generate iOS native project
+        run: |
+          npx cap add ios
+          npx cap sync ios
+      - name: Build unsigned iOS archive
+        run: |
+          xcodebuild \
+            -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$PWD/build/defchat.xcarchive" \
+            CODE_SIGNING_ALLOWED=NO \
+            archive
+      - name: Package iOS archive
+        run: |
+          mkdir -p release
+          ditto -c -k --sequesterRsrc --keepParent build/defchat.xcarchive release/defchat-ios-unsigned.xcarchive.zip
+      - name: Upload iOS build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: defchat-ios-unsigned-archive
+          path: release/defchat-ios-unsigned.xcarchive.zip
+          if-no-files-found: error
+          retention-days: 30

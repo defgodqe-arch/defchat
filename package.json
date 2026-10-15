@@ -13,15 +13,23 @@
     "desktop:package": "vite build --base=./ && electron-builder --publish never",
     "desktop:win": "vite build --base=./ && electron-builder --win nsis --publish never",
     "desktop:mac": "vite build --base=./ && electron-builder --mac dmg --publish never",
-    "desktop:linux": "vite build --base=./ && electron-builder --linux AppImage --publish never"
+    "desktop:linux": "vite build --base=./ && electron-builder --linux AppImage --publish never",
+    "mobile:build": "vite build --base=./",
+    "mobile:sync": "npm run mobile:build && cap sync",
+    "mobile:android": "npm run mobile:sync && cap open android",
+    "mobile:ios": "npm run mobile:sync && cap open ios"
   },
   "dependencies": {
+    "@capacitor/android": "^7.4.3",
+    "@capacitor/core": "^7.4.3",
+    "@capacitor/ios": "^7.4.3",
     "@supabase/supabase-js": "^2.57.0",
     "lucide-react": "^0.468.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@capacitor/cli": "^7.4.3",
     "@vitejs/plugin-react": "^4.3.4",
     "electron": "^33.2.1",
     "electron-builder": "^26.0.12",
@@ -44,7 +52,9 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ]
     },
@@ -56,11 +66,15 @@
       "shortcutName": "defchat"
     },
     "mac": {
-      "target": ["dmg"],
+      "target": [
+        "dmg"
+      ],
       "category": "public.app-category.social-networking"
     },
     "linux": {
-      "target": ["AppImage"],
+      "target": [
+        "AppImage"
+      ],
       "category": "Network;InstantMessaging;"
     }
   }

@@ -932,3 +932,20 @@ button, [role="button"], a { touch-action: manipulation; }
 html[data-show-timestamps="false"] .message-body .meta time{display:none!important}
 html[data-show-avatars="false"] .message-author-avatar{display:none!important}
 html[data-show-reactions="false"] .message-body .reactions{display:none!important}
+
+
+/* Ten additional user-customizable chat display settings. */
+html[data-show-edited-tags="false"] .edited-tag{display:none!important}
+html[data-show-reply-previews="false"] .reply-reference{display:none!important}
+html[data-show-attachment-previews="false"] .message-attachment img{display:none!important}
+html[data-show-message-tools="false"] .message-tools{display:none!important}
+html[data-show-composer-hint="false"] .composer-hint{display:none!important}
+html[data-show-message-borders="true"] .message{border:1px solid var(--border,rgba(148,163,184,.14))}
+html[data-font-family="mono"] .message-content,html[data-font-family="mono"] .composer input{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace!important}
+html[data-font-family="system"] .message-content{font-family:inherit}
+html[data-message-line-height="relaxed"] .message-content{line-height:1.85}
+html[data-message-line-height="normal"] .message-content{line-height:1.5}
+html[data-attachment-shape="square"] .message-attachment img{border-radius:0!important}
+html[data-attachment-shape="rounded"] .message-attachment img{border-radius:12px}
+html[data-underline-links="false"] .message-link{text-decoration:none!important}
+html[data-underline-links="true"] .message-link{text-decoration:underline!important}

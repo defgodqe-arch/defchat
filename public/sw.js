@@ -1,4 +1,4 @@
-const CACHE_NAME = 'defchat-shell-v1';
+const CACHE_NAME = 'cinder-shell-v2';
 const BASE_URL = new URL('./', self.location.href);
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.add(BASE_URL.href)).then(() => self.skipWaiting()));
@@ -33,7 +33,7 @@ self.addEventListener('push', event => {
       }
       return;
     }
-    await self.registration.showNotification(payload.title || 'defchat', {
+    await self.registration.showNotification(payload.title || 'Cinder', {
       body: String(payload.body || 'You have a new notification.').slice(0, 180),
       icon: new URL('icons/defchat.svg', self.registration.scope).href,
       badge: new URL('icons/defchat.svg', self.registration.scope).href,

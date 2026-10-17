@@ -1,5 +1,5 @@
 import React,{useEffect,useState} from 'react';
-import {X,Users,UserPlus,Check, XCircle, Shield, Bell, Phone, Video, Mic, MicOff, Headphones, MonitorUp, Settings2, Hash, VolumeX, Volume2, Search, LoaderCircle, Plus, Copy, UserRound, MessageCircle, Lock, Unlock, Save, Trash2} from 'lucide-react';
+import {X,Users,UserPlus,Check, XCircle, Shield, Bell, Phone, Camera, Video, Mic, MicOff, Headphones, MonitorUp, Settings2, Hash, VolumeX, Volume2, Search, LoaderCircle, Plus, Copy, UserRound, MessageCircle, Lock, Unlock, Save, Trash2} from 'lucide-react';
 
 export default function FeatureCenter({db,user,profile,server,onClose,onProfileSaved,onOpenDM,onRefreshServer,onJoinedServer,initialTab='friends'}) {
   const [tab,setTab]=useState(initialTab);

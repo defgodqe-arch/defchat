@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "defchat",
-  "short_name": "defchat",
-  "description": "Your space, your people, and your little companion.",
+  "name": "Cinder",
+  "short_name": "Cinder",
+  "description": "Your people, your place, your vibe. Free community chat built for real conversations.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

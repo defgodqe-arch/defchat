@@ -1,6 +1,6 @@
 {
-  "name": "defchat",
-  "productName": "defchat",
+  "name": "cinder",
+  "productName": "Cinder",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -36,7 +36,7 @@
     "vite": "^6.0.5"
   },
   "build": {
-    "appId": "gg.defgodqe.defchat",
+    "appId": "gg.defgodqe.cinder",
     "productName": "defchat",
     "asar": true,
     "files": [
@@ -47,7 +47,7 @@
     "directories": {
       "output": "release"
     },
-    "artifactName": "defchat-${version}-${os}-${arch}.${ext}",
+    "artifactName": "cinder-${version}-${os}-${arch}.${ext}",
     "win": {
       "target": [
         {
@@ -63,7 +63,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "defchat"
+      "shortcutName": "Cinder"
     },
     "mac": {
       "target": [

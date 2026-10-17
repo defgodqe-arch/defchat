@@ -1,21 +1,26 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Cinder solar dragon">
   <defs>
-    <linearGradient id="ember" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#fff0a6"/>
-      <stop offset=".48" stop-color="#ffc247"/>
-      <stop offset="1" stop-color="#f4772d"/>
-    </linearGradient>
-    <linearGradient id="glow" x1="0" y1="0" x2="0" y2="1">
-      <stop stop-color="#ffca62" stop-opacity=".35"/>
-      <stop offset="1" stop-color="#ff8b32" stop-opacity="0"/>
+    <radialGradient id="sun" cx=".35" cy=".28" r=".8">
+      <stop offset="0" stop-color="#fff8c4"/>
+      <stop offset=".48" stop-color="#ffd95b"/>
+      <stop offset="1" stop-color="#ff8a24"/>
+    </radialGradient>
+    <linearGradient id="night" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#282016"/>
+      <stop offset="1" stop-color="#17130b"/>
     </linearGradient>
   </defs>
-  <rect width="512" height="512" rx="124" fill="#17171d"/>
-  <circle cx="256" cy="258" r="192" fill="url(#glow)"/>
-  <path d="M256 57c18 56-4 72 34 111 20-24 25-43 20-63 64 49 114 112 114 190 0 91-74 159-168 159S88 386 88 295c0-63 34-119 93-163-5 43 8 63 29 77 28-38 25-91 46-152Z" fill="url(#ember)"/>
-  <path d="M256 191c11 33 41 49 43 83 2 24-13 42-35 45 8-20-4-34-20-46-6 21-28 34-27 59 1 21 18 38 40 38 43 0 73-33 73-74 0-38-26-72-74-105Z" fill="#f4772d" opacity=".72"/>
-  <ellipse cx="219" cy="279" rx="12" ry="17" fill="#272126"/>
-  <ellipse cx="294" cy="279" rx="12" ry="17" fill="#272126"/>
-  <path d="M216 326q40 38 80 0" fill="none" stroke="#272126" stroke-width="15" stroke-linecap="round"/>
-  <path d="M125 155l-14-24m274 24 14-24" stroke="#fff0a6" stroke-width="12" stroke-linecap="round"/>
+  <rect width="512" height="512" rx="120" fill="url(#night)"/>
+  <g stroke="#ffb52e" stroke-width="18" stroke-linecap="round">
+    <path d="M256 52v36M256 424v36M52 256h36M424 256h36M111 111l26 26M375 375l26 26M401 111l-26 26M137 375l-26 26"/>
+  </g>
+  <circle cx="256" cy="256" r="157" fill="#ffb52e" opacity=".12"/>
+  <circle cx="256" cy="256" r="132" fill="url(#sun)"/>
+  <path d="M164 204 146 157Q142 143 157 151L202 179Q256 150 310 179L355 151Q370 143 366 157L348 204Q375 229 371 266L349 302 307 323 205 323 163 302 141 266Q137 229 164 204Z" fill="#fff0a3" stroke="#e58a17" stroke-width="9" stroke-linejoin="round"/>
+  <path d="M185 211 178 178 208 197M327 211 334 178 304 197" fill="#ffb52e" stroke="#e58a17" stroke-width="7" stroke-linejoin="round"/>
+  <ellipse cx="218" cy="251" rx="12" ry="17" fill="#3a2814"/>
+  <ellipse cx="294" cy="251" rx="12" ry="17" fill="#3a2814"/>
+  <path d="M216 289Q256 324 296 289" fill="none" stroke="#3a2814" stroke-width="12" stroke-linecap="round"/>
+  <path d="M244 305 256 316 268 305" fill="#ff8733"/>
+  <circle cx="345" cy="166" r="17" fill="#fff8c4" stroke="#ffb52e" stroke-width="7"/>
 </svg>

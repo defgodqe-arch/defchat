@@ -1126,3 +1126,20 @@ html[data-darker-mode="true"] .message-tools button:hover { background: #2a2c34 
  .buddy-flight,.buddy-flight img{animation:none!important}
  .buddy-flight{top:auto;left:auto;right:14px;bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 }
+
+/* Buddy behavior controls */
+.buddy-flight{animation-duration:var(--buddy-flight-duration,28s)}
+.buddy-flight-paused{animation:none!important;top:12%;left:8%}
+.buddy-flight[data-idle="calm"] img{animation-duration:3.4s}
+.buddy-flight[data-idle="sleepy"] img{animation-duration:5.5s;opacity:.84;filter:saturate(.72)}
+.mascot-behavior-toggle{display:flex;align-items:center;gap:7px;width:100%;margin-top:10px;padding:10px 11px;border:1px solid #454750;border-radius:10px;background:#282a32;color:#f2d66d;font-size:11px;font-weight:800;text-align:left}
+.mascot-behavior-toggle span{margin-left:auto;color:#aeb2bd;font-size:16px}
+.mascot-behavior-toggle.is-open{border-color:#facc1566;background:#facc150d}
+.mascot-behavior-settings{display:grid;gap:2px;margin-top:7px;padding:7px 10px;border:1px solid #393b45;border-radius:11px;background:#22242b}
+.mascot-setting-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #ffffff0d;color:#eceef4;cursor:pointer}
+.mascot-setting-row:last-child{border-bottom:0}
+.mascot-setting-row>span{display:grid;gap:3px;min-width:0}
+.mascot-setting-row b{font-size:10px;font-weight:700}
+.mascot-setting-row small{color:#9da2af;font-size:9px;line-height:1.35}
+.mascot-setting-row input[type="checkbox"]{accent-color:#facc15;width:16px;height:16px;flex-shrink:0}
+.mascot-setting-row select{max-width:110px;padding:6px 8px;border:1px solid #4b4d56;border-radius:7px;background:#30323a;color:#f2f2f4;font-size:10px}

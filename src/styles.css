@@ -952,3 +952,59 @@ html[data-attachment-shape="square"] .message-attachment img{border-radius:0!imp
 html[data-attachment-shape="rounded"] .message-attachment img{border-radius:12px}
 html[data-underline-links="false"] .message-link{text-decoration:none!important}
 html[data-underline-links="true"] .message-link{text-decoration:underline!important}
+
+
+/* Optional extra-dark appearance, controlled by Power settings. */
+html[data-darker-mode="true"],
+html[data-darker-mode="true"] body,
+html[data-darker-mode="true"] #root,
+html[data-darker-mode="true"] .app {
+  background: #08090b !important;
+  color-scheme: dark;
+}
+html[data-darker-mode="true"] {
+  --bg: #08090b;
+  --chat: #0d0e11;
+  --sidebar: #101115;
+  --panel: #141519;
+  --border: #24262d;
+  --muted: #9295a1;
+}
+html[data-darker-mode="true"] .rail { background: #07080a !important; border-color: #17181d !important; }
+html[data-darker-mode="true"] .sidebar { background: #101115 !important; box-shadow: 1px 0 0 #202127 !important; }
+html[data-darker-mode="true"] .server-title,
+html[data-darker-mode="true"] .chat header { background: #0d0e11 !important; border-color: #202127 !important; }
+html[data-darker-mode="true"] .user-row { background: #141519 !important; border-color: #24262d !important; }
+html[data-darker-mode="true"] .chat,
+html[data-darker-mode="true"] .messages { background: #0d0e11 !important; }
+html[data-darker-mode="true"] .channel:hover,
+html[data-darker-mode="true"] .rail-action:hover,
+html[data-darker-mode="true"] .rail .server:hover,
+html[data-darker-mode="true"] .chat .header-action:hover,
+html[data-darker-mode="true"] .chat .mobile:hover { background: #24262d !important; }
+html[data-darker-mode="true"] .channel.active { background: #292b33 !important; }
+html[data-darker-mode="true"] .message:hover { background: #15171c !important; }
+html[data-darker-mode="true"] .composer { background: #1b1d23 !important; border: 1px solid #292b33 !important; }
+html[data-darker-mode="true"] .composer-extra:hover,
+html[data-darker-mode="true"] .message-tools button,
+html[data-darker-mode="true"] .message-search { background: #17191e !important; border-color: #292b33 !important; }
+html[data-darker-mode="true"] .power-modal,
+html[data-darker-mode="true"] .feature-modal,
+html[data-darker-mode="true"] .profile-modal,
+html[data-darker-mode="true"] .notification-panel,
+html[data-darker-mode="true"] .modal-content,
+html[data-darker-mode="true"] .dialog,
+html[data-darker-mode="true"] .shop-modal,
+html[data-darker-mode="true"] .create-server-modal,
+html[data-darker-mode="true"] .public-profile-card { background: #111216 !important; border-color: #292b33 !important; }
+html[data-darker-mode="true"] .power-tabs,
+html[data-darker-mode="true"] .power-heading,
+html[data-darker-mode="true"] .power-footer,
+html[data-darker-mode="true"] .notification-panel-header { border-color: #252730 !important; }
+html[data-darker-mode="true"] .power-font-select,
+html[data-darker-mode="true"] .power-secondary,
+html[data-darker-mode="true"] .power-segment,
+html[data-darker-mode="true"] .power-export-grid button { background: #191b21 !important; border-color: #30323b !important; }
+html[data-darker-mode="true"] .welcome > div { background: #22242b !important; }
+html[data-darker-mode="true"] .reaction { background: #1a1c22 !important; border-color: #30323b !important; }
+html[data-darker-mode="true"] .message-tools button:hover { background: #2a2c34 !important; }

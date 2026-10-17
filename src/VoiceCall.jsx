@@ -8,6 +8,17 @@ const rtcConfig = {
   ]
 };
 
+function notifyIncomingCall(senderName,video,userId,callId) {
+  try {
+    const prefs=JSON.parse(localStorage.getItem('defchat:preferences:'+userId)||'{}');
+    if(!prefs.notifications||!('Notification'in window)||Notification.permission!=='granted')return;
+    const title='Incoming '+(video?'video':'voice')+' call';
+    const options={body:(senderName||'Someone')+' is calling you on defchat.',tag:'defchat-call-'+callId,requireInteraction:true,renotify:true,vibrate:[250,120,250],icon:new URL('icons/defchat.svg',document.baseURI).href,data:{url:location.href,callId},actions:[{action:'answer',title:'Open defchat'}]};
+    if('serviceWorker'in navigator)navigator.serviceWorker.ready.then(reg=>reg.showNotification(title,options)).catch(()=>{try{new Notification(title,options)}catch{}});
+    else new Notification(title,options);
+  } catch {}
+}
+
 export default function VoiceCall({ db, user, peer }) {
   const [incoming, setIncoming] = useState(null);
   const [call, setCall] = useState(null);
@@ -167,7 +178,7 @@ export default function VoiceCall({ db, user, peer }) {
           }
           const { data: sender } = await db.from('profiles').select('username,avatar_url').eq('id', signal.sender_id).maybeSingle();
           const next = { ...signal, ...(signal.payload || {}), sdp: signal.payload?.sdp, video: !!signal.payload?.video, senderName: sender?.username || 'Someone' };
-          incomingRef.current = next; setIncoming(next);
+          incomingRef.current = next; setIncoming(next); notifyIncomingCall(next.senderName,next.video,user.id,next.call_id);
           return;
         }
         if (signal.signal_type === 'ice-candidate') {

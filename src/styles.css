@@ -910,3 +910,10 @@ button, [role="button"], a { touch-action: manipulation; }
     max-height: calc(100dvh - 12px) !important;
   }
 }
+
+/* Buddy can be dragged with mouse or touch; keep it above chat without blocking input. */
+.mascot-dock{touch-action:none;user-select:none;-webkit-user-select:none}
+.mascot-launcher{touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
+.mascot-launcher:active{cursor:grabbing}
+.mascot-dock[style*="left"]{right:auto!important;bottom:auto!important}
+@media(max-width:520px){.mascot-dock{right:10px;bottom:calc(78px + env(safe-area-inset-bottom,0px));z-index:70}.mascot-launcher{width:60px;height:60px;border-radius:20px}.mascot-launcher .mascot-buddy{width:50px!important;height:50px!important}.mascot-launcher-level{min-width:21px;height:21px;font-size:9px}.mascot-greeting{right:66px;bottom:24px;padding:7px 9px;font-size:9px}.mascot-panel{width:min(360px,calc(100vw - 20px));max-height:calc(100dvh - 110px - env(safe-area-inset-bottom,0px));bottom:68px;padding:12px}}

@@ -12,7 +12,7 @@ const THEMES = [
   { id: 'mint', label: 'Mint glow', color: '#34d399' },
   { id: 'white', label: 'Moonlight', color: '#e5e7eb' },
 ];
-const defaults = { theme: 'yellow', density: 'comfortable', fontSize: 14, reducedMotion: false, enterToSend: true, notifications: false, sound: false, showBuddy: true, showTimestamps: true, showAvatars: true, showReactions: true, showEditedTags: true, showReplyPreviews: true, showAttachmentPreviews: true, showMessageTools: true, showComposerHint: true, showMessageBorders: true, fontFamily: 'dm-sans', lineHeight: 'normal', attachmentShape: 'rounded', underlineLinks: true };
+const defaults = { darkerMode: false, theme: 'yellow', density: 'comfortable', fontSize: 14, reducedMotion: false, enterToSend: true, notifications: false, sound: false, showBuddy: true, showTimestamps: true, showAvatars: true, showReactions: true, showEditedTags: true, showReplyPreviews: true, showAttachmentPreviews: true, showMessageTools: true, showComposerHint: true, showMessageBorders: true, fontFamily: 'dm-sans', lineHeight: 'normal', attachmentShape: 'rounded', underlineLinks: true };
 
 function loadSettings(userId) {
   try { return { ...defaults, ...JSON.parse(localStorage.getItem('defchat:preferences:' + userId) || '{}') }; }
@@ -43,6 +43,7 @@ export default function PowerFeatures({ open, onClose, userId, messages = [], co
     const theme = THEMES.find(item => item.id === settings.theme) || THEMES[0];
     document.documentElement.style.setProperty('--dc-yellow', theme.color);
     document.documentElement.style.setProperty('--dc-accent', theme.color);
+    document.documentElement.dataset.darkerMode = settings.darkerMode ? 'true' : 'false';
     document.documentElement.dataset.chatDensity = settings.density;
     document.documentElement.dataset.chatMotion = settings.reducedMotion ? 'reduced' : 'full';
     document.documentElement.style.setProperty('--dc-message-size', settings.fontSize + 'px');
@@ -117,6 +118,7 @@ export default function PowerFeatures({ open, onClose, userId, messages = [], co
       </div>
       <div className="power-body">
         {tab === 'appearance' && <>
+          <Toggle label="Extra dark mode" description="Use deeper black and charcoal surfaces across the app. Your choice is saved on this device." checked={settings.darkerMode} onChange={value => change('darkerMode', value)} />
           <div className="power-section-title"><h3>Accent color</h3><p>Choose a color for highlights and active controls.</p></div>
           <div className="power-themes">{THEMES.map(theme => <button key={theme.id} className={settings.theme === theme.id ? 'power-theme selected' : 'power-theme'} onClick={() => change('theme', theme.id)}><span style={{ background: theme.color }} />{theme.label}{settings.theme === theme.id && <Check size={15}/>}</button>)}</div>
           <div className="power-section-title"><h3>Chat density</h3><p>Choose how much space messages use.</p></div>

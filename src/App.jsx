@@ -39,9 +39,9 @@ function notifyIncomingMessage(title,body,userId,tag='chat') {
   try {
     const prefs=JSON.parse(localStorage.getItem('defchat:preferences:'+userId)||'{}');
     if(prefs.notifications&&'Notification'in window&&Notification.permission==='granted'&&document.visibilityState!=='visible') {
-      const options={body:String(body||'New message').slice(0,180),tag:'defchat-'+tag,icon:new URL('icons/cinder.svg',document.baseURI).href,badge:new URL('icons/defchat.svg',document.baseURI).href,data:{url:location.href},renotify:true};
+      const options={body:String(body||'New message').slice(0,180),tag:'defchat-'+tag,icon:new URL('icons/cinder.svg',document.baseURI).href,badge:new URL('icons/cinder.svg',document.baseURI).href,data:{url:location.href},renotify:true};
       if('serviceWorker'in navigator) navigator.serviceWorker.ready.then(reg=>reg.showNotification('Cinder · '+title,options)).catch(()=>{try{new Notification('Cinder · '+title,options)}catch{}});
-      else new Notification('defchat · '+title,options);
+      else new Notification('Cinder · '+title,options);
     }
     if(prefs.sound&&'AudioContext'in window) {
       const audio=new AudioContext(),osc=audio.createOscillator(),gain=audio.createGain();

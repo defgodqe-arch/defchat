@@ -103,7 +103,7 @@ export default function MascotCompanion({userId,username='friend',onOpenCollecti
  function equipAccessory(id){if(current.level<(accessories.find(x=>x.id===id)?.unlock||99))return;persist({...data,accessory:id});setToast('Accessory equipped!')}
  if(!userId)return null;
  const dockStyle=position?{left:position.left,top:position.top,right:"auto",bottom:"auto"}:undefined;
- function startDrag(e){if(e.button!==undefined&&e.button!==0)return;const rect=dockRef.current?.getBoundingClientRect();if(!rect)return;draggedRef.current=false;dragRef.current={startX:e.clientX,startY:e.clientY,offsetX:e.clientX-rect.left,offsetY:e.clientY-rect.top,moved:false}}
+ function startDrag(e){if(e.button!==undefined&&e.button!==0)return;const rect=dockRef.current?.getBoundingClientRect();if(!rect)return;e.preventDefault();try{e.currentTarget.setPointerCapture(e.pointerId)}catch{}draggedRef.current=false;dragRef.current={pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,offsetX:e.clientX-rect.left,offsetY:e.clientY-rect.top,moved:false}}
  function toggleMascot(){if(draggedRef.current){draggedRef.current=false;return}setOpen(x=>!x)}
  return <div ref={dockRef} className="mascot-dock" style={dockStyle}>
   {open&&<section className="mascot-panel" role="dialog" aria-label="Your defchat mascot">

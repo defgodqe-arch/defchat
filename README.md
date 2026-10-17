@@ -1,6 +1,6 @@
 # Cinder
 
-Cinder is a community-first chat app with Supabase Auth, Postgres, and Realtime.
+Cinder is a solar-powered-in-spirit community chat app with Supabase Auth, Postgres, and Realtime. Its visual language celebrates sunlight, solar flares, eclipses, and the energy people bring to their communities.
 
 ## Run as a desktop app (no browser tabs or address bar)
 
@@ -26,7 +26,7 @@ The hosted site has an installable app manifest and standalone display mode. And
 
 ## Product direction
 
-Cinder is designed around three things: **real community**, **personal expression**, and **low-friction conversation**. It combines community spaces and invites, direct messages and friends, searchable conversation history, and free profile/chat customization. It avoids paid cosmetic tiers and aims to keep the interface approachable rather than copying another chat app's visual language.
+Cinder is designed around three things: **shared energy**, **personal expression**, and **low-friction conversation**. The solar theme turns the sun's warmth, radiance, cycles, and flares into a visual identity—not a paywall. It combines community spaces and invites, direct messages and friends, searchable conversation history, and free profile/chat customization. It avoids paid cosmetic tiers and aims to keep the interface approachable rather than copying another chat app's visual language.
 
 ## Features
 - Email/password sign-up, sign-in, and sign-out
@@ -35,7 +35,7 @@ Cinder is designed around three things: **real community**, **personal expressio
 - Persistent server messages and direct messages with Supabase Realtime
 - Friends, reactions, and cosmetic support where implemented
 - Responsive mobile layout and free cosmetic shop
-- Personal accent themes (yellow, purple, cyan, rose, green), compact chat density, adjustable message text size, and reduced-motion mode
+- Personal accent themes (sun-core gold, purple, cyan, rose, green), compact chat density, adjustable message text size, and reduced-motion mode
 - Keyboard shortcuts for message search, settings, emoji picker, and focusing the composer
 - Export the currently loaded conversation as JSON, plain text, or CSV
 - Per-device preferences, a notification-permission control, and separate auto-saved drafts for every channel and DM

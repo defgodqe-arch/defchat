@@ -95,7 +95,7 @@ export default function FeatureCenter({db,user,profile,server,onClose,onProfileS
   async function toggleScreen(){if(screenOn){screenStream?.getTracks().forEach(t=>t.stop());setScreenStream(null);setScreenOn(false);return}try{const s=await navigator.mediaDevices.getDisplayMedia({video:true});setScreenStream(s);setScreenOn(true);s.getVideoTracks()[0].addEventListener('ended',()=>{setScreenStream(null);setScreenOn(false)})}catch(e){setError(e.message||'Screen sharing was cancelled.')}}
   const incoming=requests.filter(r=>r.receiver_id===user.id),outgoing=requests.filter(r=>r.sender_id===user.id);
   return <div className="modal-backdrop feature-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}>
-    <section className="feature-modal" role="dialog" aria-modal="true" aria-label="defchat feature center">
+    <section className="feature-modal" role="dialog" aria-modal="true" aria-label="Cinder feature center">
       <aside className="feature-nav"><div className="feature-brand"><span className="logo mini">d<span>.</span></span><div><b>Cinder</b><small>Your space controls</small></div></div>
         {[['friends',Users,'Friends'],['groups',MessageCircle,'Group DMs'],['server',Shield,'Server settings'],['inbox',Bell,'Inbox & alerts'],['voice',Phone,'Voice & video'],['settings',Settings2,'Account settings']].map(([id,Icon,label])=><button key={id} className={tab===id?'selected':''} onClick={()=>{setTab(id);setNotice('');setError('')}}><Icon size={17}/>{label}{id==='friends'&&incoming.length>0&&<i>{incoming.length}</i>}</button>)}
         <div className="feature-nav-bottom"><small>Your community, your rules</small><button onClick={onClose}><X size={16}/> Close</button></div>

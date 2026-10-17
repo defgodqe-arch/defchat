@@ -917,3 +917,12 @@ button, [role="button"], a { touch-action: manipulation; }
 .mascot-launcher:active{cursor:grabbing}
 .mascot-dock[style*="left"]{right:auto!important;bottom:auto!important}
 @media(max-width:520px){.mascot-dock{right:10px;bottom:calc(78px + env(safe-area-inset-bottom,0px));z-index:70}.mascot-launcher{width:60px;height:60px;border-radius:20px}.mascot-launcher .mascot-buddy{width:50px!important;height:50px!important}.mascot-launcher-level{min-width:21px;height:21px;font-size:9px}.mascot-greeting{right:66px;bottom:24px;padding:7px 9px;font-size:9px}.mascot-panel{width:min(360px,calc(100vw - 20px));max-height:calc(100dvh - 110px - env(safe-area-inset-bottom,0px));bottom:68px;padding:12px}}
+
+
+/* Rich chat formatting and click-to-reveal spoiler blocks. */
+.message-spoiler{display:inline;border:0;border-radius:4px;padding:1px 5px;background:rgba(148,163,184,.3);color:transparent;text-shadow:0 0 7px currentColor;cursor:pointer;transition:background .15s,color .15s;text-align:left;font:inherit}
+.message-spoiler.revealed{color:inherit;text-shadow:none;background:rgba(148,163,184,.13)}
+.message-inline-code{padding:2px 5px;border-radius:5px;background:rgba(148,163,184,.16);border:1px solid rgba(148,163,184,.2);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.92em}
+.message-link{color:var(--dc-accent,#facc15);text-decoration:underline;text-underline-offset:2px;overflow-wrap:anywhere}
+.composer-hint{padding:0 16px 5px;color:var(--muted,#8b8b98);font-size:10px;line-height:1.4}
+@media(max-width:600px){.composer-hint{display:none}}

@@ -7,6 +7,10 @@ const THEMES = [
   { id: 'cyan', label: 'Neon cyan', color: '#22d3ee' },
   { id: 'rose', label: 'Pulse rose', color: '#fb7185' },
   { id: 'green', label: 'Matrix green', color: '#4ade80' },
+  { id: 'orange', label: 'Solar flare', color: '#fb923c' },
+  { id: 'blue', label: 'Ocean blue', color: '#60a5fa' },
+  { id: 'mint', label: 'Mint glow', color: '#34d399' },
+  { id: 'white', label: 'Moonlight', color: '#e5e7eb' },
 ];
 const defaults = { theme: 'yellow', density: 'comfortable', fontSize: 14, reducedMotion: false, enterToSend: true, notifications: false, sound: false, showBuddy: true };
 

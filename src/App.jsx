@@ -341,6 +341,7 @@ const STARTER_ITEMS=[
 {id:'neon',name:'Neon Nameplate',category:'Nameplates',description:'Bright neon colors for your name.',icon:'💫',preview:'neon'},
 {id:'cozy',name:'Cozy Nameplate',category:'Nameplates',description:'A soft, friendly pastel nameplate.',icon:'☁️',preview:'cozy'},
 {id:'sparkles',name:'Chat Sparkles',category:'Chat effects',description:'A sparkle-themed chat identity.',icon:'✨',preview:'sparkles'},
+ {id:'yellow-dragon',name:'Golden Dragon',category:'Chat effects',description:'A golden dragon curls beside your messages with glowing yellow sparks and a little trail of fire.',icon:'🐉',preview:'yellow-dragon'},
 {id:'comet',name:'Comet Trail',category:'Chat effects',description:'A little comet for your chat vibe.',icon:'☄️',preview:'comet'},
 {id:'party',name:'Party Popper',category:'Chat effects',description:'Celebrate every conversation.',icon:'🎉',preview:'party'},
 {id:'star',name:'Star Emoji Pack',category:'Emoji packs',description:'A mini pack of starry reactions.',icon:'⭐',emojiSet:['⭐','🌟','✨','💫','🌠','☀️','🌙'],preview:'stars'},

@@ -35,7 +35,7 @@ self.addEventListener('push', event => {
     }
     await self.registration.showNotification(payload.title || 'Cinder', {
       body: String(payload.body || 'You have a new notification.').slice(0, 180),
-      icon: new URL('icons/defchat.svg', self.registration.scope).href,
+      icon: new URL('icons/cinder.svg', self.registration.scope).href,
       badge: new URL('icons/defchat.svg', self.registration.scope).href,
       tag: payload.tag || 'defchat-notification',
       renotify: true,

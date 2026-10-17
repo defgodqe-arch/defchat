@@ -926,3 +926,9 @@ button, [role="button"], a { touch-action: manipulation; }
 .message-link{color:var(--dc-accent,#facc15);text-decoration:underline;text-underline-offset:2px;overflow-wrap:anywhere}
 .composer-hint{padding:0 16px 5px;color:var(--muted,#8b8b98);font-size:10px;line-height:1.4}
 @media(max-width:600px){.composer-hint{display:none}}
+
+
+/* Extra personal chat display preferences from Power settings. */
+html[data-show-timestamps="false"] .message-body .meta time{display:none!important}
+html[data-show-avatars="false"] .message-author-avatar{display:none!important}
+html[data-show-reactions="false"] .message-body .reactions{display:none!important}

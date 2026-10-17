@@ -1102,3 +1102,27 @@ html[data-darker-mode="true"] .message-tools button:hover { background: #2a2c34 
   height: 100%;
   object-fit: cover;
 }
+
+
+/* Buddy's new flying portrait. The collection panel stays anchored so it remains easy to use. */
+.buddy-flight{position:fixed;z-index:75;top:12%;left:8%;width:clamp(76px,10vw,124px);height:clamp(76px,10vw,124px);padding:0;border:0;background:transparent;display:grid;place-items:center;cursor:pointer;pointer-events:auto;filter:drop-shadow(0 8px 12px #0008);animation:buddy-flight-path 28s ease-in-out infinite;will-change:top,left,transform}
+.buddy-flight img{display:block;width:100%;height:100%;object-fit:contain;border-radius:18px;user-select:none;-webkit-user-drag:none;animation:buddy-flight-bob 1.8s ease-in-out infinite}
+.buddy-flight:hover{filter:drop-shadow(0 10px 18px #facc1570)}
+.buddy-flight .mascot-launcher-level{z-index:1;bottom:3px;right:2px;border-color:#24252b}
+@keyframes buddy-flight-path{
+  0%,100%{top:12%;left:8%;transform:rotate(-7deg) scale(1)}
+  16%{top:22%;left:65%;transform:rotate(8deg) scale(1.04)}
+  32%{top:58%;left:78%;transform:rotate(12deg) scale(.96)}
+  49%{top:72%;left:46%;transform:rotate(-5deg) scale(1.02)}
+  66%{top:48%;left:12%;transform:rotate(-12deg) scale(.94)}
+  83%{top:8%;left:42%;transform:rotate(6deg) scale(1.03)}
+}
+@keyframes buddy-flight-bob{0%,100%{translate:0 0}50%{translate:0 -8px}}
+@media(max-width:520px){
+ .buddy-flight{width:76px;height:76px;animation-duration:24s}
+ .buddy-flight img{border-radius:14px}
+}
+@media(prefers-reduced-motion:reduce){
+ .buddy-flight,.buddy-flight img{animation:none!important}
+ .buddy-flight{top:auto;left:auto;right:14px;bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+}

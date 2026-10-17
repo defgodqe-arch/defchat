@@ -336,13 +336,16 @@ const LOCKER_ITEMS=[
 ].map(([id,name,category,icon,preview])=>({id:'locker-'+category.toLowerCase().replace(/[^a-z]+/g,'-')+'-'+id,name,category,icon,preview,description:'Real Discord cosmetic catalog item. Open its Locker.gg listing for the source and item preview.',sourceUrl:LOCKER_SOURCE+'/cosmetics?popup=%2Fdiscord%2Fcosmetics%2F'+lockerRoute(category)+'%2F'+lockerSlug(name),sourceLabel:'View actual item on Locker.gg',real:true}));
 const STARTER_ITEMS=[
 {id:'golden-glow',name:'Golden Glow',category:'Profile effects',description:'A warm yellow glow for your profile.',icon:'✨',preview:'gold'},
+ {id:'solar-corona',name:'Solar Corona',category:'Profile effects',description:'A radiant corona of sunlight around your avatar.',icon:'☀️',preview:'sunburst'},
 {id:'midnight',name:'Midnight Aura',category:'Profile effects',description:'A cool, cosmic purple aura.',icon:'🌌',preview:'purple'},
 {id:'pixel-heart',name:'Pixel Heart',category:'Profile effects',description:'A tiny pixel-heart profile accent.',icon:'💛',preview:'heart'},
 {id:'sunset',name:'Sunset Nameplate',category:'Nameplates',description:'A sunset image nameplate.',icon:'🌅',preview:'sunset',customImageUrl:'https://i.pinimg.com/1200x/80/47/50/804750a99bebdcdd0a026edca1279f2e.jpg'},
+ {id:'dawnfire',name:'Dawnfire Nameplate',category:'Nameplates',description:'Golden daylight with a flare-orange edge for your name.',icon:'🌄',preview:'dawnfire'},
 {id:'neon',name:'Neon Nameplate',category:'Nameplates',description:'Bright neon colors for your name.',icon:'💫',preview:'neon'},
 {id:'cozy',name:'Cozy Nameplate',category:'Nameplates',description:'A soft, friendly pastel nameplate.',icon:'☁️',preview:'cozy'},
 {id:'sparkles',name:'Chat Sparkles',category:'Chat effects',description:'A sparkle-themed chat identity.',icon:'✨',preview:'sparkles'},
  {id:'yellow-dragon',name:'Golden Dragon',category:'Chat effects',description:'A golden dragon curls beside your messages with glowing yellow sparks and a little trail of fire.',icon:'🐉',preview:'yellow-dragon'},
+ {id:'solar-flare',name:'Solar Flare',category:'Chat effects',description:'A burst of sunfire lights the edge of every message you send.',icon:'☀️',preview:'solar-flare'},
 {id:'comet',name:'Comet Trail',category:'Chat effects',description:'A little comet for your chat vibe.',icon:'☄️',preview:'comet'},
 {id:'party',name:'Party Popper',category:'Chat effects',description:'Celebrate every conversation.',icon:'🎉',preview:'party'},
 {id:'star',name:'Star Emoji Pack',category:'Emoji packs',description:'A mini pack of starry reactions.',icon:'⭐',emojiSet:['⭐','🌟','✨','💫','🌠','☀️','🌙'],preview:'stars'},

@@ -2,12 +2,12 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { X, SlidersHorizontal, Download, Keyboard, Bell, Palette, Check, Volume2, ShieldCheck, Search } from 'lucide-react';
 
 const THEMES = [
-  { id: 'yellow', label: 'Solar yellow', color: '#facc15' },
+  { id: 'yellow', label: 'Sun-core gold', color: '#ffc83d' },
   { id: 'purple', label: 'Nebula purple', color: '#a78bfa' },
   { id: 'cyan', label: 'Neon cyan', color: '#22d3ee' },
   { id: 'rose', label: 'Pulse rose', color: '#fb7185' },
   { id: 'green', label: 'Matrix green', color: '#4ade80' },
-  { id: 'orange', label: 'Solar flare', color: '#fb923c' },
+  { id: 'orange', label: 'Solar flare', color: '#ff8733' },
   { id: 'blue', label: 'Ocean blue', color: '#60a5fa' },
   { id: 'mint', label: 'Mint glow', color: '#34d399' },
   { id: 'white', label: 'Moonlight', color: '#e5e7eb' },
@@ -49,6 +49,7 @@ export default function PowerFeatures({ open, onClose, db, userId, messages = []
     try { localStorage.setItem('defchat:preferences:' + userId, JSON.stringify(settings)); } catch {}
     const theme = THEMES.find(item => item.id === settings.theme) || THEMES[0];
     document.documentElement.style.setProperty('--dc-yellow', theme.color);
+    document.documentElement.style.setProperty('--dc-solar-glow', theme.color + '24');
     document.documentElement.style.setProperty('--dc-accent', theme.color);
     document.documentElement.dataset.darkerMode = settings.darkerMode ? 'true' : 'false';
     document.documentElement.dataset.chatDensity = settings.density;

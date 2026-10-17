@@ -2,12 +2,12 @@
   "id": "./",
   "name": "Cinder",
   "short_name": "Cinder",
-  "description": "Your people, your place, your vibe. Free community chat built for real conversations.",
+  "description": "Powered by the sun. Find your people, share your spark, and let your community shine.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#111318",
-  "theme_color": "#facc15",
+  "background_color": "#17130b",
+  "theme_color": "#ffc83d",
   "icons": [{"src":"./icons/cinder.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
 }

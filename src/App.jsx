@@ -15,9 +15,10 @@ const db=createClient(url,key);
 const initials=n=>(n||'?').slice(0,2).toUpperCase();
 const color=n=>['#eab308','#8b5cf6','#06b6d4','#f97316','#ec4899'][[...(n||'')].reduce((a,c)=>a+c.charCodeAt(0),0)%5];
 function Avatar({name,url,className='',zoom=1,cosmetics=[]}){const deco=cosmetics.find(x=>x.category==='Avatar decorations'),frame=cosmetics.find(x=>x.category==='Profile frames'),effect=cosmetics.some(x=>x.category==='Profile effects');return <div className={'avatar '+className+(frame?' cosmetic-framed':'')+(effect?' cosmetic-aura':'')} style={!url?{background:color(name)}:undefined}>{url?<img src={url} style={{transform:'scale('+zoom+')'}} alt={`${name||'User'} avatar`}/>:initials(name)}{frame&&<span className={'cosmetic-frame-art cosmetic-frame-art-'+(frame.preview||'gold')+(frame.real?' cosmetic-frame-art-real':'')+(frame.customImageUrl?' cosmetic-frame-custom':'')} title={frame.name} aria-label={frame.name}>{frame.customImageUrl?<img src={frame.customImageUrl} alt="" draggable="false"/>:frame.real?<img src={import.meta.env.BASE_URL+'shop-assets/profile-frames/'+frame.id.replace('locker-profile-frames-','')+'.gif'} onError={e=>{e.currentTarget.onerror=null;e.currentTarget.src=import.meta.env.BASE_URL+'shop-assets/profile-frames/'+frame.id.replace('locker-profile-frames-','')+'.svg'}} alt="" draggable="false"/>:<span>{frame.icon}</span>}</span>}{deco&&<span className="cosmetic-avatar-deco" title={deco.name}>{deco.icon}</span>}</div>}
-function playSentMessageSound() {
+function playSentMessageSound(userId) {
   try {
-    if (!('AudioContext' in window)) return;
+    const prefs = JSON.parse(localStorage.getItem('defchat:preferences:' + userId) || '{}');
+    if (!prefs.sound || !('AudioContext' in window)) return;
     const audio = new AudioContext();
     const now = audio.currentTime;
     [[660,0],[880,0.085]].forEach(([frequency,delay]) => {
@@ -50,7 +51,39 @@ function notifyIncomingMessage(title,body,userId,tag='chat') {
     }
   } catch {}
 }
-function messageParts(text,items){return (text||'').split(/(:[A-Za-z0-9_]{2,32}:)/g).map((s,i)=>{const n=s.match(/^:([A-Za-z0-9_]{2,32}):$/);const found=n&&items.find(x=>x.name===n[1]);return found?<img key={i} className="inline-custom-emoji" src={found.image_url} alt={found.name}/>:s})}
+function expandChatCommand(raw, username='member') {
+  const value = String(raw || '').trim();
+  const lower = value.toLowerCase();
+  if (lower === '/shrug') return '¯\\_(ツ)_/¯';
+  if (lower === '/tableflip') return '(╯°□°）╯︵ ┻━┻';
+  if (lower === '/unflip') return '┬─┬ ノ( ゜-゜ノ)';
+  if (lower === '/lenny') return '( ͡° ͜ʖ ͡°)';
+  if (lower === '/dealwithit') return 'Deal with it. (⌐■_■)';
+  if (lower.startsWith('/me ')) return '*' + username + ' ' + value.slice(4).trim() + '*';
+  if (lower.startsWith('/spoiler ')) return '||' + value.slice(9).trim() + '||';
+  if (lower.startsWith('/quote ')) return '> ' + value.slice(7).trim();
+  return value;
+}
+function Spoiler({children}) {
+  const [revealed, setRevealed] = useState(false);
+  return <button type="button" className={'message-spoiler'+(revealed?' revealed':'')} onClick={()=>setRevealed(value=>!value)} aria-label={revealed?'Hide spoiler':'Reveal spoiler'}>{children}</button>;
+}
+function messageParts(text,items){
+  const tokens=(text||'').split(/(\\|\\|.*?\\|\\||\\*\\*.*?\\*\\*|~~.*?~~|\\*[^*\\n]+\\*|`[^`\\n]+`|https?:\\/\\/[^\\s<>]+|:[A-Za-z0-9_]{2,32}:)/g);
+  return tokens.map((part,i)=>{
+    if(part.startsWith('||')&&part.endsWith('||'))return <Spoiler key={i}>{part.slice(2,-2)}</Spoiler>;
+    if(part.startsWith('**')&&part.endsWith('**'))return <strong key={i}>{part.slice(2,-2)}</strong>;
+    if(part.startsWith('~~')&&part.endsWith('~~'))return <del key={i}>{part.slice(2,-2)}</del>;
+    if(part.startsWith('*')&&part.endsWith('*')&&part.length>2)return <em key={i}>{part.slice(1,-1)}</em>;
+    if(part.startsWith('`')&&part.endsWith('`'))return <code className="message-inline-code" key={i}>{part.slice(1,-1)}</code>;
+    if(/^https?:\\/\\//i.test(part)){
+      const trailing=(part.match(/[.,!?;:]+$/)||[''])[0],href=trailing?part.slice(0,-trailing.length):part;
+      return <React.Fragment key={i}><a className="message-link" href={href} target="_blank" rel="noopener noreferrer">{href}</a>{trailing}</React.Fragment>;
+    }
+    const n=part.match(/^:([A-Za-z0-9_]{2,32}):$/),found=n&&items.find(x=>x.name===n[1]);
+    return found?<img key={i} className="inline-custom-emoji" src={found.image_url} alt={found.name}/>:part;
+  });
+}
 function Auth({done}) {
   const [savedDraft] = useState(() => {
     try { return JSON.parse(localStorage.getItem('defchat:signup-draft') || '{}'); }
@@ -391,7 +424,7 @@ useEffect(()=>{const ids=messages.map(m=>m.id);if(view!=='servers'||!ids.length)
 async function toggleReaction(message,emoji){if(view!=='servers')return;const current=(reactions[message.id]||[]).some(r=>r.user_id===user.id&&r.emoji===emoji);const result=current?await db.from('message_reactions').delete().eq('message_id',message.id).eq('user_id',user.id).eq('emoji',emoji):await db.from('message_reactions').insert({message_id:message.id,user_id:user.id,emoji});if(result.error){setErr(result.error.message);return}setReactions(prev=>{const list=prev[message.id]||[];return {...prev,[message.id]:current?list.filter(r=>!(r.user_id===user.id&&r.emoji===emoji)):[...list,{message_id:message.id,user_id:user.id,emoji}]}})}
 function toggleSavedMessage(message){const key=(view==='dms'?'dm:':'channel:')+message.id;const exists=savedMessages.some(item=>item.key===key);const next=exists?savedMessages.filter(item=>item.key!==key):[{key,content:message.content||'',author:message.profiles?.username||'member',user_id:message.user_id,createdAt:message.created_at||null,conversation:view==='dms'?(activeDm?.username||'Direct messages'):(server?.name?server.name+' / #'+(channel?.name||'channel'):'#'+(channel?.name||'channel')),view,attachment_url:message.attachment_url||'',attachment_name:message.attachment_name||'',savedAt:Date.now()},...savedMessages];setSavedMessages(next);try{localStorage.setItem('defchat:saved-messages:'+user.id,JSON.stringify(next))}catch{setErr('Could not save this message. Your device storage may be full.')}}function removeSavedMessage(key){const next=savedMessages.filter(item=>item.key!==key);setSavedMessages(next);try{localStorage.setItem('defchat:saved-messages:'+user.id,JSON.stringify(next))}catch{}}
 async function deleteMessage(message){if(message.user_id!==user.id)return;if(!window.confirm('Delete this message?'))return;const table=view==='dms'?'dm_messages':'messages';const{error}=await db.from(table).delete().eq('id',message.id).eq('user_id',user.id);if(error){setErr(error.message);return}if(view==='dms')setDmMessages(prev=>prev.filter(m=>m.id!==message.id));else setMessages(prev=>prev.filter(m=>m.id!==message.id))}
-async function send(e){e.preventDefault();const content=draft.trim();if((!content&&!attachment)||busy)return;setBusy(true);try{let media={};if(attachment){if(!attachment.type.startsWith('image/'))throw new Error('Please choose an image file.');if(attachment.size>12*1024*1024)throw new Error('Images must be 12 MB or smaller.');const ext=attachment.name.split('.').pop().toLowerCase().replace(/[^a-z0-9]/g,'')||'png';const path=user.id+'/chat-'+Date.now()+'.'+ext;const{error:uploadError}=await db.storage.from('chat-media').upload(path,attachment,{contentType:attachment.type,upsert:false});if(uploadError)throw uploadError;media={attachment_url:db.storage.from('chat-media').getPublicUrl(path).data.publicUrl,attachment_name:attachment.name,attachment_type:attachment.type}}const table=view==='dms'&&activeDm?'dm_messages':'messages';const payload=view==='dms'&&activeDm?{conversation_id:activeDm.id,user_id:user.id,content:content||' ',reply_to:replyingTo?.id||null,...media}:{channel_id:channel?.id,user_id:user.id,content:content||' ',reply_to:replyingTo?.id||null,...media};const result=await db.from(table).insert(payload);if(result.error)throw result.error;window.dispatchEvent(new CustomEvent('defchat:mascot-xp',{detail:{amount:10,reason:'Message sent! +10 buddy XP'}}));playSentMessageSound();window.dispatchEvent(new CustomEvent('defchat:message-sent'));setDraft('');setAttachment(null);setReplyingTo(null);setEmojiOpen(false)}catch(e){setErr(e.message||'Message could not be sent')}finally{setBusy(false)}}
+async function send(e){e.preventDefault();const rawContent=draft.trim();if(rawContent.toLowerCase()==='/help'){setErr('Chat formatting: **bold**, *italic*, ~~strike~~, `code`, ||spoilers||, and links. Commands: /shrug, /tableflip, /unflip, /lenny, /dealwithit, /me text, /spoiler text, /quote text.');return}const content=expandChatCommand(rawContent,username);if((!content&&!attachment)||busy)return;setBusy(true);try{let media={};if(attachment){if(!attachment.type.startsWith('image/'))throw new Error('Please choose an image file.');if(attachment.size>12*1024*1024)throw new Error('Images must be 12 MB or smaller.');const ext=attachment.name.split('.').pop().toLowerCase().replace(/[^a-z0-9]/g,'')||'png';const path=user.id+'/chat-'+Date.now()+'.'+ext;const{error:uploadError}=await db.storage.from('chat-media').upload(path,attachment,{contentType:attachment.type,upsert:false});if(uploadError)throw uploadError;media={attachment_url:db.storage.from('chat-media').getPublicUrl(path).data.publicUrl,attachment_name:attachment.name,attachment_type:attachment.type}}const table=view==='dms'&&activeDm?'dm_messages':'messages';const payload=view==='dms'&&activeDm?{conversation_id:activeDm.id,user_id:user.id,content:content||' ',reply_to:replyingTo?.id||null,...media}:{channel_id:channel?.id,user_id:user.id,content:content||' ',reply_to:replyingTo?.id||null,...media};const result=await db.from(table).insert(payload);if(result.error)throw result.error;window.dispatchEvent(new CustomEvent('defchat:mascot-xp',{detail:{amount:10,reason:'Message sent! +10 buddy XP'}}));playSentMessageSound(user.id);window.dispatchEvent(new CustomEvent('defchat:message-sent'));setDraft('');setAttachment(null);setReplyingTo(null);setEmojiOpen(false)}catch(e){setErr(e.message||'Message could not be sent')}finally{setBusy(false)}}
 async function editMessage(message){const content=editDraft.trim();if(!content){setErr('Message cannot be empty.');return}const table=view==='dms'?'dm_messages':'messages';const{data,error}=await db.from(table).update({content,edited_at:new Date().toISOString()}).eq('id',message.id).eq('user_id',user.id).select().single();if(error){setErr(error.message);return}const setter=view==='dms'?setDmMessages:setMessages;setter(prev=>prev.map(m=>m.id===message.id?{...m,...data}:m));setEditing(null);setEditDraft('')}
 async function loadCustomEmojis(){if(!server)return;const{data,error}=await db.from('custom_emojis').select('id,name,image_url').eq('server_id',server.id).order('name');if(error)setErr(error.message);else setCustomEmojis(data||[])}
 async function uploadEmoji(file){if(!file||!server)return;if(!file.type.startsWith('image/')||file.size>8*1024*1024){setErr('Choose an image or GIF under 8 MB.');return}const raw=window.prompt('Name this emoji (letters, numbers, underscores):');if(!raw)return;const name=raw.toLowerCase().replace(/[^a-z0-9_]/g,'').slice(0,32);if(name.length<2){setErr('Emoji names need at least 2 characters.');return}const path=user.id+'/emoji-'+Date.now()+'.'+(file.name.split('.').pop().toLowerCase().replace(/[^a-z0-9]/g,'')||'gif');const{error:up}=await db.storage.from('chat-media').upload(path,file,{contentType:file.type});if(up){setErr(up.message);return}const image_url=db.storage.from('chat-media').getPublicUrl(path).data.publicUrl;const{error}=await db.from('custom_emojis').insert({server_id:server.id,name,image_url,uploaded_by:user.id});if(error){setErr(error.message);return}await loadCustomEmojis()}

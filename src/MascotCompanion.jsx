@@ -76,6 +76,7 @@ export default function MascotCompanion({userId,username='friend',onOpenCollecti
  const [data,setData]=useState(()=>load(userId||'guest'));
  const [open,setOpen]=useState(false),[mood,setMood]=useState('happy'),[toast,setToast]=useState('Your buddy is happy to see you!'),[lastTap,setLastTap]=useState(0);
  const [position,setPosition]=useState(null);
+ const [visible,setVisible]=useState(()=>{try{return JSON.parse(localStorage.getItem('defchat:preferences:'+(userId||'guest'))||'{}').showBuddy!==false}catch{return true}});
  const dockRef=useRef(null),dragRef=useRef(null),draggedRef=useRef(false),positionRef=useRef(null);
  positionRef.current=position;
  const current=getLevel(data.xp||0),v=variants.find(x=>x.id===data.variant)||variants[0],acc=accessories.find(x=>x.id===data.accessory)||accessories[0];
@@ -83,6 +84,7 @@ export default function MascotCompanion({userId,username='friend',onOpenCollecti
  function persist(next){setData(next);try{localStorage.setItem('defchat:mascot:'+(userId||'guest'),JSON.stringify(next))}catch{}}
  function award(amount,reason){setData(prev=>{const before=getLevel(prev.xp||0);const next={...prev,xp:(prev.xp||0)+amount};try{localStorage.setItem('defchat:mascot:'+(userId||'guest'),JSON.stringify(next))}catch{}const after=getLevel(next.xp);if(after.level>before.level){setToast('Level up! Your buddy reached level '+after.level+'!');setMood('excited')}else setToast(reason||'+'+amount+' buddy XP');return next})}
  useEffect(()=>{setData(load(userId||'guest'));try{const saved=JSON.parse(localStorage.getItem('defchat:mascot-position:'+(userId||'guest'))||'null');setPosition(saved&&Number.isFinite(saved.left)&&Number.isFinite(saved.top)?saved:null)}catch{setPosition(null)}},[userId]);
+ useEffect(()=>{const sync=()=>{try{setVisible(JSON.parse(localStorage.getItem('defchat:preferences:'+(userId||'guest'))||'{}').showBuddy!==false)}catch{setVisible(true)}};const onVisibility=e=>setVisible(e.detail?.visible!==false);sync();window.addEventListener('defchat:buddy-visibility',onVisibility);window.addEventListener('storage',sync);return()=>{window.removeEventListener('defchat:buddy-visibility',onVisibility);window.removeEventListener('storage',sync)}},[userId]);
  useEffect(()=>{
   const move=e=>{
    const drag=dragRef.current,dock=dockRef.current;if(!drag||!dock)return;
@@ -101,7 +103,7 @@ export default function MascotCompanion({userId,username='friend',onOpenCollecti
  function breatheFire(){setOpen(true);setMood('fire');setToast('FWOOSH! Dragon fire! 🔥');award(2,'Fire breath! +2 XP');try{if('AudioContext'in window){const a=new AudioContext(),o=a.createOscillator(),g=a.createGain();o.type='sawtooth';o.frequency.setValueAtTime(170,a.currentTime);o.frequency.exponentialRampToValueAtTime(65,a.currentTime+.32);g.gain.setValueAtTime(.0001,a.currentTime);g.gain.exponentialRampToValueAtTime(.055,a.currentTime+.035);g.gain.exponentialRampToValueAtTime(.0001,a.currentTime+.34);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+.36);o.onended=()=>a.close()}}catch{}setTimeout(()=>setMood('happy'),950)}
  function equipVariant(id){if(current.level<(variants.find(x=>x.id===id)?.unlock||99))return;persist({...data,variant:id});setToast('Your buddy changed form!')}
  function equipAccessory(id){if(current.level<(accessories.find(x=>x.id===id)?.unlock||99))return;persist({...data,accessory:id});setToast('Accessory equipped!')}
- if(!userId)return null;
+ if(!userId||!visible)return null;
  const dockStyle=position?{left:position.left,top:position.top,right:"auto",bottom:"auto"}:undefined;
  function startDrag(e){if(e.button!==undefined&&e.button!==0)return;const rect=dockRef.current?.getBoundingClientRect();if(!rect)return;e.preventDefault();try{e.currentTarget.setPointerCapture(e.pointerId)}catch{}draggedRef.current=false;dragRef.current={pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,offsetX:e.clientX-rect.left,offsetY:e.clientY-rect.top,moved:false}}
  function toggleMascot(){if(draggedRef.current){draggedRef.current=false;return}setOpen(x=>!x)}

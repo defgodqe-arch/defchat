@@ -315,6 +315,14 @@ footer b{color:#c6c9ce}
 .message.cosmetic-chat.cosmetic-game{border-left-color:#4ade80;background:linear-gradient(90deg,#4ade8018,transparent 80%)}
 .message.cosmetic-chat.cosmetic-fruit{border-left-color:#fb7185;background:linear-gradient(90deg,#fb718516,transparent 80%)}
 .message.cosmetic-chat .message-content{border-radius:5px}
+.message.cosmetic-chat.cosmetic-yellow-dragon{position:relative;overflow:visible;border-left:2px solid #facc15;background:linear-gradient(90deg,#facc1526 0%,#f59e0b0d 38%,transparent 82%);box-shadow:inset 0 0 18px #facc1508}
+.message.cosmetic-chat.cosmetic-yellow-dragon::before{content:"🐉";position:absolute;left:-22px;top:4px;font-size:18px;line-height:1;filter:drop-shadow(0 0 5px #facc15);transform-origin:center;animation:golden-dragon-hover 2.8s ease-in-out infinite;pointer-events:none}
+.message.cosmetic-chat.cosmetic-yellow-dragon::after{content:"✦  🔥";position:absolute;left:-18px;top:27px;font-size:10px;letter-spacing:2px;color:#facc15;text-shadow:0 0 8px #f59e0b;opacity:.8;animation:golden-dragon-sparks 2.1s ease-in-out infinite;pointer-events:none}
+.message.cosmetic-chat.cosmetic-yellow-dragon .message-author-name{color:#fcd34d;text-shadow:0 0 9px #facc1530}
+@keyframes golden-dragon-hover{0%,100%{transform:translateY(0) rotate(-5deg) scale(1)}50%{transform:translateY(-5px) rotate(5deg) scale(1.08)}}
+@keyframes golden-dragon-sparks{0%,100%{opacity:.35;transform:translateY(0) scale(.9)}50%{opacity:1;transform:translateY(-3px) scale(1.08)}}
+@media(prefers-reduced-motion:reduce){.message.cosmetic-chat.cosmetic-yellow-dragon::before,.message.cosmetic-chat.cosmetic-yellow-dragon::after{animation:none}}
+@media(max-width:600px){.message.cosmetic-chat.cosmetic-yellow-dragon::before{left:-16px;font-size:15px}.message.cosmetic-chat.cosmetic-yellow-dragon::after{left:-12px;font-size:8px}}
 
 
 /* Individual equipped profile frames: visible ornaments scale with every avatar size. */

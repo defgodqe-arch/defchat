@@ -16,6 +16,7 @@ export default function FeatureCenter({db,user,profile,server,onClose,onProfileS
   const [members,setMembers]=useState([]);
   const [channels,setChannels]=useState([]);
   const [invites,setInvites]=useState([]);
+  const [inviteCode,setInviteCode]=useState('');
   const [channelName,setChannelName]=useState('');
   const [channelType,setChannelType]=useState('text');
   const [roleName,setRoleName]=useState('');

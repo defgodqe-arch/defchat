@@ -1088,3 +1088,17 @@ html[data-darker-mode="true"] .message-tools button:hover { background: #2a2c34 
   flex: 0 0 auto;
   margin-left: 1px;
 }
+
+
+/* Sunset Nameplate uses the selected artwork in the shop and on equipped nameplates. */
+.account-username.cosmetic-nameplate.cosmetic-sunset-image,
+.message-author-name.cosmetic-nameplate.cosmetic-sunset-image {
+  background: linear-gradient(90deg, #17131ad9, #17131a55), url("https://i.pinimg.com/1200x/80/47/50/804750a99bebdcdd0a026edca1279f2e.jpg") center / cover no-repeat !important;
+  border-color: #fb923caa !important;
+  box-shadow: 0 0 8px #fb923c30;
+}
+.shop-item-art.art-sunset .shop-custom-frame-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

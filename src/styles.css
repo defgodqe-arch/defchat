@@ -1029,3 +1029,31 @@ html[data-darker-mode="true"] .message-tools button:hover { background: #2a2c34 
   .user-row .voice-control { flex-basis: 23px; width: 23px; min-width: 23px; }
   .user-row .profile-open { gap: 6px; }
 }
+
+
+/* Hotfix: keep the signed-in user's own username crisp and readable in the account panel. */
+.user-row .profile-open,
+.user-row .profile-open .user-label,
+.user-row .profile-open .user-label b,
+.user-row .profile-open .user-label b.cosmetic-nameplate,
+.user-row .profile-open .user-label b .cosmetic-nameplate-icon {
+  filter: none !important;
+  -webkit-filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  opacity: 1 !important;
+  color: #ffffff !important;
+  text-shadow: none !important;
+  -webkit-text-fill-color: #ffffff !important;
+  transform: none !important;
+  mix-blend-mode: normal !important;
+}
+.user-row .profile-open .user-label b {
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  line-height: 1.35 !important;
+  letter-spacing: normal !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}

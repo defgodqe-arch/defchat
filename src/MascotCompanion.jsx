@@ -2,12 +2,12 @@ import React,{useEffect,useMemo,useRef,useState} from 'react';
 import {Sparkles,X,Heart,Gift,ChevronRight,Star,MessageCircle,Palette,Settings} from 'lucide-react';
 
 const variants=[
- {id:'sunny',name:'Sunflare',unlock:1,desc:'A golden baby fire dragon',body:'#facc15',shadow:'#f59e0b',accent:'#fff1a8',eye:'#29251b',kind:'star'},
- {id:'berry',name:'Violet Fang',unlock:2,desc:'A violet dragon with a spicy streak',body:'#b18cff',shadow:'#805ad5',accent:'#f0e5ff',eye:'#211a35',kind:'round'},
- {id:'aqua',name:'Tideflame',unlock:4,desc:'An aqua dragon with blue-hot flames',body:'#59e2e8',shadow:'#129eae',accent:'#d6ffff',eye:'#12363b',kind:'round'},
- {id:'ember',name:'Emberclaw',unlock:6,desc:'A fiery little dragon',body:'#ff8b55',shadow:'#dc4c35',accent:'#ffe0b9',eye:'#3d2019',kind:'star'},
- {id:'moon',name:'Moonscale',unlock:9,desc:'A moonlit dragon with silver scales',body:'#d5d9ee',shadow:'#8995bd',accent:'#fff',eye:'#292e4b',kind:'moon'},
- {id:'glitch',name:'Glitchfire',unlock:12,desc:'A rare neon fire-breathing dragon',body:'#80ffb5',shadow:'#18a86a',accent:'#f2ff7c',eye:'#122b25',kind:'glitch'}
+ {id:'sunny',name:'Sunflare',unlock:1,desc:'A tiny sun dragon powered by golden daylight',body:'#facc15',shadow:'#f59e0b',accent:'#fff1a8',eye:'#29251b',kind:'star'},
+ {id:'berry',name:'Solar Prism',unlock:2,desc:'A prism dragon that bends sunlight into color',body:'#b18cff',shadow:'#805ad5',accent:'#f0e5ff',eye:'#211a35',kind:'round'},
+ {id:'aqua',name:'Dawncurrent',unlock:4,desc:'A dawn dragon glowing with blue solar fire',body:'#59e2e8',shadow:'#129eae',accent:'#d6ffff',eye:'#12363b',kind:'round'},
+ {id:'ember',name:'Flareclaw',unlock:6,desc:'A little dragon with a bright solar flare',body:'#ff8b55',shadow:'#dc4c35',accent:'#ffe0b9',eye:'#3d2019',kind:'star'},
+ {id:'moon',name:'Eclipsewing',unlock:9,desc:'An eclipse dragon with a silver corona',body:'#d5d9ee',shadow:'#8995bd',accent:'#fff',eye:'#292e4b',kind:'moon'},
+ {id:'glitch',name:'Supernova',unlock:12,desc:'A rare dragon bursting with stellar energy',body:'#80ffb5',shadow:'#18a86a',accent:'#f2ff7c',eye:'#122b25',kind:'glitch'}
 ];
 const accessories=[
  {id:'none',name:'No accessory',unlock:1,icon:'·'},

@@ -12,7 +12,7 @@ const THEMES = [
   { id: 'mint', label: 'Mint glow', color: '#34d399' },
   { id: 'white', label: 'Moonlight', color: '#e5e7eb' },
 ];
-const defaults = { theme: 'yellow', density: 'comfortable', fontSize: 14, reducedMotion: false, enterToSend: true, notifications: false, sound: false, showBuddy: true };
+const defaults = { theme: 'yellow', density: 'comfortable', fontSize: 14, reducedMotion: false, enterToSend: true, notifications: false, sound: false, showBuddy: true, showTimestamps: true, showAvatars: true, showReactions: true };
 
 function loadSettings(userId) {
   try { return { ...defaults, ...JSON.parse(localStorage.getItem('defchat:preferences:' + userId) || '{}') }; }
@@ -46,6 +46,9 @@ export default function PowerFeatures({ open, onClose, userId, messages = [], co
     document.documentElement.dataset.chatDensity = settings.density;
     document.documentElement.dataset.chatMotion = settings.reducedMotion ? 'reduced' : 'full';
     document.documentElement.style.setProperty('--dc-message-size', settings.fontSize + 'px');
+    document.documentElement.dataset.showTimestamps = settings.showTimestamps ? 'true' : 'false';
+    document.documentElement.dataset.showAvatars = settings.showAvatars ? 'true' : 'false';
+    document.documentElement.dataset.showReactions = settings.showReactions ? 'true' : 'false';
   }, [settings, userId]);
   useEffect(() => {
     const handle = event => {
@@ -108,6 +111,9 @@ export default function PowerFeatures({ open, onClose, userId, messages = [], co
           <div className="power-segment"><button className={settings.density === 'comfortable' ? 'active' : ''} onClick={() => change('density', 'comfortable')}>Comfortable</button><button className={settings.density === 'compact' ? 'active' : ''} onClick={() => change('density', 'compact')}>Compact</button></div>
           <div className="power-setting"><div><b>Message text size</b><small>Adjust chat readability.</small></div><div className="power-size"><button onClick={() => change('fontSize', Math.max(12, settings.fontSize - 1))} aria-label="Decrease text size">−</button><strong>{settings.fontSize}px</strong><button onClick={() => change('fontSize', Math.min(18, settings.fontSize + 1))} aria-label="Increase text size">+</button></div></div>
           <Toggle label="Reduce animations" description="Use calmer transitions throughout the app." checked={settings.reducedMotion} onChange={value => change('reducedMotion', value)} />
+          <Toggle label="Show message timestamps" description="Display the date and time beside each message." checked={settings.showTimestamps} onChange={value => change('showTimestamps', value)} />
+          <Toggle label="Show message avatars" description="Show profile pictures next to chat messages." checked={settings.showAvatars} onChange={value => change('showAvatars', value)} />
+          <Toggle label="Show quick reactions" description="Show the reaction row under channel messages." checked={settings.showReactions} onChange={value => change('showReactions', value)} />
         </>}
         {tab === 'behavior' && <>
           <div className="power-section-title"><h3>Chat behavior</h3><p>Fine-tune how messages are composed and alerts work.</p></div>

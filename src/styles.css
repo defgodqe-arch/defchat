@@ -1038,3 +1038,53 @@ html[data-darker-mode="true"] .message-tools button:hover { background: #2a2c34 
   opacity: 1 !important;
   mix-blend-mode: normal !important;
 }
+
+
+/* Keep the nameplate as its own badge so the text stays sharp and the cosmetic remains visible. */
+.user-row .profile-open .user-label .account-username.cosmetic-nameplate,
+.message-author-name.cosmetic-nameplate {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  width: fit-content;
+  padding: 2px 6px !important;
+  border: 1px solid #facc1540 !important;
+  border-radius: 5px !important;
+  background: linear-gradient(100deg, #facc1524, #facc1508) !important;
+  color: #f8fafc;
+  filter: none !important;
+  -webkit-filter: none !important;
+  opacity: 1 !important;
+  mix-blend-mode: normal !important;
+  text-shadow: none;
+  -webkit-text-fill-color: currentColor;
+  transform: none;
+}
+.account-username .nameplate-text,
+.message-author-name .nameplate-text {
+  display: inline-block;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  filter: none !important;
+  -webkit-filter: none !important;
+  opacity: 1 !important;
+  mix-blend-mode: normal !important;
+  transform: none;
+}
+.account-username.cosmetic-nameplate .nameplate-text.cosmetic-gold,
+.message-author-name.cosmetic-nameplate .nameplate-text.cosmetic-gold {
+  background-image: linear-gradient(100deg, #ffe58a, #facc15, #fff1b8);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+  text-shadow: 0 0 5px #facc1520;
+}
+.account-username .cosmetic-nameplate-icon,
+.message-author-name .cosmetic-nameplate-icon {
+  flex: 0 0 auto;
+  margin-left: 1px;
+}

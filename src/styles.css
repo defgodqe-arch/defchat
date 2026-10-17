@@ -1016,3 +1016,16 @@ html[data-darker-mode="true"] .power-export-grid button { background: #191b21 !i
 html[data-darker-mode="true"] .welcome > div { background: #22242b !important; }
 html[data-darker-mode="true"] .reaction { background: #1a1c22 !important; border-color: #30323b !important; }
 html[data-darker-mode="true"] .message-tools button:hover { background: #2a2c34 !important; }
+
+
+/* Keep the signed-in user's name visible in the account bar and own chat messages. */
+.user-row { gap: 6px; }
+.user-row .profile-open { flex: 1 1 0; min-width: 0; }
+.user-row .profile-open .user-label { display: grid; flex: 1 1 0; min-width: 0; overflow: hidden; }
+.user-row .profile-open .user-label b { display: block; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-row .voice-control { flex: 0 0 26px; width: 26px; min-width: 26px; padding: 0; display: grid; place-items: center; }
+@media (max-width: 520px) {
+  .user-row { gap: 3px; }
+  .user-row .voice-control { flex-basis: 23px; width: 23px; min-width: 23px; }
+  .user-row .profile-open { gap: 6px; }
+}

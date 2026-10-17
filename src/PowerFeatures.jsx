@@ -12,6 +12,13 @@ const THEMES = [
   { id: 'mint', label: 'Mint glow', color: '#34d399' },
   { id: 'white', label: 'Moonlight', color: '#e5e7eb' },
 ];
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(base64);
+  return Uint8Array.from(raw, char => char.charCodeAt(0));
+}
+
 const defaults = { darkerMode: false, theme: 'yellow', density: 'comfortable', fontSize: 14, reducedMotion: false, enterToSend: true, notifications: false, sound: false, showBuddy: true, showTimestamps: true, showAvatars: true, showReactions: true, showEditedTags: true, showReplyPreviews: true, showAttachmentPreviews: true, showMessageTools: true, showComposerHint: true, showMessageBorders: true, fontFamily: 'dm-sans', lineHeight: 'normal', attachmentShape: 'rounded', underlineLinks: true };
 
 function loadSettings(userId) {
@@ -31,7 +38,7 @@ function downloadFile(name, content, type) {
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-export default function PowerFeatures({ open, onClose, userId, messages = [], conversationTitle = 'conversation', onOpenSearch, onToggleEmoji }) {
+export default function PowerFeatures({ open, onClose, db, userId, messages = [], conversationTitle = 'conversation', onOpenSearch, onToggleEmoji }) {
   const [settings, setSettings] = useState(() => loadSettings(userId));
   const [notice, setNotice] = useState('');
   const [tab, setTab] = useState('appearance');
@@ -81,12 +88,50 @@ export default function PowerFeatures({ open, onClose, userId, messages = [], co
 
   function change(key, value) { setSettings(current => ({ ...current, [key]: value })); if (key === 'showBuddy') window.dispatchEvent(new CustomEvent('defchat:buddy-visibility', { detail: { visible: value } })); setNotice('Preference saved on this device.'); }
   async function enableNotifications() {
+    if (settings.notifications) {
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+        if (subscription) {
+          const { error } = await db.functions.invoke('send-push', { body: { action: 'unsubscribe', endpoint: subscription.endpoint } });
+          if (error) throw error;
+          await subscription.unsubscribe();
+        }
+        change('notifications', false);
+        setNotice('Background notifications are turned off on this device.');
+      } catch (error) {
+        setNotice(error?.message || 'Could not turn off background notifications.');
+      }
+      return;
+    }
     if (!('Notification' in window)) { setNotice('Notifications are not supported by this browser.'); return; }
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      setNotice('Background push is not supported here. Try installing defchat on your device and enabling notifications there.');
+      return;
+    }
     try {
       const permission = await Notification.requestPermission();
-      change('notifications', permission === 'granted');
-      setNotice(permission === 'granted' ? 'Browser notification permission enabled. New-message delivery still depends on the app being active.' : 'Browser notifications were not enabled.');
-    } catch { setNotice('Could not request notification permission.'); }
+      if (permission !== 'granted') {
+        change('notifications', false);
+        setNotice(permission === 'denied' ? 'Notifications are blocked for this site. Allow them in your browser or device settings, then try again.' : 'Notification permission was not granted.');
+        return;
+      }
+      const registration = await navigator.serviceWorker.ready;
+      const { data: keyData, error: keyError } = await db.functions.invoke('send-push', { body: { action: 'public-key' } });
+      if (keyError || !keyData?.publicKey) throw keyError || new Error('Could not load the push notification key.');
+      const applicationServerKey = urlBase64ToUint8Array(keyData.publicKey);
+      let subscription = await registration.pushManager.getSubscription();
+      if (!subscription) subscription = await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey });
+      const { error } = await db.functions.invoke('send-push', { body: { action: 'subscribe', subscription: subscription.toJSON() } });
+      if (error) {
+        await subscription.unsubscribe().catch(() => {});
+        throw error;
+      }
+      change('notifications', true);
+      setNotice('Background push notifications are enabled. You can close defchat and still receive new messages and friend requests.');
+    } catch (error) {
+      setNotice(error?.message || 'Could not enable background push notifications. Check site permissions and try again.');
+    }
   }
   function exportMessages(format) {
     const rows = messages.map(message => ({
@@ -144,8 +189,8 @@ export default function PowerFeatures({ open, onClose, userId, messages = [], co
           <Toggle label="Show Buddy mascot" description="Turn Buddy on or off anywhere in defchat. You can change this any time." checked={settings.showBuddy} onChange={value => change('showBuddy', value)} />
           <Toggle label="Enter sends messages" description="When disabled, use the send button instead." checked={settings.enterToSend} onChange={value => change('enterToSend', value)} />
           <Toggle label="Enable message sound" description="Preference saved for future sound integrations." checked={settings.sound} onChange={value => change('sound', value)} icon={<Volume2 size={17}/>} />
-          <div className="power-setting"><div><b>Browser notifications</b><small>Request permission for this site on this device.</small></div><button className="power-secondary" onClick={enableNotifications}><Bell size={15}/> {settings.notifications ? 'Enabled' : 'Enable'}</button></div>
-          <div className="power-safe-note"><ShieldCheck size={17}/><span>These preferences are stored locally in this browser or desktop profile. They do not change server-wide settings.</span></div>
+          <div className="power-setting"><div><b>Background push notifications</b><small>Receive message and friend-request alerts even when defchat is closed. Requires browser/device notification permission.</small></div><button className="power-secondary" onClick={enableNotifications}><Bell size={15}/> {settings.notifications ? 'Disable' : 'Enable'}</button></div>
+          <div className="power-safe-note"><ShieldCheck size={17}/><span>Notification preferences are saved on this device. Web push works in supported browsers; on iPhone, add defchat to your Home Screen first.</span></div>
         </>}
         {tab === 'export' && <>
           <div className="power-section-title"><h3>Export current conversation</h3><p>Download the messages currently loaded in this view ({messages.length}). Exports are created on your device.</p></div>

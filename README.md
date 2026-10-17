@@ -1,6 +1,6 @@
-# defchat
+# Cinder
 
-defchat is a Discord-inspired, text-first community app with Supabase Auth, Postgres, and Realtime.
+Cinder is a community-first chat app with Supabase Auth, Postgres, and Realtime.
 
 ## Run as a desktop app (no browser tabs or address bar)
 
@@ -10,8 +10,8 @@ defchat is a Discord-inspired, text-first community app with Supabase Auth, Post
 3. Open a terminal in the project folder.
 4. Run `npm install`.
 5. Run `npm run desktop:win`.
-6. Open the `release` folder and run the generated `defchat-1.0.0-win-x64.exe` installer.
-7. Launch **defchat** from the Start menu or desktop shortcut.
+6. Open the `release` folder and run the generated `cinder-1.0.0-win-x64.exe` installer.
+7. Launch **Cinder** from the Start menu or desktop shortcut.
 
 The installed Windows version opens in its own desktop window, without a browser address bar or tabs. You do not need to keep a terminal or development server open after installation.
 
@@ -23,6 +23,10 @@ For development, run `npm run dev` in one terminal and `npm run desktop` in anot
 
 ## Install on a phone
 The hosted site has an installable app manifest and standalone display mode. Android: open the site in Chrome and choose **Install app**. iPhone: open it in Safari, tap **Share**, then **Add to Home Screen**. It launches from the home-screen icon without normal browser tabs. This is not yet a signed native Android APK or iOS App Store build.
+
+## Product direction
+
+Cinder is designed around three things: **real community**, **personal expression**, and **low-friction conversation**. It combines community spaces and invites, direct messages and friends, searchable conversation history, and free profile/chat customization. It avoids paid cosmetic tiers and aims to keep the interface approachable rather than copying another chat app's visual language.
 
 ## Features
 - Email/password sign-up, sign-in, and sign-out
@@ -49,4 +53,4 @@ To use another Supabase project, configure `.env` using `.env.example`. For a fr
 Desktop release packages are built by GitHub Actions when a `v*` tag is pushed. Unsigned installers may show an operating-system security warning.
 
 ## Current limitations
-This is an MVP, not a full Discord replacement. Voice/video, push notifications, and file uploads are not included. Native mobile store packages and signed desktop installers are not yet included.
+This is an MVP, not a full-featured replacement for every chat platform. Voice/video, push notifications, and file uploads are not included. Native mobile store packages and signed desktop installers are not yet included.

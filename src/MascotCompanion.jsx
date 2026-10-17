@@ -1,4 +1,4 @@
-import React,{useEffect,useMemo,useState} from 'react';
+import React,{useEffect,useMemo,useRef,useState} from 'react';
 import {Sparkles,X,Heart,Gift,ChevronRight,Star,MessageCircle,Palette} from 'lucide-react';
 
 const variants=[
@@ -75,11 +75,26 @@ export function MascotMark({size=36}){return <span className="mascot-mark">{mark
 export default function MascotCompanion({userId,username='friend',onOpenCollection}) {
  const [data,setData]=useState(()=>load(userId||'guest'));
  const [open,setOpen]=useState(false),[mood,setMood]=useState('happy'),[toast,setToast]=useState('Your buddy is happy to see you!'),[lastTap,setLastTap]=useState(0);
+ const [position,setPosition]=useState(null);
+ const dockRef=useRef(null),dragRef=useRef(null),draggedRef=useRef(false),positionRef=useRef(null);
+ positionRef.current=position;
  const current=getLevel(data.xp||0),v=variants.find(x=>x.id===data.variant)||variants[0],acc=accessories.find(x=>x.id===data.accessory)||accessories[0];
  const unlocked=useMemo(()=>variants.filter(x=>current.level>=x.unlock),[current.level]);
  function persist(next){setData(next);try{localStorage.setItem('defchat:mascot:'+(userId||'guest'),JSON.stringify(next))}catch{}}
  function award(amount,reason){setData(prev=>{const before=getLevel(prev.xp||0);const next={...prev,xp:(prev.xp||0)+amount};try{localStorage.setItem('defchat:mascot:'+(userId||'guest'),JSON.stringify(next))}catch{}const after=getLevel(next.xp);if(after.level>before.level){setToast('Level up! Your buddy reached level '+after.level+'!');setMood('excited')}else setToast(reason||'+'+amount+' buddy XP');return next})}
- useEffect(()=>{setData(load(userId||'guest'))},[userId]);
+ useEffect(()=>{setData(load(userId||'guest'));try{const saved=JSON.parse(localStorage.getItem('defchat:mascot-position:'+(userId||'guest'))||'null');setPosition(saved&&Number.isFinite(saved.left)&&Number.isFinite(saved.top)?saved:null)}catch{setPosition(null)}},[userId]);
+ useEffect(()=>{
+  const move=e=>{
+   const drag=dragRef.current,dock=dockRef.current;if(!drag||!dock)return;
+   if(!drag.moved&&Math.hypot(e.clientX-drag.startX,e.clientY-drag.startY)<6)return;
+   drag.moved=true;draggedRef.current=true;
+   const rect=dock.getBoundingClientRect(),left=Math.max(4,Math.min(window.innerWidth-rect.width-4,e.clientX-drag.offsetX)),top=Math.max(4,Math.min(window.innerHeight-rect.height-4,e.clientY-drag.offsetY));
+   setPosition({left,top});
+  };
+  const end=()=>{const drag=dragRef.current;if(drag?.moved){try{localStorage.setItem('defchat:mascot-position:'+(userId||'guest'),JSON.stringify(positionRef.current||{}))}catch{}}dragRef.current=null};
+  window.addEventListener('pointermove',move);window.addEventListener('pointerup',end);window.addEventListener('pointercancel',end);
+  return()=>{window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',end);window.removeEventListener('pointercancel',end)};
+ },[userId]);
  useEffect(()=>{const onXp=e=>award(Math.max(1,Number(e.detail?.amount)||5),e.detail?.reason||'Your buddy earned XP!');window.addEventListener('defchat:mascot-xp',onXp);return()=>window.removeEventListener('defchat:mascot-xp',onXp)},[userId]);
  useEffect(()=>{const onSent=()=>{setMood('excited');setToast('Yay! You sent a message! ✨');if(!open)setToast('Nice message! Your buddy is cheering you on.');const timer=setTimeout(()=>setMood('happy'),1800);return()=>clearTimeout(timer)};window.addEventListener('defchat:message-sent',onSent);return()=>window.removeEventListener('defchat:message-sent',onSent)},[userId,open]);
  function pet(){const now=Date.now();setOpen(true);if(now-lastTap>15000){setLastTap(now);award(1,'Your dragon loved that! +1 XP')}setMood('excited');setTimeout(()=>setMood('happy'),1200)}
@@ -87,7 +102,10 @@ export default function MascotCompanion({userId,username='friend',onOpenCollecti
  function equipVariant(id){if(current.level<(variants.find(x=>x.id===id)?.unlock||99))return;persist({...data,variant:id});setToast('Your buddy changed form!')}
  function equipAccessory(id){if(current.level<(accessories.find(x=>x.id===id)?.unlock||99))return;persist({...data,accessory:id});setToast('Accessory equipped!')}
  if(!userId)return null;
- return <div className="mascot-dock">
+ const dockStyle=position?{left:position.left,top:position.top,right:"auto",bottom:"auto"}:undefined;
+ function startDrag(e){if(e.button!==undefined&&e.button!==0)return;const rect=dockRef.current?.getBoundingClientRect();if(!rect)return;draggedRef.current=false;dragRef.current={startX:e.clientX,startY:e.clientY,offsetX:e.clientX-rect.left,offsetY:e.clientY-rect.top,moved:false}}
+ function toggleMascot(){if(draggedRef.current){draggedRef.current=false;return}setOpen(x=>!x)}
+ return <div ref={dockRef} className="mascot-dock" style={dockStyle}>
   {open&&<section className="mascot-panel" role="dialog" aria-label="Your defchat mascot">
    <div className="mascot-panel-head"><div><span className="mascot-eyebrow"><Sparkles size={12}/> YOUR FIRE DRAGON</span><h3>{v.name} <span>Lv. {current.level}</span></h3></div><button type="button" className="mascot-close" onClick={()=>setOpen(false)} aria-label="Close mascot panel"><X size={17}/></button></div>
    <div className="mascot-stage"><div className="mascot-stage-glow"/><Buddy variant={v.id} accessory={acc.id} size={136} mood={mood} onClick={pet}/><span className="mascot-level-pill"><Star size={12} fill="currentColor"/> LEVEL {current.level}</span></div>
@@ -100,6 +118,6 @@ export default function MascotCompanion({userId,username='friend',onOpenCollecti
    <div className="mascot-accessories">{accessories.map(item=><button type="button" key={item.id} disabled={current.level<item.unlock} className={(data.accessory===item.id?'is-equipped ':'')+(current.level<item.unlock?'is-locked':'')} onClick={()=>equipAccessory(item.id)} title={current.level<item.unlock?'Unlock at level '+item.unlock:item.name}><span>{item.icon}</span><small>{item.name}</small></button>)}</div>
    <div className="mascot-panel-foot"><MessageCircle size={13}/> Chat to earn XP · help your dragon grow stronger.</div>
   </section>}
-  <div className="mascot-launcher-wrap">{!open&&<span className="mascot-greeting">Hey! I’m Buddy <span>✦</span></span>}<button type="button" className={'mascot-launcher '+(open?'is-open':'')} onClick={()=>setOpen(x=>!x)} aria-label={open?'Close your mascot':'Open your mascot'} title="Meet your defchat mascot"><span className="mascot-launcher-spark"><Sparkles size={16}/></span><Buddy variant={v.id} accessory={acc.id} size={82} mood={mood} compact/><span className="mascot-launcher-level">{current.level}</span></button></div>
+  <div className="mascot-launcher-wrap">{!open&&<span className="mascot-greeting">Hey! I’m Buddy <span>✦</span></span>}<button type="button" className={'mascot-launcher '+(open?'is-open':'')} onPointerDown={startDrag} onClick={toggleMascot} aria-label={open?'Drag Buddy to move; tap to close':'Drag Buddy to move; tap to open'} title="Drag Buddy anywhere to keep your chat box clear"><span className="mascot-launcher-spark"><Sparkles size={16}/></span><Buddy variant={v.id} accessory={acc.id} size={82} mood={mood} compact/><span className="mascot-launcher-level">{current.level}</span></button></div>
  </div>
 }

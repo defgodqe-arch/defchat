@@ -12,7 +12,7 @@ const THEMES = [
   { id: 'mint', label: 'Mint glow', color: '#34d399' },
   { id: 'white', label: 'Moonlight', color: '#e5e7eb' },
 ];
-const defaults = { theme: 'yellow', density: 'comfortable', fontSize: 14, reducedMotion: false, enterToSend: true, notifications: false, sound: false, showBuddy: true, showTimestamps: true, showAvatars: true, showReactions: true, showEditedTags: true, showReplyPreviews: true, showAttachmentPreviews: true, showMessageTools: true, showComposerHint: true, showMessageBorders: true, fontFamily: 'system', lineHeight: 'normal', attachmentShape: 'rounded', underlineLinks: true };
+const defaults = { theme: 'yellow', density: 'comfortable', fontSize: 14, reducedMotion: false, enterToSend: true, notifications: false, sound: false, showBuddy: true, showTimestamps: true, showAvatars: true, showReactions: true, showEditedTags: true, showReplyPreviews: true, showAttachmentPreviews: true, showMessageTools: true, showComposerHint: true, showMessageBorders: true, fontFamily: 'dm-sans', lineHeight: 'normal', attachmentShape: 'rounded', underlineLinks: true };
 
 function loadSettings(userId) {
   try { return { ...defaults, ...JSON.parse(localStorage.getItem('defchat:preferences:' + userId) || '{}') }; }
@@ -56,6 +56,8 @@ export default function PowerFeatures({ open, onClose, userId, messages = [], co
     document.documentElement.dataset.showComposerHint = settings.showComposerHint ? 'true' : 'false';
     document.documentElement.dataset.showMessageBorders = settings.showMessageBorders ? 'true' : 'false';
     document.documentElement.dataset.fontFamily = settings.fontFamily;
+    const fontFamilies = { 'dm-sans': "'DM Sans', sans-serif", inter: "'Inter', sans-serif", roboto: "'Roboto', sans-serif", nunito: "'Nunito Sans', sans-serif", 'space-grotesk': "'Space Grotesk', sans-serif", hyperlegible: "'Atkinson Hyperlegible', sans-serif", mono: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" };
+    document.documentElement.style.setProperty('--dc-custom-font', fontFamilies[settings.fontFamily] || fontFamilies['dm-sans']);
     document.documentElement.dataset.messageLineHeight = settings.lineHeight;
     document.documentElement.dataset.attachmentShape = settings.attachmentShape;
     document.documentElement.dataset.underlineLinks = settings.underlineLinks ? 'true' : 'false';
@@ -130,7 +132,7 @@ export default function PowerFeatures({ open, onClose, userId, messages = [], co
           <Toggle label="Show message action buttons" description="Show save, reply, edit, and delete controls on messages." checked={settings.showMessageTools} onChange={value => change('showMessageTools', value)} />
           <Toggle label="Show composer tips" description="Show formatting hints below the message box." checked={settings.showComposerHint} onChange={value => change('showComposerHint', value)} />
           <Toggle label="Show subtle message borders" description="Add a light outline around chat messages." checked={settings.showMessageBorders} onChange={value => change('showMessageBorders', value)} />
-          <div className="power-setting"><div><b>Chat font</b><small>Choose the typeface for message text.</small></div><div className="power-segment"><button className={settings.fontFamily === 'system' ? 'active' : ''} onClick={() => change('fontFamily', 'system')}>System</button><button className={settings.fontFamily === 'mono' ? 'active' : ''} onClick={() => change('fontFamily', 'mono')}>Mono</button></div></div>
+          <div className="power-setting power-font-setting"><div><b>Custom font</b><small>Change the typeface used across the app. Your choice is saved on this device.</small></div><select className="power-font-select" aria-label="Choose app font" value={settings.fontFamily} onChange={event => change('fontFamily', event.target.value)}><option value="dm-sans">DM Sans · Default</option><option value="inter">Inter · Modern</option><option value="roboto">Roboto · Clean</option><option value="nunito">Nunito Sans · Rounded</option><option value="space-grotesk">Space Grotesk · Futuristic</option><option value="hyperlegible">Atkinson Hyperlegible · Accessible</option><option value="mono">Monospace · Developer</option></select></div>
           <div className="power-setting"><div><b>Message line spacing</b><small>Choose compact or relaxed reading.</small></div><div className="power-segment"><button className={settings.lineHeight === 'normal' ? 'active' : ''} onClick={() => change('lineHeight', 'normal')}>Normal</button><button className={settings.lineHeight === 'relaxed' ? 'active' : ''} onClick={() => change('lineHeight', 'relaxed')}>Relaxed</button></div></div>
           <div className="power-setting"><div><b>Attachment corners</b><small>Choose rounded or square image previews.</small></div><div className="power-segment"><button className={settings.attachmentShape === 'rounded' ? 'active' : ''} onClick={() => change('attachmentShape', 'rounded')}>Rounded</button><button className={settings.attachmentShape === 'square' ? 'active' : ''} onClick={() => change('attachmentShape', 'square')}>Square</button></div></div>
           <Toggle label="Underline links" description="Make clickable links stand out in messages." checked={settings.underlineLinks} onChange={value => change('underlineLinks', value)} />

@@ -1,10 +1,10 @@
-const CACHE_NAME = 'cinder-shell-v2';
+const CACHE_NAME = 'cinder-shell-v3';
 const BASE_URL = new URL('./', self.location.href);
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.add(BASE_URL.href)).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', event => {
-  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('defchat-shell-') && key !== CACHE_NAME).map(key => caches.delete(key)))).then(() => self.clients.claim()));
+  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => (key.startsWith('defchat-shell-') || key.startsWith('cinder-shell-')) && key !== CACHE_NAME).map(key => caches.delete(key)))).then(() => self.clients.claim()));
 });
 self.addEventListener('fetch', event => {
   const request = event.request;
@@ -33,10 +33,10 @@ self.addEventListener('push', event => {
       }
       return;
     }
-    await self.registration.showNotification(payload.title || 'Cinder', {
+    await self.registration.showNotification(payload.title || 'Cinder · Solar community', {
       body: String(payload.body || 'You have a new notification.').slice(0, 180),
       icon: new URL('icons/cinder.svg', self.registration.scope).href,
-      badge: new URL('icons/defchat.svg', self.registration.scope).href,
+      badge: new URL('icons/cinder.svg', self.registration.scope).href,
       tag: payload.tag || 'defchat-notification',
       renotify: true,
       data: { url: payload.url || self.registration.scope }

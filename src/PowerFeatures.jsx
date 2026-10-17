@@ -12,7 +12,7 @@ const THEMES = [
   { id: 'mint', label: 'Mint glow', color: '#34d399' },
   { id: 'white', label: 'Moonlight', color: '#e5e7eb' },
 ];
-const defaults = { theme: 'yellow', density: 'comfortable', fontSize: 14, reducedMotion: false, enterToSend: true, notifications: false, sound: false, showBuddy: true, showTimestamps: true, showAvatars: true, showReactions: true };
+const defaults = { theme: 'yellow', density: 'comfortable', fontSize: 14, reducedMotion: false, enterToSend: true, notifications: false, sound: false, showBuddy: true, showTimestamps: true, showAvatars: true, showReactions: true, showEditedTags: true, showReplyPreviews: true, showAttachmentPreviews: true, showMessageTools: true, showComposerHint: true, showMessageBorders: true, fontFamily: 'system', lineHeight: 'normal', attachmentShape: 'rounded', underlineLinks: true };
 
 function loadSettings(userId) {
   try { return { ...defaults, ...JSON.parse(localStorage.getItem('defchat:preferences:' + userId) || '{}') }; }
@@ -49,6 +49,16 @@ export default function PowerFeatures({ open, onClose, userId, messages = [], co
     document.documentElement.dataset.showTimestamps = settings.showTimestamps ? 'true' : 'false';
     document.documentElement.dataset.showAvatars = settings.showAvatars ? 'true' : 'false';
     document.documentElement.dataset.showReactions = settings.showReactions ? 'true' : 'false';
+    document.documentElement.dataset.showEditedTags = settings.showEditedTags ? 'true' : 'false';
+    document.documentElement.dataset.showReplyPreviews = settings.showReplyPreviews ? 'true' : 'false';
+    document.documentElement.dataset.showAttachmentPreviews = settings.showAttachmentPreviews ? 'true' : 'false';
+    document.documentElement.dataset.showMessageTools = settings.showMessageTools ? 'true' : 'false';
+    document.documentElement.dataset.showComposerHint = settings.showComposerHint ? 'true' : 'false';
+    document.documentElement.dataset.showMessageBorders = settings.showMessageBorders ? 'true' : 'false';
+    document.documentElement.dataset.fontFamily = settings.fontFamily;
+    document.documentElement.dataset.messageLineHeight = settings.lineHeight;
+    document.documentElement.dataset.attachmentShape = settings.attachmentShape;
+    document.documentElement.dataset.underlineLinks = settings.underlineLinks ? 'true' : 'false';
   }, [settings, userId]);
   useEffect(() => {
     const handle = event => {
@@ -114,6 +124,16 @@ export default function PowerFeatures({ open, onClose, userId, messages = [], co
           <Toggle label="Show message timestamps" description="Display the date and time beside each message." checked={settings.showTimestamps} onChange={value => change('showTimestamps', value)} />
           <Toggle label="Show message avatars" description="Show profile pictures next to chat messages." checked={settings.showAvatars} onChange={value => change('showAvatars', value)} />
           <Toggle label="Show quick reactions" description="Show the reaction row under channel messages." checked={settings.showReactions} onChange={value => change('showReactions', value)} />
+          <Toggle label="Show edited labels" description="Hide the small edited marker after messages." checked={settings.showEditedTags} onChange={value => change('showEditedTags', value)} />
+          <Toggle label="Show reply previews" description="Show the quoted message above a reply." checked={settings.showReplyPreviews} onChange={value => change('showReplyPreviews', value)} />
+          <Toggle label="Show attachment previews" description="Show image previews in chat instead of links only." checked={settings.showAttachmentPreviews} onChange={value => change('showAttachmentPreviews', value)} />
+          <Toggle label="Show message action buttons" description="Show save, reply, edit, and delete controls on messages." checked={settings.showMessageTools} onChange={value => change('showMessageTools', value)} />
+          <Toggle label="Show composer tips" description="Show formatting hints below the message box." checked={settings.showComposerHint} onChange={value => change('showComposerHint', value)} />
+          <Toggle label="Show subtle message borders" description="Add a light outline around chat messages." checked={settings.showMessageBorders} onChange={value => change('showMessageBorders', value)} />
+          <div className="power-setting"><div><b>Chat font</b><small>Choose the typeface for message text.</small></div><div className="power-segment"><button className={settings.fontFamily === 'system' ? 'active' : ''} onClick={() => change('fontFamily', 'system')}>System</button><button className={settings.fontFamily === 'mono' ? 'active' : ''} onClick={() => change('fontFamily', 'mono')}>Mono</button></div></div>
+          <div className="power-setting"><div><b>Message line spacing</b><small>Choose compact or relaxed reading.</small></div><div className="power-segment"><button className={settings.lineHeight === 'normal' ? 'active' : ''} onClick={() => change('lineHeight', 'normal')}>Normal</button><button className={settings.lineHeight === 'relaxed' ? 'active' : ''} onClick={() => change('lineHeight', 'relaxed')}>Relaxed</button></div></div>
+          <div className="power-setting"><div><b>Attachment corners</b><small>Choose rounded or square image previews.</small></div><div className="power-segment"><button className={settings.attachmentShape === 'rounded' ? 'active' : ''} onClick={() => change('attachmentShape', 'rounded')}>Rounded</button><button className={settings.attachmentShape === 'square' ? 'active' : ''} onClick={() => change('attachmentShape', 'square')}>Square</button></div></div>
+          <Toggle label="Underline links" description="Make clickable links stand out in messages." checked={settings.underlineLinks} onChange={value => change('underlineLinks', value)} />
         </>}
         {tab === 'behavior' && <>
           <div className="power-section-title"><h3>Chat behavior</h3><p>Fine-tune how messages are composed and alerts work.</p></div>

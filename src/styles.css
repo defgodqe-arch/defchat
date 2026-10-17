@@ -1057,3 +1057,34 @@ html[data-darker-mode="true"] .message-tools button:hover { background: #2a2c34 
   overflow: hidden !important;
   text-overflow: ellipsis !important;
 }
+
+
+/* Account username: intentionally render as plain text, independent of shop nameplate effects. */
+.user-row .profile-open .user-label .account-username {
+  display: block !important;
+  position: relative !important;
+  filter: none !important;
+  -webkit-filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  opacity: 1 !important;
+  color: #fff !important;
+  background: none !important;
+  background-image: none !important;
+  background-clip: border-box !important;
+  -webkit-background-clip: border-box !important;
+  -webkit-text-fill-color: #fff !important;
+  text-shadow: none !important;
+  mix-blend-mode: normal !important;
+  transform: none !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  line-height: 1.35 !important;
+  letter-spacing: normal !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+}

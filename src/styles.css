@@ -1147,3 +1147,101 @@ html[data-darker-mode="true"] .message-tools button:hover { background: #2a2c34 
 /* Requested image for the small top-left brand mark */
 .rail .logo.mini{padding:0;overflow:hidden;background:transparent;box-shadow:none;border-radius:14px}
 .rail .logo.mini .rail-brand-image{display:block;width:100%;height:100%;object-fit:cover;border-radius:14px}
+
+
+/* defchat usability polish: distinctive warm workspace, clear states, and responsive controls */
+:root{
+  --dc-ink:#f5f2e9;
+  --dc-muted:#aaa8a0;
+  --dc-surface:#202127;
+  --dc-surface-raised:#292a31;
+  --dc-border:#3a3b43;
+  --dc-accent:#facc15;
+  --dc-accent-soft:#facc1518;
+}
+html{scroll-behavior:smooth}
+body{background:#17181d}
+button,a,input,textarea,select{ -webkit-tap-highlight-color:transparent }
+button{transition:background-color .16s ease,border-color .16s ease,color .16s ease,transform .16s ease,opacity .16s ease}
+button:active:not(:disabled){transform:translateY(1px)}
+button:disabled{cursor:not-allowed}
+:where(button,a,input,textarea,select,[tabindex]):focus-visible{
+  outline:2px solid var(--dc-accent);
+  outline-offset:3px;
+}
+.app{
+  background:
+    radial-gradient(ellipse at 78% 0%,#facc1508,transparent 35%),
+    #202127;
+}
+.rail{background:#17181d;border-right:1px solid #ffffff08}
+.rail .logo.mini{box-shadow:0 5px 18px #0003}
+.rail-action,.server,.add{position:relative}
+.rail-action:hover,.server:hover,.add:hover{transform:translateY(-1px)}
+.rail-action.rail-active{box-shadow:0 5px 18px #facc1524}
+.sidebar{
+  background:linear-gradient(180deg,#23242a 0%,#202127 100%);
+  border-right:1px solid #ffffff08;
+}
+.server-title{letter-spacing:-.15px}
+.channel-list{overscroll-behavior:contain}
+.section{user-select:none}
+.channel{transition:background .14s ease,color .14s ease,transform .14s ease}
+.channel:active{transform:scale(.99)}
+.channel.active{box-shadow:inset 2px 0 0 var(--dc-accent)}
+.user-row{border-top:1px solid #ffffff09;padding-bottom:max(9px,env(safe-area-inset-bottom,0px))}
+.chat{background:transparent}
+.chat header{background:#202127cc;backdrop-filter:blur(12px)}
+.messages{overscroll-behavior:contain;scroll-padding-bottom:24px}
+.welcome{position:relative}
+.welcome h2{letter-spacing:-.55px}
+.welcome p{max-width:620px}
+.message{transition:background .13s ease}
+.message:focus-within{background:#ffffff08}
+.message p{overflow-wrap:anywhere}
+.message-link{color:#f6d85d;text-underline-offset:3px}
+.message-link:hover{color:#fff0a3}
+.composer{
+  border:1px solid #ffffff0a;
+  box-shadow:0 8px 26px #00012;
+  transition:border-color .16s ease,box-shadow .16s ease;
+}
+.composer:focus-within{border-color:#facc1555;box-shadow:0 0 0 3px #facc1510}
+.composer input{line-height:1.45}
+.composer button:focus-visible{outline-offset:1px}
+footer{padding-bottom:max(10px,env(safe-area-inset-bottom,0px))}
+.auth-card,.profile-modal,.feature-modal,.power-modal,.shop-modal,.create-server-modal,.notification-panel{
+  box-shadow:0 24px 80px #0005,0 1px 0 #ffffff08 inset;
+}
+.auth-card h1{letter-spacing:-.7px}
+.primary,.auth-submit{box-shadow:0 4px 12px #eab30812}
+.primary:hover:not(:disabled){box-shadow:0 6px 18px #eab30822}
+input,textarea,select{min-width:0}
+input::placeholder,textarea::placeholder{opacity:.78}
+.modal-backdrop{overscroll-behavior:contain}
+.profile-modal,.feature-modal,.power-modal,.shop-modal,.create-server-modal{scrollbar-width:thin;scrollbar-color:#51535d transparent}
+@media(max-width:700px){
+  .rail{padding-top:max(10px,env(safe-area-inset-top,0px))}
+  .chat header{padding-top:env(safe-area-inset-top,0px)}
+  .messages{padding-top:16px;padding-bottom:18px}
+  .message{gap:11px}
+  .message .avatar{width:36px;height:36px}
+  .meta{flex-wrap:wrap;row-gap:2px}
+  .composer{margin-bottom:env(safe-area-inset-bottom,0px)}
+}
+@media(max-width:520px){
+  .app{height:100dvh;min-height:0}
+  .chat{min-height:0}
+  .chat header{flex-shrink:0}
+  .messages{min-height:0}
+  .composer{border-radius:12px;padding:7px 8px}
+  .composer input{font-size:16px}
+  .welcome h2{font-size:21px}
+  .profile-modal,.feature-modal,.power-modal,.shop-modal,.create-server-modal{
+    width:min(100%,540px);
+    max-height:calc(100dvh - 24px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}

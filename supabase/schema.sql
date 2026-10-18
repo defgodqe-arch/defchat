@@ -100,8 +100,9 @@ create policy "Users can remove their reactions" on public.message_reactions for
 do $$ begin if not exists(select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='dm_messages') then alter publication supabase_realtime add table public.dm_messages; end if; end $$;
 
 
--- Free animated profile pictures and banners.
+-- Free animated profile pictures, banners, and custom full-card cover artwork.
 alter table public.profiles add column if not exists banner_url text;
+alter table public.profiles add column if not exists profile_cover_url text;
 insert into storage.buckets (id,name,public,file_size_limit,allowed_mime_types)
 values ('profile-media','profile-media',true,8388608,array['image/png','image/jpeg','image/webp','image/gif'])
 on conflict (id) do update set public=true,file_size_limit=8388608,allowed_mime_types=array['image/png','image/jpeg','image/webp','image/gif'];

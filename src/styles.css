@@ -1950,13 +1950,19 @@ body {
 }
 .public-profile-card::before {
   content: "";
+  display: none;
   position: absolute;
   inset: 0;
   z-index: 2;
   pointer-events: none;
   background:
     linear-gradient(180deg, rgba(17,18,22,.28) 0%, rgba(17,18,22,.58) 34%, rgba(17,18,22,.88) 100%),
-    var(--profile-cover-image, url("https://i.pinimg.com/1200x/80/47/50/804750a99bebdcdd0a026edca1279f2e.jpg")) center center / cover no-repeat;
+    var(--profile-cover-image) center center / cover no-repeat;
+}
+/* Only show the overlay when the profile owner has uploaded a cover image. */
+.public-profile-card.has-profile-cover::before {
+  display: block;
+  animation: public-profile-artwork-fade 3.2s ease-out 0.4s forwards;
 }
 /* The banner sits behind the temporary full-card artwork, then is revealed by its fade. */
 .public-profile-card > .public-profile-banner,
@@ -1980,16 +1986,13 @@ body {
 
 
 /* Let the full-card artwork fade away smoothly after the profile opens. */
-.public-profile-card::before {
-  animation: public-profile-artwork-fade 3.2s ease-out 0.4s forwards;
-}
 @keyframes public-profile-artwork-fade {
   0% { opacity: 1; }
   45% { opacity: .82; }
   100% { opacity: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .public-profile-card::before { animation: none; opacity: 0; }
+  .public-profile-card.has-profile-cover::before { animation: none; opacity: 1; }
 }
 
 

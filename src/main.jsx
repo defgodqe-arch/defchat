@@ -1,10 +1,11 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
+import MobileInstallPrompt from './MobileInstallPrompt.jsx';
 import './styles.css';
 
 createRoot(document.getElementById('root')).render(
-  <React.StrictMode><App /></React.StrictMode>
+  <React.StrictMode><App /><MobileInstallPrompt /></React.StrictMode>
 );
 
 // Mobile installable-web-app support. Packaged Electron uses local files instead.

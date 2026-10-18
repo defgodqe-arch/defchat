@@ -224,20 +224,21 @@ function Auth({done}) {
 
 
 function ProfileSettings({profile,username,userId,onClose,onSaved,cosmetics=[]}) {
-  const [avatar,setAvatar]=useState(null),[banner,setBanner]=useState(null),[avatarZoom,setAvatarZoom]=useState(1),[bannerZoom,setBannerZoom]=useState(1),[bio,setBio]=useState(profile?.bio||''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState(''),[avatarPreview,setAvatarPreview]=useState(profile?.avatar_url||null),[bannerPreview,setBannerPreview]=useState(profile?.banner_url||null);
+  const [avatar,setAvatar]=useState(null),[banner,setBanner]=useState(null),[cover,setCover]=useState(null),[avatarZoom,setAvatarZoom]=useState(1),[bannerZoom,setBannerZoom]=useState(1),[bio,setBio]=useState(profile?.bio||''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState(''),[avatarPreview,setAvatarPreview]=useState(profile?.avatar_url||null),[bannerPreview,setBannerPreview]=useState(profile?.banner_url||null),[coverPreview,setCoverPreview]=useState(profile?.profile_cover_url||null);
   useEffect(()=>{if(!avatar){setAvatarPreview(profile?.avatar_url||null);return}const previewUrl=URL.createObjectURL(avatar);setAvatarPreview(previewUrl);return()=>URL.revokeObjectURL(previewUrl)},[avatar,profile?.avatar_url]);
   useEffect(()=>{if(!banner){setBannerPreview(profile?.banner_url||null);return}const previewUrl=URL.createObjectURL(banner);setBannerPreview(previewUrl);return()=>URL.revokeObjectURL(previewUrl)},[banner,profile?.banner_url]);
+  useEffect(()=>{if(!cover){setCoverPreview(profile?.profile_cover_url||null);return}const previewUrl=URL.createObjectURL(cover);setCoverPreview(previewUrl);return()=>URL.revokeObjectURL(previewUrl)},[cover,profile?.profile_cover_url]);
   async function cropImage(file,kind,zoom){
     if(file.type==='image/gif'||zoom===1)return file;
     const imageUrl=URL.createObjectURL(file);
     try{return await new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>{const width=kind==='avatar'?512:1500,height=kind==='avatar'?512:500,canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;const scale=Math.max(width/img.width,height/img.height)*zoom;const w=img.width*scale,h=img.height*scale;canvas.getContext('2d').drawImage(img,(width-w)/2,(height-h)/2,w,h);canvas.toBlob(blob=>{if(!blob){reject(new Error('Could not crop this image.'));return}resolve(new File([blob],kind+'-cropped.png',{type:'image/png'}))},'image/png')};img.onerror=()=>reject(new Error('Could not read this image.'));img.src=imageUrl})}finally{URL.revokeObjectURL(imageUrl)}
   }
   async function save(){
-    if(!avatar&&!banner&&bio===(profile?.bio||'')){setError('Make a change before saving.');return}
+    if(!avatar&&!banner&&!cover&&bio===(profile?.bio||'')){setError('Make a change before saving.');return}
     setBusy(true);setError('');setNotice('');
     try{
       const patch={bio:bio.trim().slice(0,190)};
-      for(const [kind,original] of [['avatar',avatar],['banner',banner]]){
+      for(const [kind,original] of [['avatar',avatar],['banner',banner],['cover',cover]]){
         if(!original)continue;
         const file=await cropImage(original,kind,kind==='avatar'?avatarZoom:bannerZoom);
         if(!['image/png','image/jpeg','image/webp','image/gif'].includes(file.type))throw new Error('Use a PNG, JPG, WebP, or GIF image.');
@@ -248,11 +249,11 @@ function ProfileSettings({profile,username,userId,onClose,onSaved,cosmetics=[]})
         const {error:uploadError}=await db.storage.from('profile-media').upload(path,file,{contentType:file.type,upsert:false,cacheControl:'3600'});
         if(uploadError)throw uploadError;
         const {data}=db.storage.from('profile-media').getPublicUrl(path);
-        patch[kind==='avatar'?'avatar_url':'banner_url']=data.publicUrl;
+        patch[kind==='avatar'?'avatar_url':kind==='banner'?'banner_url':'profile_cover_url']=data.publicUrl;
       }
       const {data,error:saveError}=await db.from('profiles').update(patch).eq('id',userId).select().single();
       if(saveError)throw saveError;
-      onSaved(data);setNotice('Your profile customization is saved!');setAvatar(null);setBanner(null);setAvatarZoom(1);setBannerZoom(1);
+      onSaved(data);setNotice('Your profile customization is saved!');setAvatar(null);setBanner(null);setCover(null);setAvatarZoom(1);setBannerZoom(1);
     }catch(e){setError(e.message||'Could not save your profile images.')}
     finally{setBusy(false)}
   }
@@ -266,11 +267,13 @@ function ProfileSettings({profile,username,userId,onClose,onSaved,cosmetics=[]})
         <div className="preview-name">{username}<small>Preview</small></div>
         {avatar&&avatar.type!=='image/gif'&&<label className="crop-control">Avatar zoom <input type="range" min="1" max="2.2" step="0.05" value={avatarZoom} onChange={e=>setAvatarZoom(Number(e.target.value))}/><small>{Math.round(avatarZoom*100)}%</small></label>}
         {banner&&banner.type!=='image/gif'&&<label className="crop-control">Banner zoom <input type="range" min="1" max="2.2" step="0.05" value={bannerZoom} onChange={e=>setBannerZoom(Number(e.target.value))}/><small>{Math.round(bannerZoom*100)}%</small></label>}
+        {coverPreview&&<div className="cover-preview-strip" style={{backgroundImage:'url("'+coverPreview+'")'}}><span>Full-card cover preview</span></div>}
       </div>
       <label className="bio-field">About me <textarea value={bio} onChange={e=>setBio(e.target.value.slice(0,190))} maxLength={190} placeholder="A little about yourself…"/><small>{bio.length}/190 characters</small></label>
       <div className="upload-options">
         <label className="upload-choice"><span className="upload-icon"><Camera size={18}/></span><span><b>Profile picture</b><small>GIFs animate · PNG, JPG, WebP, GIF · up to 5 MB</small></span><input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={e=>setAvatar(e.target.files?.[0]||null)}/><span className="choose-file">{avatar?'Change':'Choose'}</span></label>
-        <label className="upload-choice"><span className="upload-icon"><ImagePlus size={18}/></span><span><b>Profile banner</b><small>GIFs animate · PNG, JPG, WebP, GIF · up to 8 MB</small></span><input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={e=>setBanner(e.target.files?.[0]||null)}/><span className="choose-file">{banner?'Change':'Choose'}</span></label>
+        <label className="upload-choice"><span className="upload-icon"><ImagePlus size={18}/></span><span><b>Profile banner</b><small>Shown after the full-card cover fades · GIF, PNG, JPG, WebP · up to 8 MB</small></span><input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={e=>setBanner(e.target.files?.[0]||null)}/><span className="choose-file">{banner?'Change':'Choose'}</span></label>
+        <label className="upload-choice"><span className="upload-icon"><Sparkles size={18}/></span><span><b>Full-card cover image</b><small>Your own image appears over the whole profile, then fades to reveal your banner · up to 8 MB</small></span><input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={e=>setCover(e.target.files?.[0]||null)}/><span className="choose-file">{cover?'Change':'Choose'}</span></label>
       </div>
       {error&&<div className="notice error-notice">{error}</div>}{notice&&<div className="notice success-notice">{notice}</div>}
       <div className="profile-modal-actions"><button className="secondary-button" onClick={onClose}>Cancel</button><button className="primary" onClick={save} disabled={busy}>{busy?<LoaderCircle size={16} className="spin"/>:<Check size={16}/>} Save changes</button></div>
@@ -429,7 +432,7 @@ useEffect(()=>{if(user)load();else{setProfile(null);setServers([]);setChannels([
 useEffect(()=>{if(!user?.id||!activeDm?.id)return;try{localStorage.setItem('defchat:last-dm:'+user.id,activeDm.id)}catch{}},[user?.id,activeDm?.id]);
 
 async function load(){if(!user)return;const{data:p,error:pe}=await db.from('profiles').select('*').eq('id',user.id).maybeSingle();if(pe)setErr(pe.message);let prof=p;if(!prof){const name=(user.user_metadata?.username||user.email?.split('@')[0]||'member').slice(0,24);const r=await db.from('profiles').upsert({id:user.id,username:name},{onConflict:'id'}).select().maybeSingle();prof=r.data||{username:name};if(r.error)setErr(r.error.message)}setProfile(prof);const{data:m,error}=await db.from('server_members').select('server_id,servers(*)').eq('user_id',user.id);if(error)setErr(error.message);let list=(m||[]).map(x=>x.servers).filter(Boolean);setServers(list);setServer(prev=>list.find(s=>s.id===prev?.id)||list[0]||null);await loadDMList();}
-async function loadDMList(){if(!user)return;const{data:mine,error}=await db.from('dm_members').select('conversation_id').eq('user_id',user.id);if(error){setErr(error.message);return}const ids=[...new Set((mine||[]).map(x=>x.conversation_id))];const out=[];for(const id of ids){const[{data:members},{data:conv}]=await Promise.all([db.from('dm_members').select('user_id').eq('conversation_id',id),db.from('dm_conversations').select('id,name,is_group').eq('id',id).maybeSingle()]);if(conv?.is_group||(members||[]).length>2){const{data:people}=await db.from('profiles').select('id,username,avatar_url').in('id',(members||[]).map(x=>x.user_id));out.push({id,is_group:true,username:conv?.name||'Group conversation',avatar_url:people?.find(p=>p.id!==user.id)?.avatar_url||null,members:people||[]});continue}const other=(members||[]).find(x=>x.user_id!==user.id);if(!other)continue;const{data:p}=await db.from('profiles').select('id,username,avatar_url,banner_url,bio,status').eq('id',other.user_id).maybeSingle();if(p)out.push({id,user_id:other.user_id,username:p.username,avatar_url:p.avatar_url,banner_url:p.banner_url,bio:p.bio,status:p.status})}
+async function loadDMList(){if(!user)return;const{data:mine,error}=await db.from('dm_members').select('conversation_id').eq('user_id',user.id);if(error){setErr(error.message);return}const ids=[...new Set((mine||[]).map(x=>x.conversation_id))];const out=[];for(const id of ids){const[{data:members},{data:conv}]=await Promise.all([db.from('dm_members').select('user_id').eq('conversation_id',id),db.from('dm_conversations').select('id,name,is_group').eq('id',id).maybeSingle()]);if(conv?.is_group||(members||[]).length>2){const{data:people}=await db.from('profiles').select('id,username,avatar_url').in('id',(members||[]).map(x=>x.user_id));out.push({id,is_group:true,username:conv?.name||'Group conversation',avatar_url:people?.find(p=>p.id!==user.id)?.avatar_url||null,members:people||[]});continue}const other=(members||[]).find(x=>x.user_id!==user.id);if(!other)continue;const{data:p}=await db.from('profiles').select('id,username,avatar_url,banner_url,profile_cover_url,bio,status').eq('id',other.user_id).maybeSingle();if(p)out.push({id,user_id:other.user_id,username:p.username,avatar_url:p.avatar_url,banner_url:p.banner_url,bio:p.bio,status:p.status})}
 let latestById={};if(ids.length){const{data:recent}=await db.from('dm_messages').select('conversation_id,created_at').in('conversation_id',ids).order('created_at',{ascending:false}).limit(500);for(const message of recent||[])if(!latestById[message.conversation_id])latestById[message.conversation_id]=message.created_at}
 out.sort((left,right)=>String(latestById[right.id]||'').localeCompare(String(latestById[left.id]||'')));
 setDmList(prev=>out.map(item=>({...item,unreadCount:prev.find(p=>p.id===item.id)?.unreadCount||0,lastMessageAt:latestById[item.id]||null})));

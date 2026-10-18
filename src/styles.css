@@ -1905,3 +1905,11 @@ body {
 .camera-gallery-empty button{display:inline-flex;align-items:center;gap:8px;margin-top:8px;padding:10px 14px;border:0;border-radius:10px;background:#f4c84b;color:#241b00;font-weight:750;cursor:pointer}
 @media(max-width:760px){.camera-gallery-view{padding:16px;max-height:75vh}.camera-gallery-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.camera-gallery-heading{align-items:flex-start}.camera-gallery-heading h3{font-size:17px}.camera-gallery-toggle{padding:8px;font-size:12px}.camera-header-actions{gap:6px}}
 @media(max-width:380px){.camera-gallery-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.camera-gallery-item-info{padding:7px}.camera-gallery-item-info button{width:27px;height:27px}}
+
+
+/* Friendship score shown on the public profile when two users are friends. */
+.public-friendship-score{display:flex;align-items:center;gap:11px;margin:16px 0;padding:13px 15px;border:1px solid rgba(255,207,70,.3);border-radius:13px;background:linear-gradient(115deg,rgba(255,196,47,.13),rgba(255,196,47,.035));color:#f8e3a0}
+.public-friendship-score-icon{display:grid;place-items:center;flex:0 0 38px;height:38px;border-radius:11px;background:rgba(255,205,64,.14);color:#ffd34d;font-size:23px}
+.public-friendship-score>div{display:grid;gap:4px;min-width:0}
+.public-friendship-score b{font-size:14px;font-weight:800}
+.public-friendship-score small{color:#c6b98f;font-size:11px;line-height:1.45}

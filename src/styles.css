@@ -2162,3 +2162,8 @@ a:focus-visible{outline:2px solid var(--dc-accent,#ffc83d);outline-offset:2px}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
 }
+
+
+/* Remove the retired custom chat-background layer and any leftover overlay/container. */
+.chat-background,.chat-background-layer,.chat-background-overlay,.chat-wallpaper,.chat-wallpaper-overlay,.custom-chat-background,.custom-chat-background-overlay,[data-chat-background],[data-chat-background-overlay]{display:none!important;visibility:hidden!important;pointer-events:none!important;background-image:none!important;}
+.chat::before,.chat::after{background-image:none!important;}

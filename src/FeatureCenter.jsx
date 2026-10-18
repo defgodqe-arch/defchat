@@ -55,6 +55,9 @@ export default function FeatureCenter({db,user,profile,onlineUsers={},server,onC
       const days=Math.max(0,Math.floor((Date.now()-started)/86400000));
       scoreMap[rel.friendId]={score:days,days,messages:0};
     }
+    // Publish the friendship-duration score immediately. The message-count lookup
+    // can fail under RLS or take longer; neither should hide the visible score badge.
+    setFriendScores({...scoreMap});
     // Count messages only in one-to-one conversations shared with each accepted friend.
     try{
       const {data:mine,error:mineError}=await db.from('dm_members').select('conversation_id').eq('user_id',user.id);
@@ -90,7 +93,8 @@ export default function FeatureCenter({db,user,profile,onlineUsers={},server,onC
       console.warn('Friendship score calculation failed:',e);
       // Keep the friendship-duration score visible even if DM history cannot be read.
     }
-    setFriendScores(scoreMap);
+    // Publish the final score again after direct-message counts are added.
+    setFriendScores({...scoreMap});
     setBlocks((bl||[]).map(b=>({...b,person:people[b.blocked_id]})));
   }
   useEffect(()=>{if(!user?.id)return;const friendsSub=db.channel('cinder-friends-'+user.id).on('postgres_changes',{event:'*',schema:'public',table:'friend_requests'},()=>{loadSocial()}).subscribe();const dmSub=db.channel('cinder-friendship-score-'+user.id).on('postgres_changes',{event:'INSERT',schema:'public',table:'dm_messages'},()=>{loadSocial()}).subscribe();return()=>{db.removeChannel(friendsSub);db.removeChannel(dmSub)}},[user?.id]);

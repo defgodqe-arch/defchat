@@ -14,9 +14,17 @@ export default function AstralProjection({user,onClose}){
  const storeKey='defchat:solarbound:'+((user&&user.id)||'guest');
  useEffect(()=>{const down=e=>{const k=e.key.toLowerCase();if(['arrowleft','arrowright','arrowup',' '].includes(k))e.preventDefault();keys.current[k]=true;if(k==='escape')setPaused(v=>!v);if(k==='x'&&level===1000){const p=world.current.player,b=world.current;if(Math.abs(p.x-b.bossX)<155&&Math.abs(p.y-340)<170)b.bossHp-=12;}};const up=e=>{keys.current[e.key.toLowerCase()]=false};window.addEventListener('keydown',down);window.addEventListener('keyup',up);return()=>{window.removeEventListener('keydown',down);window.removeEventListener('keyup',up)}},[level]);
  useEffect(()=>{let raf;let previous=0;const draw=now=>{const c=canvas.current;if(!c){raf=requestAnimationFrame(draw);return}const ctx=c.getContext('2d'),scale=Math.min(c.width/WIDTH,c.height/HEIGHT),offsetX=(c.width-WIDTH*scale)/2,offsetY=(c.height-HEIGHT*scale)/2;ctx.clearRect(0,0,c.width,c.height);ctx.save();ctx.translate(offsetX,offsetY);ctx.scale(scale,scale);
- const sky=ctx.createLinearGradient(0,0,0,HEIGHT);sky.addColorStop(0,'#171b3c');sky.addColorStop(.65,'#493052');sky.addColorStop(1,'#a65338');ctx.fillStyle=sky;ctx.fillRect(0,0,WIDTH,HEIGHT);
- ctx.fillStyle='#ffc84d';ctx.shadowColor='#ff9f1c';ctx.shadowBlur=38;ctx.beginPath();ctx.arc(820,92,40,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
- for(let i=0;i<11;i++){let x=i*110-(world.current.player.x*.18%110);ctx.fillStyle=i%2?'#2c3157':'#34365d';ctx.beginPath();ctx.moveTo(x,445);ctx.lineTo(x+55,260+(i%4)*22);ctx.lineTo(x+130,445);ctx.fill();}
+ // Warm pixel-art sunrise sky, inspired by the supplied floating-island reference.
+ const sky=ctx.createLinearGradient(0,0,0,HEIGHT);sky.addColorStop(0,'#f7c77e');sky.addColorStop(.45,'#ffe79a');sky.addColorStop(.78,'#fff4bb');sky.addColorStop(1,'#e9b76f');ctx.fillStyle=sky;ctx.fillRect(0,0,WIDTH,HEIGHT);
+ // Sun glow and distant floating ruins.
+ const glow=ctx.createRadialGradient(530,275,12,530,275,310);glow.addColorStop(0,'rgba(255,255,225,.95)');glow.addColorStop(.55,'rgba(255,241,170,.45)');glow.addColorStop(1,'rgba(255,222,145,0)');ctx.fillStyle=glow;ctx.fillRect(170,0,650,HEIGHT);
+ ctx.fillStyle='#fff2c2';ctx.beginPath();ctx.arc(530,270,66,0,Math.PI*2);ctx.fill();
+ for(let i=0;i<17;i++){const x=((i*89-world.current.player.x*.11)%1100+1100)%1100-70,y=20+(i*47)%205,w=65+(i*23)%100;ctx.fillStyle=i%2?'rgba(230,172,111,.24)':'rgba(255,247,196,.45)';ctx.beginPath();ctx.ellipse(x,y,w,15+(i%4)*5,0,0,Math.PI*2);ctx.fill();}
+ // Tiny distant floating island silhouettes.
+ const island=(x,y,w)=>{ctx.fillStyle='#bd8c70';ctx.fillRect(x,y,w,24);ctx.fillRect(x+12,y+24,w-24,13);ctx.fillRect(x+w*.28,y+37,w*.44,12);ctx.fillRect(x+w*.38,y+49,w*.24,15);ctx.fillStyle='#d7a17b';ctx.fillRect(x+8,y-5,w-16,7);};
+ island(300,170,125);island(680,115,75);island(810,188,92);
+ // Sunbeams.
+ ctx.strokeStyle='rgba(255,255,235,.48)';ctx.lineWidth=2;for(let i=0;i<8;i++){ctx.beginPath();ctx.moveTo(i*145+30,0);ctx.lineTo(i*145-90,HEIGHT);ctx.stroke();}
  const g=world.current,p=g.player,dt=Math.min((now-previous)/1000||0.016,0.033);previous=now;
  if(!paused&&!over&&!won){
   const k=keys.current;let ax=(k.d||k.arrowright?1:0)-(k.a||k.arrowleft?1:0);p.vx=ax*245;
@@ -31,14 +39,28 @@ export default function AstralProjection({user,onClose}){
   else if(p.x>WIDTH-45){const next=Math.min(1000,level+1);setLevel(next);setBest(v=>Math.max(v,next));try{localStorage.setItem(storeKey,String(Math.max(best,next)))}catch{}world.current=makeLevel(next);world.current.player.x=25;}
  }
  // platforms and coins
- g.platforms.forEach(pl=>{ctx.fillStyle='#28634f';ctx.fillRect(pl.x,pl.y,pl.w,pl.h);ctx.fillStyle='#74c77b';ctx.fillRect(pl.x,pl.y,pl.w,5);});
+ g.platforms.forEach((pl,idx)=>{ // chunky floating rock islands with autumn grass
+ ctx.fillStyle='#102d3c';ctx.beginPath();ctx.moveTo(pl.x,pl.y+8);ctx.lineTo(pl.x+pl.w,pl.y+8);ctx.lineTo(pl.x+pl.w-10,pl.y+pl.h*.62);ctx.lineTo(pl.x+pl.w*.72,pl.y+pl.h);ctx.lineTo(pl.x+pl.w*.25,pl.y+pl.h*.84);ctx.lineTo(pl.x+5,pl.y+pl.h*.5);ctx.closePath();ctx.fill();
+ ctx.fillStyle='#b54d32';ctx.fillRect(pl.x,pl.y,pl.w,9);ctx.fillStyle='#df713d';for(let q=0;q<Math.floor(pl.w/13);q++){ctx.fillRect(pl.x+q*13,pl.y-2+(q%3)*2,8,5);ctx.fillStyle=q%2?'#a94732':'#e38a45';}
+ ctx.fillStyle='#315264';for(let q=0;q<Math.floor(pl.w/35);q++)ctx.fillRect(pl.x+q*35+8,pl.y+19,18,8);
+ });
  g.coins.forEach(c=>{if(c.taken)return;ctx.fillStyle='#ffdf66';ctx.shadowColor='#ffc83d';ctx.shadowBlur=13;ctx.beginPath();ctx.ellipse(c.x,c.y,8,12,0,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;ctx.fillStyle='#fff3b4';ctx.fillRect(c.x-1,c.y-6,2,12)});
- if(level<1000)g.enemies.forEach(e=>{if(!e.alive)return;ctx.fillStyle='#aa5a91';ctx.fillRect(e.x,e.y,27,28);ctx.fillStyle='#fff';ctx.fillRect(e.x+5,e.y+7,4,4);ctx.fillRect(e.x+18,e.y+7,4,4)});
- // hero, kept as original geometric art
- if(p.invulnerable<=0||Math.floor(now/100)%2===0){ctx.fillStyle='#ffc83d';ctx.shadowColor='#ffad32';ctx.shadowBlur=13;ctx.beginPath();ctx.roundRect(p.x,p.y,32,34,8);ctx.fill();ctx.shadowBlur=0;ctx.fillStyle='#38251a';ctx.fillRect(p.x+8,p.y+11,4,5);ctx.fillRect(p.x+21,p.y+11,4,5);ctx.fillRect(p.x+10,p.y+23,13,3);}
+ if(level<1000)g.enemies.forEach(e=>{if(!e.alive)return;ctx.fillStyle='#9b3f2d';ctx.fillRect(e.x+3,e.y+7,22,20);ctx.fillRect(e.x,e.y+12,28,12);ctx.fillStyle='#f8d36b';ctx.fillRect(e.x+7,e.y+11,4,4);ctx.fillRect(e.x+18,e.y+11,4,4);ctx.fillStyle='#422a27';ctx.fillRect(e.x+8,e.y+12,2,2);ctx.fillRect(e.x+19,e.y+12,2,2);ctx.fillStyle='#71362b';ctx.fillRect(e.x+5,e.y+25,6,5);ctx.fillRect(e.x+19,e.y+25,6,5);});
+ // Pixel-art adventurer: teal hood, crimson scarf, dark tunic and bright boots.
+ if(p.invulnerable<=0||Math.floor(now/100)%2===0){
+  const hx=Math.round(p.x),hy=Math.round(p.y);
+  ctx.fillStyle='#143d4a';ctx.fillRect(hx+7,hy+2,19,13);ctx.fillStyle='#276b72';ctx.fillRect(hx+4,hy+7,24,12);
+  ctx.fillStyle='#e5c17a';ctx.fillRect(hx+12,hy+5,10,9);ctx.fillStyle='#182a35';ctx.fillRect(hx+13,hy+8,3,3);ctx.fillRect(hx+20,hy+8,3,3);
+  ctx.fillStyle='#b63e38';ctx.fillRect(hx+3,hy+15,26,7);ctx.fillStyle='#e05b42';ctx.fillRect(hx+8,hy+21,17,7);
+  ctx.fillStyle='#233b47';ctx.fillRect(hx+8,hy+26,6,5);ctx.fillRect(hx+20,hy+26,6,5);
+  ctx.fillStyle='#3bc1c0';ctx.fillRect(hx+5,hy+30,10,4);ctx.fillRect(hx+19,hy+30,10,4);
+  ctx.fillStyle='#d9a75e';ctx.fillRect(hx+8,hy,15,3);ctx.fillStyle='#2a6871';ctx.fillRect(hx+5,hy-3,18,5);
+  // flowing scarf pixels
+  ctx.fillStyle='#bd3e35';ctx.fillRect(hx-9,hy+14,14,4);ctx.fillRect(hx-16,hy+11,9,4);
+ }
  if(level===1000){ctx.fillStyle='rgba(255,130,40,.25)';ctx.beginPath();ctx.arc(g.bossX+45,350,78,0,Math.PI*2);ctx.fill();ctx.fillStyle='#bd4a2f';ctx.fillRect(g.bossX,290,90,145);ctx.fillStyle='#ffd36a';ctx.beginPath();ctx.arc(g.bossX+45,325,30,0,Math.PI*2);ctx.fill();ctx.fillStyle='#54231c';ctx.fillRect(g.bossX+31,319,5,7);ctx.fillRect(g.bossX+54,319,5,7);ctx.fillStyle='#ffd36a';ctx.beginPath();ctx.moveTo(g.bossX+8,298);ctx.lineTo(g.bossX+15,260);ctx.lineTo(g.bossX+35,297);ctx.fill();ctx.beginPath();ctx.moveTo(g.bossX+54,297);ctx.lineTo(g.bossX+76,260);ctx.lineTo(g.bossX+82,298);ctx.fill();ctx.fillStyle='#4b2022';ctx.fillRect(600,35,280,15);ctx.fillStyle='#ff7838';ctx.fillRect(600,35,280*Math.max(0,g.bossHp/100),15);ctx.fillStyle='#fff0b0';ctx.font='bold 17px system-ui';ctx.fillText('SUN WARRIOR',680,27);}
  ctx.restore();
- ctx.fillStyle='rgba(8,10,24,.78)';ctx.fillRect(14,14,230,76);ctx.fillStyle='#ffdb75';ctx.font='bold 21px system-ui';ctx.fillText('LEVEL '+level+' / 1000',28,42);ctx.fillStyle='#fff';ctx.font='14px system-ui';ctx.fillText('SUN COINS  '+coins,28,66);ctx.fillText('LIVES  '+lives,145,66);
+ ctx.fillStyle='rgba(25,48,55,.82)';ctx.fillRect(14,14,230,76);ctx.fillStyle='#f6d779';ctx.fillRect(14,14,230,4);ctx.fillStyle='#ffe5a0';ctx.font='bold 21px monospace';ctx.fillText('LEVEL '+level+' / 1000',28,42);ctx.fillStyle='#fff5d4';ctx.font='14px monospace';ctx.fillText('SUN COINS  '+coins,28,66);ctx.fillText('LIVES  '+lives,145,66);
  if(paused||over||won){ctx.fillStyle='rgba(5,7,19,.76)';ctx.fillRect(0,0,WIDTH,HEIGHT);ctx.textAlign='center';ctx.fillStyle='#ffe28a';ctx.font='bold 32px system-ui';ctx.fillText(won?'THE SUN WARRIOR FALLS':over?'GAME OVER':level===1000?'THE FINAL SUNRISE':'SOLARBOUND',WIDTH/2,HEIGHT/2-34);ctx.fillStyle='#f3e9dc';ctx.font='16px system-ui';ctx.fillText(won?'You conquered all 1000 levels!':over?'Your journey ends here. Restart to try again.':level===1000?'Strike with X when you are close to the Sun Warrior.':'Jump across platforms, collect sun coins, and reach the right edge.',WIDTH/2,HEIGHT/2+2);ctx.fillStyle='#ffcf57';ctx.font='bold 15px system-ui';ctx.fillText(won||over?'Press Restart to play again.':'Press Play to begin · Space/W/↑ to jump',WIDTH/2,HEIGHT/2+34);ctx.textAlign='left';}
  raf=requestAnimationFrame(draw)};raf=requestAnimationFrame(draw);return()=>cancelAnimationFrame(raf)},[paused,level,over,won,coins,lives,best,storeKey]);
  function start(){world.current=makeLevel(level);setPaused(false);setOver(false);setWon(false);setLives(3);if(level===1000)world.current.player.x=450;}

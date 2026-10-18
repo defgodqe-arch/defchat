@@ -33,7 +33,15 @@ create policy "Members can change their vote in open channel polls" on public.po
       and private.is_server_member(c.server_id,auth.uid())
       and option_index >= 0 and option_index < jsonb_array_length(substring(m.content from 17)::jsonb->'options')
   )
-) with check (user_id=auth.uid());
+ ) with check (
+  user_id=auth.uid() and exists (
+    select 1 from public.messages m join public.channels c on c.id=m.channel_id
+    where m.id=message_id and left(m.content,16)='__CINDER_POLL__:'
+      and (substring(m.content from 17)::jsonb->>'expiresAt')::timestamptz > now()
+      and private.is_server_member(c.server_id,auth.uid())
+      and option_index >= 0 and option_index < jsonb_array_length(substring(m.content from 17)::jsonb->'options')
+  )
+);
 drop policy if exists "Users can remove their poll vote" on public.poll_votes;
 create policy "Users can remove their poll vote" on public.poll_votes for delete to authenticated using (user_id=auth.uid());
 do $$ begin

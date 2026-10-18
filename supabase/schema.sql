@@ -298,3 +298,7 @@ do $$ begin
     alter publication supabase_realtime add table public.poll_votes;
   end if;
 end $$;
+
+
+-- Personal chat wallpaper chosen in Customize your profile.
+alter table public.profiles add column if not exists chat_background_url text;

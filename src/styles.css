@@ -2057,3 +2057,12 @@ body {
 /* Personal wallpaper selected in Customize your profile. */
 .messages{background-size:cover;background-position:center;background-repeat:no-repeat;background-attachment:local;}
 .chat-background-preview{height:88px;margin-top:12px;border-radius:10px;border:1px solid var(--border-color,rgba(255,255,255,.1));background-size:cover;background-position:center;display:flex;align-items:flex-end;padding:10px;color:#fff;font-size:11px;font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,.8);overflow:hidden}
+
+/* Keep custom chat wallpapers in a dedicated layer behind every message. */
+.messages{position:relative;isolation:isolate;}
+.messages>.chat-background-layer{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;margin:0;padding:0;border:0;}
+.messages>.chat-background-layer img{display:block;width:100%;height:100%;object-fit:cover;object-position:center;}
+.messages>.chat-background-layer:after{content:"";position:absolute;inset:0;background:linear-gradient(rgba(18,18,22,.34),rgba(18,18,22,.48));}
+.messages>*:not(.chat-background-layer){position:relative;z-index:1;}
+.messages.chat-background-active{background-color:transparent;background-image:none;}
+.messages.chat-background-active .message:hover{background:rgba(46,48,53,.72);}

@@ -1938,3 +1938,35 @@ body {
   background-size: cover !important;
   background-repeat: no-repeat !important;
 }
+
+
+/* Keep the sunset artwork anchored to the entire public profile card, never floating at the click point. */
+.public-profile-card {
+  position: relative !important;
+  isolation: isolate;
+  overflow: auto;
+  background: #111216 !important;
+  background-image: none !important;
+}
+.public-profile-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(17,18,22,.28) 0%, rgba(17,18,22,.58) 34%, rgba(17,18,22,.88) 100%),
+    url("https://i.pinimg.com/1200x/80/47/50/804750a99bebdcdd0a026edca1279f2e.jpg") center center / cover no-repeat;
+}
+.public-profile-card > .public-profile-banner,
+.public-profile-card > .public-profile-main {
+  position: relative;
+  z-index: 1;
+  background: transparent !important;
+}
+.public-profile-card > .public-profile-banner {
+  background-image: none !important;
+}
+.public-profile-card > .public-profile-close {
+  z-index: 3;
+}

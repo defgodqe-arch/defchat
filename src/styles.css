@@ -1956,7 +1956,7 @@ body {
   pointer-events: none;
   background:
     linear-gradient(180deg, rgba(17,18,22,.28) 0%, rgba(17,18,22,.58) 34%, rgba(17,18,22,.88) 100%),
-    url("https://i.pinimg.com/1200x/80/47/50/804750a99bebdcdd0a026edca1279f2e.jpg") center center / cover no-repeat;
+    var(--profile-cover-image, url("https://i.pinimg.com/1200x/80/47/50/804750a99bebdcdd0a026edca1279f2e.jpg")) center center / cover no-repeat;
 }
 /* The banner sits behind the temporary full-card artwork, then is revealed by its fade. */
 .public-profile-card > .public-profile-banner,
@@ -2003,3 +2003,7 @@ body {
 .public-profile-card > .public-profile-banner::after {
   background: linear-gradient(180deg, transparent 45%, rgba(17,18,22,.12) 100%) !important;
 }
+
+
+/* Preview the custom full-card cover in profile settings. */
+.cover-preview-strip{height:86px;margin:0 0 12px;border:1px solid #ffffff20;border-radius:12px;background-color:#242630;background-position:center;background-size:cover;overflow:hidden;display:flex;align-items:flex-end}.cover-preview-strip span{padding:7px 10px;width:100%;font-size:11px;color:#fff;background:linear-gradient(transparent,#000b)}

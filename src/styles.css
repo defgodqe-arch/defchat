@@ -1562,3 +1562,77 @@ html[data-accent-intensity]{--dc-setting-accent-alpha:var(--dc-accent-intensity,
 .cosmetic-frame-custom>img{inset:-7%;width:114%;height:114%}
 .avatar-studio-canvas-wrap{display:grid;place-items:center;overflow:visible}
 .avatar-studio-canvas-wrap canvas{display:block;width:min(100%,360px);height:auto;aspect-ratio:1;object-fit:contain}
+
+/* App-wide usability polish: visible focus, resilient mobile layout, and clearer account identity. */
+:where(button, a, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid #ffc83d;
+  outline-offset: 3px;
+}
+:where(button, a) {
+  -webkit-tap-highlight-color: transparent;
+}
+button:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
+.profile-open,
+.profile-open .user-label,
+.account-username {
+  min-width: 0;
+}
+.profile-open .user-label {
+  overflow: hidden;
+}
+.account-username {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+.account-username .nameplate-text {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+}
+html {
+  min-height: 100%;
+  overscroll-behavior-y: none;
+}
+body {
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+#root {
+  min-height: 100dvh;
+}
+@media (max-width: 700px) {
+  .composer {
+    margin-bottom: max(10px, env(safe-area-inset-bottom));
+  }
+  .chat header {
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+  }
+  .messages {
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .modal-backdrop,
+  .notification-panel-backdrop {
+    padding-top: max(12px, env(safe-area-inset-top));
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}

@@ -44,6 +44,7 @@ export default function FeatureCenter({db,user,profile,server,onClose,onProfileS
     setFriends(raw.filter(r=>r.status==='accepted').map(r=>({...r,person:people[r.sender_id===user.id?r.receiver_id:r.sender_id]})).filter(r=>r.person));
     setBlocks((bl||[]).map(b=>({...b,person:people[b.blocked_id]})));
   }
+  useEffect(()=>{if(!user?.id)return;const sub=db.channel('cinder-friends-'+user.id).on('postgres_changes',{event:'*',schema:'public',table:'friend_requests'},()=>{loadSocial()}).subscribe();return()=>{db.removeChannel(sub)}},[user?.id]);
   async function loadServer(){
     if(!server)return;
     const [{data:c,error:ce},{data:r,error:re},{data:m,error:me},{data:i,error:ie}]=await Promise.all([

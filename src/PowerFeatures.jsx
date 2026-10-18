@@ -23,7 +23,7 @@ function urlBase64ToUint8Array(base64String) {
   return Uint8Array.from(raw, char => char.charCodeAt(0));
 }
 
-const defaults = { ...EXTRA_DEFAULTS, darkerMode: false, theme: 'yellow', density: 'comfortable', fontSize: 14, reducedMotion: false, enterToSend: true, notifications: false, sound: false, showBuddy: true, showTimestamps: true, showAvatars: true, showReactions: true, showEditedTags: true, showReplyPreviews: true, showAttachmentPreviews: true, showMessageTools: true, showComposerHint: true, showMessageBorders: true, fontFamily: 'dm-sans', lineHeight: 'normal', attachmentShape: 'rounded', underlineLinks: true };
+const defaults = { ...EXTRA_DEFAULTS, darkerMode: false, theme: 'yellow', density: 'comfortable', fontSize: 14, reducedMotion: false, enterToSend: true, notifications: false, sound: false, showTimestamps: true, showAvatars: true, showReactions: true, showEditedTags: true, showReplyPreviews: true, showAttachmentPreviews: true, showMessageTools: true, showComposerHint: true, showMessageBorders: true, fontFamily: 'dm-sans', lineHeight: 'normal', attachmentShape: 'rounded', underlineLinks: true };
 
 function loadSettings(userId) {
   try { return { ...defaults, ...JSON.parse(localStorage.getItem('defchat:preferences:' + userId) || '{}') }; }
@@ -96,7 +96,7 @@ export default function PowerFeatures({ open, onClose, db, userId, messages = []
     return () => window.removeEventListener('keydown', handle);
   }, [open, onClose, onOpenSearch, onToggleEmoji]);
 
-  function change(key, value) { setSettings(current => ({ ...current, [key]: value })); if (key === 'showBuddy') window.dispatchEvent(new CustomEvent('defchat:buddy-visibility', { detail: { visible: value } })); setNotice('Preference saved on this device.'); }
+  function change(key, value) { setSettings(current => ({ ...current, [key]: value })); setNotice('Preference saved on this device.'); }
   async function enableNotifications() {
     if (settings.notifications) {
       try {

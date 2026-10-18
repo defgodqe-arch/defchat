@@ -2010,3 +2010,18 @@ body {
 
 /* Preview the custom full-card cover in profile settings. */
 .cover-preview-strip{height:86px;margin:0 0 12px;border:1px solid #ffffff20;border-radius:12px;background-color:#242630;background-position:center;background-size:cover;overflow:hidden;display:flex;align-items:flex-end}.cover-preview-strip span{padding:7px 10px;width:100%;font-size:11px;color:#fff;background:linear-gradient(transparent,#000b)}
+
+
+/* Chat @ mention picker and rendered mention highlights */
+.mention-suggestions{display:flex;flex-direction:column;gap:4px;max-height:290px;overflow-y:auto;margin:0 0 8px;padding:9px;border:1px solid rgba(255,207,70,.2);border-radius:14px;background:linear-gradient(145deg,#1d1c19,#121214);box-shadow:0 14px 34px rgba(0,0,0,.3)}
+.mention-suggestions-heading{padding:4px 8px 7px;color:#a7a197;font-size:9px;font-weight:900;letter-spacing:1.2px}
+.mention-suggestion{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border:1px solid transparent;border-radius:10px;background:transparent;color:#f6f2e8;text-align:left;cursor:pointer}
+.mention-suggestion:hover,.mention-suggestion.is-active{border-color:rgba(255,207,70,.3);background:rgba(255,207,70,.1)}
+.mention-everyone-icon,.mention-user-icon{display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;border-radius:11px;background:rgba(255,207,70,.14);color:#ffd65c;font-size:17px;font-weight:900}
+.mention-user-icon{background:rgba(255,255,255,.08);color:#e7e2d5;font-size:11px}
+.mention-suggestion>span:nth-child(2){display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}
+.mention-suggestion b{font-size:12px;font-weight:800}
+.mention-suggestion small{color:#9f9b91;font-size:10px}
+.mention-enter-hint{color:#ffd65c;font-size:17px}
+.message-mention{display:inline;border-radius:5px;padding:1px 4px;background:rgba(255,207,70,.14);color:#ffe18a;font-weight:750}
+.message-mention-everyone{background:rgba(255,156,65,.17);color:#ffbd73}

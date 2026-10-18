@@ -1985,3 +1985,15 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .public-profile-card::before { animation: none; opacity: 0; }
 }
+
+
+/* Make the real profile banner visible after the card artwork fades. */
+.public-profile-card > .public-profile-banner {
+  background-position: center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+  background-color: #242630 !important;
+}
+.public-profile-card > .public-profile-banner::after {
+  background: linear-gradient(180deg, transparent 45%, rgba(17,18,22,.12) 100%) !important;
+}

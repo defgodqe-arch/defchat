@@ -1962,11 +1962,16 @@ body {
 .public-profile-card > .public-profile-main {
   position: relative;
   z-index: 1;
+}
+/* Keep profile content transparent without overriding the banner's inline image URL. */
+.public-profile-card > .public-profile-main {
   background: transparent !important;
 }
-/* Preserve the user's actual profile banner beneath the fading artwork. */
 .public-profile-card > .public-profile-banner {
-  background-color: transparent;
+  background-color: transparent !important;
+  background-position: center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
 }
 .public-profile-card > .public-profile-close {
   z-index: 3;

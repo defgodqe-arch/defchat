@@ -30,7 +30,10 @@ export default function FeatureCenter({db,user,profile,server,onClose,onProfileS
   const [mediaStream,setMediaStream]=useState(null);
   const [screenStream,setScreenStream]=useState(null);
 
-  useEffect(()=>{setTab(initialTab);loadSocial();if(server)loadServer();return()=>{mediaStream?.getTracks().forEach(t=>t.stop());screenStream?.getTracks().forEach(t=>t.stop())}},[user?.id,server?.id,initialTab]);
+  useEffect(()=>{setTab(initialTab);loadSocial();if(server)loadServer()},[user?.id,server?.id,initialTab]);
+  // Own each media stream's lifetime independently so cleanup always closes the current stream.
+  useEffect(()=>()=>{mediaStream?.getTracks().forEach(t=>t.stop())},[mediaStream]);
+  useEffect(()=>()=>{screenStream?.getTracks().forEach(t=>t.stop())},[screenStream]);
   async function loadSocial(){
     if(!user)return;
     const [{data:req,error:re},{data:bl,error:be}]=await Promise.all([

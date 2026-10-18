@@ -984,7 +984,7 @@ html[data-darker-mode="true"] .server-title,
 html[data-darker-mode="true"] .chat header { background: #0d0e11 !important; border-color: #202127 !important; }
 html[data-darker-mode="true"] .user-row { background: #141519 !important; border-color: #24262d !important; }
 html[data-darker-mode="true"] .chat,
-html[data-darker-mode="true"] .messages { background: #0d0e11 !important; }
+html[data-darker-mode="true"] .messages:not(.chat-background-active) { background: #0d0e11 !important; }
 html[data-darker-mode="true"] .channel:hover,
 html[data-darker-mode="true"] .rail-action:hover,
 html[data-darker-mode="true"] .rail .server:hover,
@@ -2059,7 +2059,14 @@ body {
 .chat-background-preview{height:88px;margin-top:12px;border-radius:10px;border:1px solid var(--border-color,rgba(255,255,255,.1));background-size:cover;background-position:center;display:flex;align-items:flex-end;padding:10px;color:#fff;font-size:11px;font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,.8);overflow:hidden}
 
 
-/* The wallpaper belongs to the scrollable message area, so it fills the area and moves with chat history. */
-.messages.chat-background-active{background-color:transparent!important;background-size:cover;background-position:center top;background-repeat:no-repeat;background-attachment:local;}
+/* Custom chat wallpaper: preserve the inline image, fill the scrollable message viewport, and move the image with chat history. */
+.messages.chat-background-active{
+  background-color:transparent!important;
+  background-size:cover!important;
+  background-position:center top!important;
+  background-repeat:no-repeat!important;
+  background-attachment:local!important;
+}
+html[data-darker-mode="true"] .messages.chat-background-active{background-color:transparent!important;}
 .messages.chat-background-active .message:hover{background:rgba(46,48,53,.72);}
 .chat-wallpaper-active .composer{background:rgba(56,58,64,.88);backdrop-filter:blur(8px);}

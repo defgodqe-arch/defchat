@@ -210,7 +210,7 @@ export default function PowerFeatures({ open, onClose, db, userId, messages = []
         </>}
         {tab === 'shortcuts' && <>
           <div className="power-section-title"><h3>Keyboard shortcuts</h3><p>Jump around defchat without leaving the keyboard.</p></div>
-          <div className="power-shortcuts">{[['Ctrl / ⌘ + K','Search messages'],['Ctrl / ⌘ + ,','Open power settings'],['Ctrl / ⌘ + Shift + M','Focus message composer'],['Ctrl / ⌘ + Shift + E','Open emoji picker'],['Ctrl / ⌘ + Shift + B','Open saved messages'],['Esc','Close the current settings dialog']].map(([keys, label]) => <div className="power-shortcut" key={keys}><span>{label}</span><kbd>{keys}</kbd></div>)}</div>
+          <div className="power-shortcuts">{[['Ctrl / ⌘ + K','Search messages'],['Ctrl / ⌘ + ,','Open power settings'],['Ctrl / ⌘ + Shift + M','Focus message composer'],['Ctrl / ⌘ + Shift + E','Open emoji picker'],['Ctrl / ⌘ + Shift + B','Open saved messages'],['Ctrl / ⌘ + Shift + P','Open quick actions'],['Esc','Close the current settings dialog']].map(([keys, label]) => <div className="power-shortcut" key={keys}><span>{label}</span><kbd>{keys}</kbd></div>)}</div>
           <button className="power-secondary" onClick={() => { onClose?.(); onOpenSearch?.(); }}><Search size={16}/> Try message search</button>
         </>}
 

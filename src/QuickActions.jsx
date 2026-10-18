@@ -5,16 +5,16 @@ export default function QuickActions({open,onClose,actions=[]}) {
   const [query,setQuery]=useState('');
   const [active,setActive]=useState(0);
   const inputRef=useRef(null);
+  const filtered=useMemo(()=>{
+    const q=query.trim().toLowerCase();
+    return actions.filter(action=>!q||[action.label,action.description,action.group].filter(Boolean).join(' ').toLowerCase().includes(q));
+  },[actions,query]);
   const filteredRef=useRef(filtered);
   const activeRef=useRef(active);
   const closeRef=useRef(onClose);
   filteredRef.current=filtered;
   activeRef.current=active;
   closeRef.current=onClose;
-  const filtered=useMemo(()=>{
-    const q=query.trim().toLowerCase();
-    return actions.filter(action=>!q||[action.label,action.description,action.group].filter(Boolean).join(' ').toLowerCase().includes(q));
-  },[actions,query]);
   useEffect(()=>{
     if(!open)return;
     setQuery('');

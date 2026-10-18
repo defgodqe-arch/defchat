@@ -220,9 +220,9 @@ function Auth({done}) {
 
 
 function ProfileSettings({profile,username,userId,onClose,onSaved,cosmetics=[]}) {
-  const [avatar,setAvatar]=useState(null),[banner,setBanner]=useState(null),[avatarZoom,setAvatarZoom]=useState(1),[bannerZoom,setBannerZoom]=useState(1),[bio,setBio]=useState(profile?.bio||''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
-  const avatarPreview=avatar?URL.createObjectURL(avatar):profile?.avatar_url;
-  const bannerPreview=banner?URL.createObjectURL(banner):profile?.banner_url;
+  const [avatar,setAvatar]=useState(null),[banner,setBanner]=useState(null),[avatarZoom,setAvatarZoom]=useState(1),[bannerZoom,setBannerZoom]=useState(1),[bio,setBio]=useState(profile?.bio||''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState(''),[avatarPreview,setAvatarPreview]=useState(profile?.avatar_url||null),[bannerPreview,setBannerPreview]=useState(profile?.banner_url||null);
+  useEffect(()=>{if(!avatar){setAvatarPreview(profile?.avatar_url||null);return}const previewUrl=URL.createObjectURL(avatar);setAvatarPreview(previewUrl);return()=>URL.revokeObjectURL(previewUrl)},[avatar,profile?.avatar_url]);
+  useEffect(()=>{if(!banner){setBannerPreview(profile?.banner_url||null);return}const previewUrl=URL.createObjectURL(banner);setBannerPreview(previewUrl);return()=>URL.revokeObjectURL(previewUrl)},[banner,profile?.banner_url]);
   async function cropImage(file,kind,zoom){
     if(file.type==='image/gif'||zoom===1)return file;
     const imageUrl=URL.createObjectURL(file);

@@ -19,8 +19,9 @@ export default function AstralProjection({user,onClose}){
  for(let i=0;i<11;i++){let x=i*110-(world.current.player.x*.18%110);ctx.fillStyle=i%2?'#2c3157':'#34365d';ctx.beginPath();ctx.moveTo(x,445);ctx.lineTo(x+55,260+(i%4)*22);ctx.lineTo(x+130,445);ctx.fill();}
  const g=world.current,p=g.player,dt=Math.min((now-previous)/1000||0.016,0.033);previous=now;
  if(!paused&&!over&&!won){
-  const k=keys.current;let ax=(k.d||k.arrowright?1:0)-(k.a||k.arrowleft?1:0);p.vx=ax*245;p.vy+=1350*dt;const oldY=p.y;p.x+=p.vx*dt;p.y+=p.vy*dt;p.grounded=false;
+  const k=keys.current;let ax=(k.d||k.arrowright?1:0)-(k.a||k.arrowleft?1:0);p.vx=ax*245;
   if((k[' ']||k.w||k.arrowup)&&p.grounded){p.vy=-550;p.grounded=false;}
+  p.vy+=1350*dt;const oldY=p.y;p.x+=p.vx*dt;p.y+=p.vy*dt;p.grounded=false;
   for(const plat of g.platforms)if(p.vy>=0&&p.x+30>plat.x&&p.x+5<plat.x+plat.w&&oldY+34<=plat.y+8&&p.y+34>=plat.y){p.y=plat.y-34;p.vy=0;p.grounded=true;}
   if(p.y>HEIGHT+60){setLives(v=>{if(v<=1)setOver(true);return Math.max(0,v-1)});world.current=makeLevel(level);}
   g.coins.forEach(c=>{if(!c.taken&&Math.hypot(p.x+16-c.x,p.y+15-c.y)<25){c.taken=true;setCoins(v=>v+1)}});

@@ -1952,12 +1952,13 @@ body {
   content: "";
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: 2;
   pointer-events: none;
   background:
     linear-gradient(180deg, rgba(17,18,22,.28) 0%, rgba(17,18,22,.58) 34%, rgba(17,18,22,.88) 100%),
     url("https://i.pinimg.com/1200x/80/47/50/804750a99bebdcdd0a026edca1279f2e.jpg") center center / cover no-repeat;
 }
+/* The banner sits behind the temporary full-card artwork, then is revealed by its fade. */
 .public-profile-card > .public-profile-banner,
 .public-profile-card > .public-profile-main {
   position: relative;

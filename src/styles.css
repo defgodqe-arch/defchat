@@ -1964,8 +1964,9 @@ body {
   z-index: 1;
   background: transparent !important;
 }
+/* Preserve the user's actual profile banner beneath the fading artwork. */
 .public-profile-card > .public-profile-banner {
-  background-image: none !important;
+  background-color: transparent;
 }
 .public-profile-card > .public-profile-close {
   z-index: 3;

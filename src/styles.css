@@ -1970,3 +1970,17 @@ body {
 .public-profile-card > .public-profile-close {
   z-index: 3;
 }
+
+
+/* Let the full-card artwork fade away smoothly after the profile opens. */
+.public-profile-card::before {
+  animation: public-profile-artwork-fade 3.2s ease-out 0.4s forwards;
+}
+@keyframes public-profile-artwork-fade {
+  0% { opacity: 1; }
+  45% { opacity: .82; }
+  100% { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .public-profile-card::before { animation: none; opacity: 0; }
+}

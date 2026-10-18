@@ -243,7 +243,7 @@ function ProfileSettings({profile,username,userId,onClose,onSaved,cosmetics=[]})
       const patch={bio:bio.trim().slice(0,190)};
       for(const [kind,original] of [['avatar',avatar],['banner',banner],['cover',cover],['chat_background',chatBackground]]){
         if(!original)continue;
-        const file=await cropImage(original,kind,kind==='avatar'?avatarZoom:bannerZoom);
+        const file=await cropImage(original,kind,kind==='avatar'?avatarZoom:kind==='banner'?bannerZoom:1);
         if(!['image/png','image/jpeg','image/webp','image/gif'].includes(file.type))throw new Error('Use a PNG, JPG, WebP, or GIF image.');
         const max=kind==='avatar'?5:8;
         if(file.size>max*1024*1024)throw new Error((kind==='avatar'?'Avatar':kind==='chat_background'?'Chat background':'Image')+' must be '+max+' MB or smaller.');

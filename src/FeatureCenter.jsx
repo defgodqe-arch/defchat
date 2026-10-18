@@ -52,34 +52,48 @@ export default function FeatureCenter({db,user,profile,onlineUsers={},server,onC
     const scoreMap={};
     for(const rel of accepted){
       const started=rel.created_at?new Date(rel.created_at).getTime():Date.now();
-      scoreMap[rel.friendId]={score:Math.max(0,Math.floor((Date.now()-started)/86400000)),days:Math.max(0,Math.floor((Date.now()-started)/86400000)),messages:0};
+      const days=Math.max(0,Math.floor((Date.now()-started)/86400000));
+      scoreMap[rel.friendId]={score:days,days,messages:0};
     }
+    // Count messages only in one-to-one conversations shared with each accepted friend.
     try{
-      const {data:mine}=await db.from('dm_members').select('conversation_id').eq('user_id',user.id);
-      const conversationIds=[...new Set((mine||[]).map(x=>x.conversation_id))];
+      const {data:mine,error:mineError}=await db.from('dm_members').select('conversation_id').eq('user_id',user.id);
+      if(mineError)throw mineError;
+      const conversationIds=[...new Set((mine||[]).map(row=>row.conversation_id).filter(Boolean))];
       if(conversationIds.length&&accepted.length){
-        const {data:memberRows}=await db.from('dm_members').select('conversation_id,user_id').in('conversation_id',conversationIds);
-        const byConversation={};
-        for(const row of memberRows||[])(byConversation[row.conversation_id]??=[]).push(row.user_id);
-        const directByFriend={};
-        for(const [conversationId,memberIds] of Object.entries(byConversation)){
-          if(memberIds.length!==2||!memberIds.includes(user.id))continue;
-          const friendId=memberIds.find(id=>id!==user.id);
-          if(scoreMap[friendId])(directByFriend[friendId]??=[]).push(conversationId);
+        const {data:memberRows,error:membersError}=await db.from('dm_members').select('conversation_id,user_id').in('conversation_id',conversationIds);
+        if(membersError)throw membersError;
+        const membersByConversation={};
+        for(const row of memberRows||[])(membersByConversation[row.conversation_id]??=[]).push(row.user_id);
+        const conversationsByFriend={};
+        for(const [conversationId,memberIds] of Object.entries(membersByConversation)){
+          const uniqueMembers=[...new Set(memberIds)];
+          if(uniqueMembers.length!==2||!uniqueMembers.includes(user.id))continue;
+          const friendId=uniqueMembers.find(id=>id!==user.id);
+          if(scoreMap[friendId])(conversationsByFriend[friendId]??=[]).push(conversationId);
         }
-        await Promise.all(accepted.map(async rel=>{
-          const idsForFriend=directByFriend[rel.friendId]||[];
-          if(!idsForFriend.length)return;
-          const counts=await Promise.all(idsForFriend.map(conversationId=>db.from('dm_messages').select('id',{count:'exact',head:true}).eq('conversation_id',conversationId)));
-          scoreMap[rel.friendId].messages=counts.reduce((sum,result)=>sum+(result.count||0),0);
-          scoreMap[rel.friendId].score+=scoreMap[rel.friendId].messages;
+        const scoreResults=await Promise.all(Object.entries(conversationsByFriend).map(async([friendId,idsForFriend])=>{
+          let total=0;
+          for(const conversationId of idsForFriend){
+            const result=await db.from('dm_messages').select('id',{count:'exact',head:true}).eq('conversation_id',conversationId);
+            if(result.error)throw result.error;
+            total+=Number(result.count||0);
+          }
+          return [friendId,total];
         }));
+        for(const [friendId,total] of scoreResults){
+          scoreMap[friendId].messages=total;
+          scoreMap[friendId].score+=total;
+        }
       }
-    }catch(e){console.warn('Friendship score details unavailable:',e)}
+    }catch(e){
+      console.warn('Friendship score calculation failed:',e);
+      // Keep the friendship-duration score visible even if DM history cannot be read.
+    }
     setFriendScores(scoreMap);
     setBlocks((bl||[]).map(b=>({...b,person:people[b.blocked_id]})));
   }
-  useEffect(()=>{if(!user?.id)return;const sub=db.channel('cinder-friends-'+user.id).on('postgres_changes',{event:'*',schema:'public',table:'friend_requests'},()=>{loadSocial()}).subscribe();return()=>{db.removeChannel(sub)}},[user?.id]);
+  useEffect(()=>{if(!user?.id)return;const friendsSub=db.channel('cinder-friends-'+user.id).on('postgres_changes',{event:'*',schema:'public',table:'friend_requests'},()=>{loadSocial()}).subscribe();const dmSub=db.channel('cinder-friendship-score-'+user.id).on('postgres_changes',{event:'INSERT',schema:'public',table:'dm_messages'},()=>{loadSocial()}).subscribe();return()=>{db.removeChannel(friendsSub);db.removeChannel(dmSub)}},[user?.id]);
   async function loadServer(){
     if(!server)return;
     const [{data:c,error:ce},{data:r,error:re},{data:m,error:me},{data:i,error:ie}]=await Promise.all([

@@ -1855,3 +1855,9 @@ body {
 .friends-empty-state p{max-width:330px;margin:0;color:#a4a9b2;font-size:11px;line-height:1.65}
 .friends-empty-state>button{margin-top:3px;padding:7px 11px;border:1px solid #555862;border-radius:7px;background:#292b30;color:#ffd45b;font-size:11px}
 @media(max-width:560px){.friends-directory-heading{align-items:flex-start}.friends-online-summary{font-size:10px}.friend-directory-row{gap:6px;padding:9px 2px}.friend-row-actions{gap:3px}.friend-row-actions button{width:29px;height:29px}.friend-person-copy .friend-bio-preview{max-width:145px}.friends-filter button{font-size:10px}}
+
+
+/* Snapchat-inspired friendship score badge. */
+.friend-person-copy .friendship-score{display:inline-flex;align-items:center;gap:4px;width:max-content;max-width:100%;margin:2px 0 0;padding:3px 7px;border:1px solid #6c571d;border-radius:999px;background:linear-gradient(110deg,#3c3118,#30291d);color:#f5d77c;font-size:10px;font-weight:700;line-height:1.2;white-space:nowrap}
+.friend-person-copy .friendship-score>span{color:#ffd34d;font-size:12px}
+@media(max-width:560px){.friend-person-copy .friendship-score{font-size:9px;padding:3px 5px}}

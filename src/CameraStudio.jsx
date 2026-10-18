@@ -10,7 +10,27 @@ const FILTERS=[
 {id:'mono',name:'Mono',css:'grayscale(1) contrast(1.08)',emoji:'◐'},
 {id:'vintage',name:'Vintage',css:'sepia(.42) saturate(.82) contrast(.94) brightness(1.04)',emoji:'📸'},
 {id:'pop',name:'Color pop',css:'saturate(1.75) contrast(1.12)',emoji:'💥'},
-{id:'soft',name:'Soft focus',css:'brightness(1.08) saturate(.9) contrast(.9)',emoji:'☁'}
+{id:'soft',name:'Soft focus',css:'brightness(1.08) saturate(.9) contrast(.9)',emoji:'☁'},
+{id:'noir',name:'Film noir',css:'grayscale(1) contrast(1.55) brightness(.88)',emoji:'🎞️'},
+{id:'honey',name:'Honey',css:'sepia(.28) saturate(1.65) hue-rotate(-15deg) brightness(1.08)',emoji:'🍯'},
+{id:'lavender',name:'Lavender haze',css:'hue-rotate(28deg) saturate(1.16) brightness(1.06)',emoji:'💜'},
+{id:'mint',name:'Mint fresh',css:'hue-rotate(55deg) saturate(.82) brightness(1.08)',emoji:'🌿'},
+{id:'peach',name:'Peachy',css:'sepia(.2) saturate(1.35) hue-rotate(-22deg) brightness(1.1)',emoji:'🍑'},
+{id:'arctic',name:'Arctic',css:'hue-rotate(165deg) saturate(.75) brightness(1.08) contrast(1.08)',emoji:'❄️'},
+{id:'sunset',name:'Sunset',css:'sepia(.3) saturate(1.7) hue-rotate(-28deg) contrast(1.08)',emoji:'🌇'},
+{id:'cyber',name:'Cyber glow',css:'saturate(1.9) hue-rotate(25deg) contrast(1.18) brightness(1.03)',emoji:'💠'},
+{id:'faded',name:'Faded film',css:'saturate(.72) contrast(.84) brightness(1.12) sepia(.12)',emoji:'📼'},
+{id:'crisp',name:'Crisp HD',css:'saturate(1.16) contrast(1.22) brightness(1.02)',emoji:'🔆'},
+{id:'midnight',name:'Midnight',css:'brightness(.72) saturate(1.28) hue-rotate(12deg) contrast(1.18)',emoji:'🌙'},
+{id:'candy',name:'Candy',css:'saturate(1.85) hue-rotate(-12deg) brightness(1.1) contrast(1.04)',emoji:'🍬'},
+{id:'emerald',name:'Emerald',css:'hue-rotate(72deg) saturate(1.2) contrast(1.06)',emoji:'💚'},
+{id:'ruby',name:'Ruby red',css:'saturate(1.35) hue-rotate(-32deg) contrast(1.1)',emoji:'❤️'},
+{id:'ocean',name:'Ocean teal',css:'hue-rotate(145deg) saturate(1.08) contrast(1.08)',emoji:'🌊'},
+{id:'sun-flare',name:'Sun flare',css:'sepia(.32) saturate(1.55) hue-rotate(-12deg) brightness(1.17) contrast(1.08)',emoji:'🌞'},
+{id:'glacier',name:'Glacier blue',css:'hue-rotate(175deg) saturate(.9) brightness(1.12) contrast(1.06)',emoji:'🩵'},
+{id:'matte',name:'Matte',css:'saturate(.82) contrast(.82) brightness(1.08)',emoji:'🪞'},
+{id:'drama',name:'Drama',css:'contrast(1.42) saturate(1.2) brightness(.94)',emoji:'🎭'},
+{id:'pastel',name:'Pastel',css:'saturate(.78) brightness(1.16) contrast(.82)',emoji:'🩷'}
 ];
 export default function CameraStudio({onClose}){
 const videoRef=useRef(null),canvasRef=useRef(null),streamRef=useRef(null),fileRef=useRef(null);

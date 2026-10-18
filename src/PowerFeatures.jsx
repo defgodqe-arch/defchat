@@ -197,7 +197,6 @@ export default function PowerFeatures({ open, onClose, db, userId, messages = []
         </>}
         {tab === 'behavior' && <>
           <div className="power-section-title"><h3>Chat behavior</h3><p>Fine-tune how messages are composed and alerts work.</p></div>
-          <Toggle label="Show Buddy mascot" description="Turn Buddy on or off anywhere in defchat. You can change this any time." checked={settings.showBuddy} onChange={value => change('showBuddy', value)} />
           <Toggle label="Enter sends messages" description="When disabled, use the send button instead." checked={settings.enterToSend} onChange={value => change('enterToSend', value)} />
           <Toggle label="Enable message sound" description="Preference saved for future sound integrations." checked={settings.sound} onChange={value => change('sound', value)} icon={<Volume2 size={17}/>} />
           <div className="power-setting"><div><b>Background push notifications</b><small>Receive message and friend-request alerts even when defchat is closed. Requires browser/device notification permission.</small></div><button className="power-secondary" onClick={enableNotifications}><Bell size={15}/> {settings.notifications ? 'Disable' : 'Enable'}</button></div>

@@ -77,7 +77,7 @@ function messageParts(text,items){
     if(part.startsWith('**')&&part.endsWith('**'))return <strong key={i}>{part.slice(2,-2)}</strong>;
     if(part.startsWith('~~')&&part.endsWith('~~'))return <del key={i}>{part.slice(2,-2)}</del>;
     if(part.startsWith('*')&&part.endsWith('*')&&part.length>2)return <em key={i}>{part.slice(1,-1)}</em>;
-    if(part.startsWith('\x60')&&part.endsWith('\x60'))return <code className="message-inline-code" key={i}>{part.slice(1,-1)}</code>;
+    if(part.startsWith('`')&&part.endsWith('`'))return <code className="message-inline-code" key={i}>{part.slice(1,-1)}</code>;
     if(/^https?:\/\//i.test(part)){
       const trailing=(part.match(/[.,!?;:]+$/)||[''])[0],href=trailing?part.slice(0,-trailing.length):part;
       return <React.Fragment key={i}><a className="message-link" href={href} target="_blank" rel="noopener noreferrer">{href}</a>{trailing}</React.Fragment>;

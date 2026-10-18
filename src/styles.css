@@ -1923,17 +1923,8 @@ body {
 @media(max-width:560px){.quick-actions-backdrop{padding:10vh 10px 16px}.quick-actions-panel{max-height:78vh;border-radius:16px}.quick-actions-search{padding:14px}.quick-actions-footer{gap:10px;justify-content:space-between;padding:10px 12px}.quick-actions-copy small{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.quick-actions-backdrop,.quick-actions-panel,.quick-actions-item{animation:none;transition:none}}
 
-/* Cosmetic bursts when a username is clicked */
-.name-click-burst{position:fixed;z-index:10000;pointer-events:none;width:1px;height:1px;color:#ffd15c;filter:drop-shadow(0 0 7px currentColor);animation:name-click-burst-out .78s cubic-bezier(.16,.75,.3,1) forwards}
-.name-click-burst>*{position:absolute;display:block;font-style:normal;font-weight:900;line-height:1;text-shadow:0 0 10px currentColor}
-.name-click-burst span{font-size:23px;left:-11px;top:-13px;animation:name-click-star .78s ease-out forwards}
-.name-click-burst i{font-size:17px;left:-25px;top:-3px;animation:name-click-left .72s ease-out forwards}
-.name-click-burst b{font-size:15px;left:9px;top:-5px;animation:name-click-right .72s ease-out forwards}
-.name-click-burst small{font-size:19px;left:-7px;top:7px;animation:name-click-core .72s ease-out forwards}
+/* Fading image bursts when a username is clicked */
+.name-click-burst{position:fixed;z-index:10000;display:block;width:240px;height:240px;object-fit:contain;pointer-events:none;user-select:none;opacity:0;filter:drop-shadow(0 0 12px currentColor);transform:scale(.42);transform-origin:center;animation:name-click-image-fade .85s cubic-bezier(.16,.75,.3,1) forwards}
 .burst-fire{color:#ff8a35}.burst-ice{color:#7ce7ff}.burst-galaxy{color:#c4a3ff}.burst-rose{color:#ff83b6}.burst-lightning{color:#fff06a}.burst-ocean{color:#55d8ff}.burst-shadow{color:#c1b7ff}.burst-rainbow{color:#ff9dd2}.burst-gold,.burst-solar,.burst-sparkles{color:#ffd15c}
-@keyframes name-click-burst-out{0%{opacity:0;transform:scale(.35)}15%{opacity:1}65%{opacity:1}100%{opacity:0;transform:scale(1.2)}}
-@keyframes name-click-star{0%{transform:scale(.3) rotate(-35deg)}35%{transform:scale(1.4) rotate(35deg)}100%{transform:translateY(-26px) scale(.6) rotate(80deg);opacity:0}}
-@keyframes name-click-left{0%{transform:translate(0,0) scale(.4)}100%{transform:translate(-23px,-18px) rotate(-40deg) scale(1);opacity:0}}
-@keyframes name-click-right{0%{transform:translate(0,0) scale(.4)}100%{transform:translate(22px,-19px) rotate(45deg) scale(1);opacity:0}}
-@keyframes name-click-core{0%{transform:scale(.3)}45%{transform:scale(1.35)}100%{transform:translateY(22px) scale(.5);opacity:0}}
-@media(prefers-reduced-motion:reduce){.name-click-burst,.name-click-burst>*{animation-duration:.01ms!important;animation-iteration-count:1!important}}
+@keyframes name-click-image-fade{0%{opacity:0;transform:scale(.42) rotate(-12deg);filter:blur(3px) drop-shadow(0 0 4px currentColor)}12%{opacity:1;filter:blur(0) drop-shadow(0 0 18px currentColor)}55%{opacity:.92;transform:scale(1) rotate(5deg)}100%{opacity:0;transform:scale(1.28) rotate(14deg);filter:blur(5px) drop-shadow(0 0 0 transparent)}}
+@media(prefers-reduced-motion:reduce){.name-click-burst{animation-duration:.01ms!important;animation-iteration-count:1!important;opacity:0!important}}

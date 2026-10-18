@@ -2059,13 +2059,7 @@ body {
 .chat-background-preview{height:88px;margin-top:12px;border-radius:10px;border:1px solid var(--border-color,rgba(255,255,255,.1));background-size:cover;background-position:center;display:flex;align-items:flex-end;padding:10px;color:#fff;font-size:11px;font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,.8);overflow:hidden}
 
 
-/* The selected wallpaper fills the entire chat pane, including the message list and composer area. */
-.chat{position:relative;isolation:isolate;overflow:hidden;}
-.chat>.chat-wallpaper-layer{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;margin:0;padding:0;}
-.chat>.chat-wallpaper-layer img{display:block;width:100%;height:100%;object-fit:cover;object-position:center;}
-.chat>.chat-wallpaper-layer:after{content:"";position:absolute;inset:0;background:linear-gradient(rgba(18,18,22,.40),rgba(18,18,22,.48));}
-.chat>*:not(.chat-wallpaper-layer){position:relative;z-index:1;}
-.chat-wallpaper-active{background:transparent!important;}
-.chat-wallpaper-active .messages{background:transparent!important;background-image:none!important;}
-.chat-wallpaper-active .message:hover{background:rgba(46,48,53,.72);}
+/* The wallpaper belongs to the scrollable message area, so it fills the area and moves with chat history. */
+.messages.chat-background-active{background-color:transparent!important;background-size:cover;background-position:center top;background-repeat:no-repeat;background-attachment:local;}
+.messages.chat-background-active .message:hover{background:rgba(46,48,53,.72);}
 .chat-wallpaper-active .composer{background:rgba(56,58,64,.88);backdrop-filter:blur(8px);}

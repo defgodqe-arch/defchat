@@ -2077,8 +2077,8 @@ html[data-message-entrance-effect="slide"] .messages .message{animation:cinder-m
 html[data-larger-composer="true"] .composer{min-height:58px;padding-top:9px;padding-bottom:9px}
 html[data-composer-outline="true"] .composer{border:1px solid var(--border-color,rgba(255,255,255,.12))}
 html[data-composer-focus-glow="true"] .composer:focus-within{border-color:var(--dc-accent,#ffc83d);box-shadow:0 0 0 3px color-mix(in srgb,var(--dc-accent,#ffc83d) 18%,transparent)}
-html[data-show-send-button-label="true"] .composer>button[type="submit"]{width:auto;min-width:70px;padding:0 12px;display:flex;align-items:center;justify-content:center;gap:6px}
-html[data-show-send-button-label="true"] .composer>button[type="submit"]::after{content:"Send";font-size:12px;font-weight:700}
+html[data-show-send-button-label="true"] .composer>button:last-child{width:auto;min-width:70px;padding:0 12px;display:flex;align-items:center;justify-content:center;gap:6px}
+html[data-show-send-button-label="true"] .composer>button:last-child::after{content:"Send";font-size:12px;font-weight:700}
 html[data-show-typing-hint="false"] .typing-indicator{display:none!important}
 html[data-show-attachment-filenames="false"] .attachment-pending{display:none!important}
 html[data-always-show-keyboard-focus="true"] :focus-visible{outline:2px solid var(--dc-accent,#ffc83d)!important;outline-offset:3px}

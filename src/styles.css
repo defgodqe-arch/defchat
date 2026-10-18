@@ -2059,14 +2059,26 @@ body {
 .chat-background-preview{height:88px;margin-top:12px;border-radius:10px;border:1px solid var(--border-color,rgba(255,255,255,.1));background-size:cover;background-position:center;display:flex;align-items:flex-end;padding:10px;color:#fff;font-size:11px;font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,.8);overflow:hidden}
 
 
-/* Custom wallpaper spans the full scrollable chat area and moves with its messages. */
+/* Render the wallpaper on its own layer so it can never cover message text.
+   The pseudo-element is inside the scroll container, so it scrolls with chat history. */
 .messages.chat-background-active{
+  position:relative;
+  isolation:isolate;
   background-color:transparent!important;
-  background-size:100% 100%!important;
-  background-position:center top!important;
-  background-repeat:no-repeat!important;
-  background-attachment:local!important;
+  background-image:none!important;
 }
+.messages.chat-background-active::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  background-image:linear-gradient(rgba(18,18,22,.48),rgba(18,18,22,.55)),var(--chat-wallpaper-image);
+  background-size:100% 100%;
+  background-position:center top;
+  background-repeat:no-repeat;
+}
+.messages.chat-background-active>*{position:relative;z-index:1;}
 html[data-darker-mode="true"] .messages.chat-background-active{background-color:transparent!important;}
-.messages.chat-background-active .message:hover{background:rgba(46,48,53,.72);}
+.messages.chat-background-active .message:hover{background:rgba(46,48,53,.58);}
 .chat-wallpaper-active .composer{background:rgba(56,58,64,.88);backdrop-filter:blur(8px);}

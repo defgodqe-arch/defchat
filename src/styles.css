@@ -1761,3 +1761,21 @@ body {
   border-radius: 50%;
   clip-path: circle(50% at 50% 50%);
 }
+
+
+/* Live online/offline presence indicators */
+.dm-presence-avatar{position:relative;display:inline-flex;align-items:center;justify-content:center;flex:0 0 28px;width:28px;height:28px}
+.dm-presence-avatar>.avatar{width:28px;height:28px;flex:0 0 28px}
+.dm-presence-avatar>i,.feature-avatar-presence>i{position:absolute;right:-1px;bottom:-1px;width:10px;height:10px;border:2px solid #25262b;border-radius:50%;background:#777b86;z-index:2}
+.dm-presence-avatar>i.is-online,.feature-avatar-presence>i.is-online{background:#23a559}
+.dm-presence-avatar>i.is-offline,.feature-avatar-presence>i.is-offline{background:#777b86}
+.feature-avatar-presence{position:relative}
+.friend-online-label{display:block;font-size:11px}
+.friend-online-label.is-online{color:#36cf87}
+.friend-online-label.is-offline{color:#9296a3}
+.public-profile-status{display:inline-flex;align-items:center;gap:5px}
+.public-profile-status .profile-status-dot{width:7px;height:7px;border:0;box-shadow:none}
+.public-profile-status.status-online{color:#36cf87;background:#183d2c}
+.public-profile-status.status-offline{color:#b2b5c0;background:#292b33}
+.public-profile-status.status-online .profile-status-dot{background:#36cf87}
+.public-profile-status.status-offline .profile-status-dot{background:#777b86}

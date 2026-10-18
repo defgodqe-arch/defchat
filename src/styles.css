@@ -1549,3 +1549,16 @@ html[data-accent-intensity]{--dc-setting-accent-alpha:var(--dc-accent-intensity,
  .setting-preview{padding:9px}
  .preview-navigation{gap:4px}.preview-navigation>span{padding:7px;font-size:9px}
 }
+
+
+/* Keep uploaded profile pictures clipped cleanly to the circular avatar mask,
+   while allowing decorative frames to extend outside the circle. */
+.avatar{position:relative;isolation:isolate}
+.avatar>img{display:block;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:cover;object-position:center;border-radius:50%;clip-path:circle(50% at 50% 50%);transform-origin:center}
+.avatar.preview-avatar{width:76px;height:76px;min-width:76px;min-height:76px;overflow:visible;border-radius:50%;flex:0 0 76px}
+.profile-preview>.preview-avatar>img{width:100%;height:100%;object-fit:cover;object-position:center;clip-path:circle(50% at 50% 50%)}
+.cosmetic-frame-art{overflow:visible}
+.cosmetic-frame-art>img{position:absolute;inset:-5%;width:110%;height:110%;object-fit:contain;object-position:center;clip-path:none;border-radius:0;pointer-events:none}
+.cosmetic-frame-custom>img{inset:-7%;width:114%;height:114%}
+.avatar-studio-canvas-wrap{display:grid;place-items:center;overflow:visible}
+.avatar-studio-canvas-wrap canvas{display:block;width:min(100%,360px);height:auto;aspect-ratio:1;object-fit:contain}

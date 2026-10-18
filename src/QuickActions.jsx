@@ -5,6 +5,12 @@ export default function QuickActions({open,onClose,actions=[]}) {
   const [query,setQuery]=useState('');
   const [active,setActive]=useState(0);
   const inputRef=useRef(null);
+  const filteredRef=useRef(filtered);
+  const activeRef=useRef(active);
+  const closeRef=useRef(onClose);
+  filteredRef.current=filtered;
+  activeRef.current=active;
+  closeRef.current=onClose;
   const filtered=useMemo(()=>{
     const q=query.trim().toLowerCase();
     return actions.filter(action=>!q||[action.label,action.description,action.group].filter(Boolean).join(' ').toLowerCase().includes(q));
@@ -15,14 +21,14 @@ export default function QuickActions({open,onClose,actions=[]}) {
     setActive(0);
     const id=window.setTimeout(()=>inputRef.current?.focus(),30);
     const onKeyDown=e=>{
-      if(e.key==='Escape'){e.preventDefault();onClose?.()}
-      if(e.key==='ArrowDown'){e.preventDefault();setActive(v=>filtered.length?(v+1)%filtered.length:0)}
-      if(e.key==='ArrowUp'){e.preventDefault();setActive(v=>filtered.length?(v-1+filtered.length)%filtered.length:0)}
-      if(e.key==='Enter'&&filtered[active]){e.preventDefault();filtered[active].run?.();onClose?.()}
+      if(e.key==='Escape'){e.preventDefault();closeRef.current?.()}
+      if(e.key==='ArrowDown'){e.preventDefault();setActive(v=>filteredRef.current.length?(v+1)%filteredRef.current.length:0)}
+      if(e.key==='ArrowUp'){e.preventDefault();setActive(v=>filteredRef.current.length?(v-1+filteredRef.current.length)%filteredRef.current.length:0)}
+      if(e.key==='Enter'&&filteredRef.current[activeRef.current]){e.preventDefault();filteredRef.current[activeRef.current].run?.();closeRef.current?.()}
     };
     window.addEventListener('keydown',onKeyDown);
     return()=>{window.clearTimeout(id);window.removeEventListener('keydown',onKeyDown)};
-  },[open,filtered,active,onClose]);
+  },[open]);
   useEffect(()=>{setActive(0)},[query]);
   if(!open)return null;
   return <div className="quick-actions-backdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget)onClose?.()}}>

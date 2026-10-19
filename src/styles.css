@@ -2187,3 +2187,7 @@ a:focus-visible{outline:2px solid var(--dc-accent,#ffc83d);outline-offset:2px}
 
 /* Retire the old embedded avatar tool and hide the oversized click-burst image that can cover chat content. */
 .avatar-customizer-embed,.avatar-customizer-heading,.avatar-customizer-frame,.avatar-customizer-note,.avatar-studio-backdrop,.name-click-burst{display:none!important;}
+
+
+/* Keep stray decorative images from covering the chat composer, formatting controls, or footer. */
+.chat>img,.chat>.chat-background,.chat>.chat-background-layer,.chat>.chat-wallpaper,.chat>[class*="chat-background"],.chat>[class*="chat-wallpaper"],.chat>[data-chat-background]{display:none!important;pointer-events:none!important;}

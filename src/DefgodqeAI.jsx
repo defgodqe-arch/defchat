@@ -110,7 +110,7 @@ export default function DefgodqeAI({ onClose }) {
     try {
       let endpoint = AI_API + '/chat';
       let body;
-      const history = nextMessages.filter(m => !m.image).slice(-22).map(({ role, content }) => ({ role, content }));
+      const history = nextMessages.filter(m => !m.image).slice(-12).map(({ role, content }) => ({ role, content }));
       if (imageFile) {
         endpoint = AI_API + '/vision';
         const dataUrl = await new Promise((resolve, reject) => {
@@ -133,7 +133,7 @@ export default function DefgodqeAI({ onClose }) {
       setMessages(current => [...current, { role: 'assistant', content: answer, ...(Array.isArray(data.sources) && data.sources.length ? { sources: data.sources } : {}) }]);
       setStatus('Ready when you are');
       setWebSearch(false);
-      if (voiceEnabled) await speak(answer);
+      if (voiceEnabled) void speak(answer);
     } catch (e) {
       setStatus('Ready when you are');
       setError(e.message || 'Could not connect to the assistant. Check your connection and try again.');

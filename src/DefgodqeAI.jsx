@@ -4,7 +4,7 @@ import './DefgodqeAI.css';
 
 // This is a native defchat React feature, not an embedded external website.
 // The API endpoint supplies model inference and audio generation only.
-const AI_API = (import.meta.env.VITE_DEFGODQE_AI_API || 'https://ai.defgodqe.workers.dev').replace(/\/+$/, '');
+const AI_API = (import.meta.env.VITE_DEFGODQE_AI_API || 'https://defgodqe-ai.defgodqe.workers.dev').replace(/\/+$/, '');
 const HISTORY_KEY = 'defchat:personal-ai:history';
 const SYSTEM_PROMPT = 'You are defgodqe, the user’s personal AI assistant. Be warm, capable, conversational, concise when speaking aloud, and honest about actions you cannot perform.';
 const VOICES = [['luna','Luna'],['orion','Orion'],['athena','Athena'],['apollo','Apollo'],['aurora','Aurora'],['draco','Draco'],['hera','Hera'],['zeus','Zeus']];

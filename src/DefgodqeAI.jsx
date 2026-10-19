@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowUp, Bot, ExternalLink, Mic, MicOff, Paperclip, Send, Sparkles, Volume2, VolumeX, X } from 'lucide-react';
+import { Bot, ExternalLink, Mic, MicOff, Paperclip, Search, Send, Sparkles, Volume2, VolumeX, X } from 'lucide-react';
 import './DefgodqeAI.css';
 
 // This is a native defchat React feature, not an embedded external website.
@@ -38,7 +38,7 @@ export default function DefgodqeAI({ onClose }) {
   const objectUrlRef = useRef(null);
   const Recognition = typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition);
 
-  useEffect(() => { try { localStorage.setItem(HISTORY_KEY, JSON.stringify(messages.slice(-80))); } catch {} }, [messages]);
+  useEffect(() => { try { localStorage.setItem(HISTORY_KEY, JSON.stringify(messages.slice(-80).map(({ image, ...message }) => message))); } catch {} }, [messages]);
   useEffect(() => { if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight; }, [messages, busy]);
   useEffect(() => {
     inputRef.current?.focus();
@@ -233,7 +233,7 @@ export default function DefgodqeAI({ onClose }) {
         <form className="dga-composer" onSubmit={event => { event.preventDefault(); sendMessage(); }}>
           <input ref={fileRef} type="file" accept="image/*" hidden onChange={chooseImage} />
           <button type="button" className="dga-tool-btn" onClick={() => fileRef.current?.click()} disabled={busy} title="Ask about an image" aria-label="Attach image"><Paperclip size={18} /></button>
-          <button type="button" className={'dga-tool-btn' + (webSearch ? ' selected' : '')} onClick={() => setWebSearch(v => !v)} disabled={busy || Boolean(imageFile)} title="Search the web" aria-label="Toggle web search"><ArrowUp size={17} /></button>
+          <button type="button" className={'dga-tool-btn' + (webSearch ? ' selected' : '')} onClick={() => setWebSearch(v => !v)} disabled={busy || Boolean(imageFile)} title="Search the web" aria-label="Toggle web search"><Search size={17} /></button>
           <textarea ref={inputRef} value={input} onChange={event => setInput(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); } }} placeholder={imageFile ? 'Ask about this image…' : webSearch ? 'What should I search for?' : 'Message your personal AI…'} rows={1} aria-label="Message your personal AI" disabled={busy} />
           <button className="dga-send-btn" type="submit" disabled={busy || (!input.trim() && !imageFile)} aria-label="Send message">{busy ? <span className="dga-spinner" /> : <Send size={18} />}</button>
         </form>

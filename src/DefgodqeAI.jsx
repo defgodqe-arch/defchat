@@ -1,7 +1,7 @@
 import React from 'react';
 import { ArrowUpRight, Bot, X } from 'lucide-react';
 
-const AI_URL = 'https://defgodqe-ai.defgodqe.workers.dev/';
+const AI_URL = 'https://ai.defgodqe.workers.dev/';
 
 export default function DefgodqeAI({ onClose }) {
   return (

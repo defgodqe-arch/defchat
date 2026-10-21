@@ -38,17 +38,49 @@ export default function DoomScroll({db,user,onClose}){
  async function searchSimilarVideos(event){
   event.preventDefault();const query=searchText.trim();
   if(!query){clearVideoSearch();return}
-  setSearching(true);setSearchNote('AI is finding videos with similar topics…');setError('');
+  setSearching(true);setSearchNote('Searching the full video library and remote video dataset…');setError('');
   let terms=[query];
   try{
-   const api=(import.meta.env.VITE_DEFGODQE_AI_API||'https://ai.defgodqe.workers.dev').replace(/\/+$/,'');
+   const api=(import.meta.env.VITE_DEFGODQE_AI_API||'https://ai.defgodqe.workers.dev').replace(/\\/+$/,'');
    const response=await fetch(api+'/chat',{method:'POST',headers:{'Content-Type':'application/json','X-Defgodqe-Client':'defchat-web'},body:JSON.stringify({messages:[{role:'system',content:'Return only JSON: {"terms":["phrase"]}. Expand the user query into 6 short related video search phrases, synonyms, topics, and visual concepts.'},{role:'user',content:query}],stream:false})});
    if(response.ok){const data=await response.json();const raw=String(data.reply||data.response||data.content||data.choices?.[0]?.message?.content||'');const parsed=JSON.parse(raw.replace(/```json|```/g,''));if(Array.isArray(parsed.terms))terms=[query,...parsed.terms.map(String).slice(0,8)]}
-  }catch(e){/* Keep local search available if AI expansion is offline. */}
-  const tokens=s=>String(s||'').toLowerCase().normalize('NFKD').replace(/[^a-z0-9\s]/g,' ').split(/\s+/).filter(w=>w.length>2);
+  }catch(e){/* Search still works without AI query expansion. */}
+  const found=[];
+  const seen=new Set();
+  const addRows=rows=>(rows||[]).forEach(v=>{if(v?.video_url&&!seen.has(v.video_url)){seen.add(v.video_url);found.push(v)}});
+  // Search the database itself, not only the videos already held in React state.
+  try{
+   const patterns=[...new Set(terms.map(t=>String(t).trim()).filter(Boolean))].slice(0,5);
+   const filters=patterns.map(t=>'caption.ilike.%'+t.replace(/[,%()]/g,' ').replace(/\\s+/g,' ').trim()+'%').filter(t=>!t.endsWith('%%'));
+   if(filters.length){
+    const {data,error:dbError}=await db.from('doomscroll_videos').select('id,user_id,caption,video_url,created_at,source').eq('is_public',true).or(filters.join(',')).order('created_at',{ascending:false}).limit(100);
+    if(dbError)throw dbError;
+    const ids=[...new Set((data||[]).map(v=>v.user_id).filter(Boolean))];let profileMap={};
+    if(ids.length){const {data:profiles}=await db.from('profiles').select('id,username,avatar_url').in('id',ids);(profiles||[]).forEach(p=>{profileMap[p.id]=p})}
+    addRows((data||[]).map(v=>({...v,profiles:profileMap[v.user_id]||null,feedSource:'local'})));
+   }
+  }catch(e){setError('Some uploaded videos could not be searched: '+(e?.message||'database query failed'))}
+  // Query Hugging Face's dataset search API so matching videos are fetched even when
+  // they were never loaded into the feed. This searches the dataset server-side.
+  for(const term of [...new Set(terms)].slice(0,4)){
+   try{
+    const endpoint='https://datasets-server.huggingface.co/search?dataset=Shofo%2Fshofo-tiktok-general-small&config=default&split=train&query='+encodeURIComponent(term)+'&columns=description,transcript,creator,video,video_id,date_posted,web_url&limit=100';
+    const response=await fetch(endpoint);
+    if(!response.ok)continue;
+    const payload=await response.json();
+    const rows=mapHfRows(payload.rows||[]);
+    addRows(rows);
+   }catch(e){/* Keep results from the app database and other search phrases. */}
+  }
+  // Rank remote and database results together; keep matching remote results cached for
+  // later scrolling, while preserving the feed's existing videos.
+  const tokens=s=>String(s||'').toLowerCase().normalize('NFKD').replace(/[^a-z0-9\\s]/g,' ').split(/\\s+/).filter(w=>w.length>2);
   const allTerms=terms.map(tokens);
-  const ranked=allVideosRef.current.map(v=>{const words=tokens(String(v.caption||'')+' '+String(v.profiles?.username||''));let score=0;for(const t of allTerms){const hits=t.filter(w=>words.includes(w)).length;score=Math.max(score,hits/Math.max(1,t.length))}return {v,score}}).filter(x=>x.score>0).sort((a,b)=>b.score-a.score);
-  setVideos(ranked.map(x=>x.v));setSearchActive(true);setSearchNote(ranked.length?'Found '+ranked.length+' related videos.':'No close caption matches found. Try a broader search or load more videos.');
+  const candidates=[...found,...allVideosRef.current.filter(v=>!seen.has(v.video_url))];
+  const ranked=candidates.map(v=>{const words=tokens(String(v.caption||'')+' '+String(v.profiles?.username||''));let score=0;for(const t of allTerms){const hits=t.filter(w=>words.includes(w)).length;score=Math.max(score,hits/Math.max(1,t.length))}return {v,score}}).filter(x=>x.score>0);
+  ranked.sort((a,b)=>b.score-a.score);
+  const results=ranked.map(x=>x.v);
+  setVideos(results);setSearchActive(true);setSearchNote(results.length?'Found '+results.length+' matching videos, including videos fetched from the full remote dataset.':'No videos matched that phrase in the searchable database or remote dataset. Try different words.');
   if(feedRef.current)feedRef.current.scrollTop=0;setSearching(false);
  }
  function clearVideoSearch(){setSearchText('');setSearchActive(false);setSearchNote('');setVideos(allVideosRef.current);if(feedRef.current)feedRef.current.scrollTop=0}

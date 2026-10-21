@@ -7,15 +7,32 @@ export default function DoomScroll({db,user,onClose}){
  const feedRef=useRef(null),fileRef=useRef(null);
  async function loadFeed(){
   setLoading(true);setError('');
-  const {data,error:queryError}=await db.from('doomscroll_videos').select('id,user_id,caption,video_url,created_at,source').eq('is_public',true).order('created_at',{ascending:false}).limit(100);
-  if(queryError){setError(queryError.message+' — Doom Scroll database setup may be incomplete.');setVideos([])}
-  else {
+  let localRows=[];
+  try{
+   const {data,error:queryError}=await db.from('doomscroll_videos').select('id,user_id,caption,video_url,created_at,source').eq('is_public',true).order('created_at',{ascending:false}).limit(100);
+   if(queryError)throw queryError;
    const rows=data||[];
    const ids=[...new Set(rows.map(v=>v.user_id).filter(Boolean))];
    let profileMap={};
    if(ids.length){const {data:profiles}=await db.from('profiles').select('id,username,avatar_url').in('id',ids);(profiles||[]).forEach(p=>{profileMap[p.id]=p})}
-   setVideos(rows.map(v=>({...v,profiles:profileMap[v.user_id]||null})));
-  }
+   localRows=rows.map(v=>({...v,profiles:profileMap[v.user_id]||null,feedSource:'local'}));
+  }catch(e){setError('Your uploads could not be loaded: '+(e?.message||'database error'))}
+  try{
+   // Hugging Face Dataset Viewer returns temporary playable video URLs for a small slice of the public dataset.
+   const endpoint='https://datasets-server.huggingface.co/rows?dataset=Shofo%2Fshofo-tiktok-general-small&config=default&split=train&offset=0&length=100';
+   const response=await fetch(endpoint);
+   if(!response.ok)throw new Error('Hugging Face dataset returned HTTP '+response.status);
+   const payload=await response.json();
+   const imported=(payload.rows||[]).map(({row},i)=>{
+    const asset=row.video;
+    const url=typeof asset==='string'?asset:(asset?.src||asset?.url||'');
+    if(!url||!/^https:\/\//i.test(url))return null;
+    return {id:'hf-'+String(row.video_id??i),user_id:null,caption:row.description||row.transcript||'',video_url:url,created_at:row.date_posted||null,source:'huggingface',feedSource:'huggingface',external_url:row.web_url||'',profiles:{username:row.creator||'Hugging Face creator',avatar_url:null}};
+   }).filter(Boolean);
+   const seen=new Set(localRows.map(v=>v.video_url));
+   setVideos([...localRows,...imported.filter(v=>!seen.has(v.video_url))]);
+   if(!imported.length&&!localRows.length)setError('No playable videos were returned. Try again later or upload a video.');
+  }catch(e){setVideos(localRows);setError(prev=>(prev?prev+' · ':'')+'Hugging Face source unavailable: '+(e?.message||'request failed')+'. Your own uploaded videos still work.')}
   setLoading(false);
  }
  useEffect(()=>{loadFeed()},[]);
@@ -39,12 +56,14 @@ export default function DoomScroll({db,user,onClose}){
  }
  async function toggleLike(video){
   const old=!!likes[video.id];setLikes(prev=>({...prev,[video.id]:!old}));
+  if(video.feedSource==='huggingface')return; // External dataset IDs are not rows in the app's UUID-keyed likes table.
+  if(!user){setLikes(prev=>({...prev,[video.id]:old}));setError('Sign in to like videos.');return}
   const {error:likeError}=old?await db.from('doomscroll_video_likes').delete().eq('video_id',video.id).eq('user_id',user.id):await db.from('doomscroll_video_likes').insert({video_id:video.id,user_id:user.id});
   if(likeError)setLikes(prev=>({...prev,[video.id]:old}));
  }
  return <div className="doom-overlay"><header className="doom-header"><button onClick={onClose} aria-label="Back to chat"><ArrowLeft/></button><div><b>Doom Scroll</b><small>Short videos · powered by Cinder</small></div><button className="doom-upload-open" onClick={()=>setShowUpload(v=>!v)}><Plus size={17}/> Upload</button><button onClick={onClose} aria-label="Close feed"><X/></button></header>
  {error&&<div className="doom-error">{error}</div>}
  {showUpload&&<form className="doom-upload-panel" onSubmit={e=>{e.preventDefault();fileRef.current?.click()}}><label>Caption<input value={caption} onChange={e=>setCaption(e.target.value)} maxLength={300} placeholder="Add a caption…"/></label><input ref={fileRef} type="file" accept="video/mp4,video/webm,video/quicktime,video/*" onChange={e=>uploadVideo(e.target.files?.[0])}/><button type="submit" disabled={uploading} onClick={e=>{e.preventDefault();fileRef.current?.click()}}>{uploading?<LoaderCircle className="doom-spin"/>:<Upload size={16}/>} Choose video and upload</button><small>MP4, WebM or MOV · up to 150 MB. Your video is stored in your Supabase project.</small></form>}
- {loading?<div className="doom-state"><LoaderCircle className="doom-spin"/> Loading your feed…</div>:videos.length===0?<div className="doom-state"><Play size={35}/><b>Your feed is ready for its first video</b><p>Upload a clip to start building your video library. New uploads are saved in the database and show up for everyone.</p><button onClick={()=>setShowUpload(true)}><Upload size={16}/> Upload the first video</button></div>:<div className="doom-feed" ref={feedRef}>{videos.map((v,i)=><article className="doom-video-card" data-index={i} key={v.id}><video src={v.video_url} playsInline loop muted={muted} preload={i<3?'metadata':'none'} controls={false} onClick={e=>e.currentTarget.paused?e.currentTarget.play():e.currentTarget.pause()}/><div className="doom-video-shade"/><div className="doom-video-copy"><b>@{v.profiles?.username||'Cinder creator'}</b><p>{v.caption||' '}</p><small>{v.source==='user'?'Original upload':'Featured video'}</small></div><div className="doom-video-actions"><button onClick={()=>setMuted(v=>!v)} title={muted?'Unmute':'Mute'}>{muted?<VolumeX/>:<Volume2/>}</button><button onClick={()=>toggleLike(v)} title="Like video" className={likes[v.id]?'liked':''}><Heart fill={likes[v.id]?'currentColor':'none'}/></button><small>Like</small><button title="Comments are coming soon" onClick={()=>setError('Comments are coming soon.')}><MessageCircle/></button></div><span className="doom-counter">{i+1} / {videos.length}</span></article>)}</div>}
+ {loading?<div className="doom-state"><LoaderCircle className="doom-spin"/> Loading your feed…</div>:videos.length===0?<div className="doom-state"><Play size={35}/><b>Your feed is ready for its first video</b><p>Upload a clip to start building your video library. New uploads are saved in the database and show up for everyone.</p><button onClick={()=>setShowUpload(true)}><Upload size={16}/> Upload the first video</button></div>:<div className="doom-feed" ref={feedRef}>{videos.map((v,i)=><article className="doom-video-card" data-index={i} key={v.id}><video src={v.video_url} playsInline loop muted={muted} preload={i<3?'metadata':'none'} controls={false} onClick={e=>e.currentTarget.paused?e.currentTarget.play():e.currentTarget.pause()}/><div className="doom-video-shade"/><div className="doom-video-copy"><b>@{v.profiles?.username||'Cinder creator'}</b><p>{v.caption||' '}</p><small>{v.feedSource==='huggingface'?'Hugging Face dataset · source video may be subject to creator rights':v.source==='user'?'Original upload':'Featured video'}</small></div><div className="doom-video-actions"><button onClick={()=>setMuted(v=>!v)} title={muted?'Unmute':'Mute'}>{muted?<VolumeX/>:<Volume2/>}</button><button onClick={()=>toggleLike(v)} title={v.feedSource==='huggingface'?'Preview like (not saved)':'Like video'} className={likes[v.id]?'liked':''}><Heart fill={likes[v.id]?'currentColor':'none'}/></button><small>Like</small><button title={v.external_url?'Open original source':'Comments are coming soon'} onClick={()=>v.external_url?window.open(v.external_url,'_blank','noopener,noreferrer'):setError('Comments are coming soon.')}><MessageCircle/></button></div><span className="doom-counter">{i+1} / {videos.length}</span></article>)}</div>}
  </div>
 }

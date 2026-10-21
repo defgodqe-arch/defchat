@@ -35,6 +35,8 @@ export default function DefgodqeAI({ onClose }) {
   const inputRef = useRef(null);
   const fileRef = useRef(null);
   const recognitionRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const recordedChunksRef = useRef([]);
   const audioRef = useRef(null);
   const objectUrlRef = useRef(null);
   const Recognition = typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition);
@@ -45,6 +47,7 @@ export default function DefgodqeAI({ onClose }) {
     inputRef.current?.focus();
     return () => {
       try { recognitionRef.current?.abort(); } catch {}
+      try { mediaRecorderRef.current?.stop(); } catch {}
       if (audioRef.current) { audioRef.current.pause(); audioRef.current.src = ''; }
       if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
     };
@@ -166,10 +169,57 @@ export default function DefgodqeAI({ onClose }) {
     }
   }
 
-  function startListening() {
+  async function startListening() {
     setError('');
-    if (!Recognition) { setError('Voice input is not supported here. Try Chrome or Edge, or type your message.'); return; }
     stopAudio();
+    if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
+      startBrowserRecognition();
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeType = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'].find(type => MediaRecorder.isTypeSupported(type));
+      const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      recordedChunksRef.current = [];
+      recorder.ondataavailable = event => { if (event.data?.size) recordedChunksRef.current.push(event.data); };
+      recorder.onerror = () => { stream.getTracks().forEach(track => track.stop()); setListening(false); setStatus('Ready when you are'); setError('Audio recording failed. Please try again.'); };
+      recorder.onstop = async () => {
+        stream.getTracks().forEach(track => track.stop());
+        setListening(false);
+        setStatus('Transcribing with Whisper');
+        const audio = new Blob(recordedChunksRef.current, { type: recorder.mimeType || 'audio/webm' });
+        recordedChunksRef.current = [];
+        mediaRecorderRef.current = null;
+        if (!audio.size) { setStatus('Ready when you are'); setError('No audio was recorded. Try again.'); return; }
+        try {
+          const form = new FormData();
+          form.append('audio', audio, audio.type.includes('mp4') ? 'voice.m4a' : 'voice.webm');
+          form.append('language', voiceLanguage);
+          const response = await fetch(AI_API + '/transcribe', { method: 'POST', headers: { 'X-Defgodqe-Client': 'defchat-web' }, body: form });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok || !data.text) throw new Error(data.error || 'Whisper transcription failed.');
+          setInput(String(data.text).trim());
+          setStatus('Ready when you are');
+          sendMessage(String(data.text).trim());
+        } catch (e) {
+          setStatus('Ready when you are');
+          setError((e.message || 'Whisper transcription failed.') + ' You can type your message instead.');
+        }
+      };
+      mediaRecorderRef.current = recorder;
+      recorder.start();
+      setListening(true);
+      setStatus('Listening · Whisper');
+    } catch (e) {
+      if (e?.name === 'NotAllowedError' || e?.name === 'PermissionDeniedError') setError('Microphone permission was denied. Allow it in your browser settings.');
+      else setError('Could not access the microphone. Try Chrome or Edge, or type your message.');
+      setListening(false);
+      setStatus('Ready when you are');
+    }
+  }
+
+  function startBrowserRecognition() {
+    if (!Recognition) { setError('Voice input is not supported here. Allow microphone access or type your message.'); return; }
     try { recognitionRef.current?.abort(); } catch {}
     const recognition = new Recognition();
     recognition.lang = voiceLanguage === 'es' ? 'es-ES' : voiceLanguage === 'en' ? 'en-US' : (navigator.language || 'en-US');
@@ -199,7 +249,14 @@ export default function DefgodqeAI({ onClose }) {
     try { recognition.start(); } catch { setListening(false); setError('Could not start the microphone. Please try again.'); }
   }
 
-  function stopListening() { try { recognitionRef.current?.stop(); } catch {} setListening(false); }
+  function stopListening() {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      try { mediaRecorderRef.current.stop(); } catch {}
+      return;
+    }
+    try { recognitionRef.current?.stop(); } catch {}
+    setListening(false);
+  }
 
   function chooseImage(event) {
     const file = event.target.files?.[0];

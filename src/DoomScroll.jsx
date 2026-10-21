@@ -29,9 +29,8 @@ export default function DoomScroll({db,user,onClose}){
      const response=await fetch(endpoint,{priority:'low'});
      if(!response.ok){await new Promise(resolve=>setTimeout(resolve,900));continue}
      const payload=await response.json();
-     const rows=mapHfRows(payload.rows||[]);
-     const known=new Set(searchIndexRef.current.map(v=>v.id));
-     searchIndexRef.current.push(...rows.filter(v=>!known.has(v.id)));
+     const rows=mapHfRows(payload.rows||[],offset);
+     for(const video of rows){if(!searchIndexIdsRef.current.has(video.id)){searchIndexIdsRef.current.add(video.id);searchIndexRef.current.push(video)}}
      if(!payload.rows?.length)break;
     }catch(e){/* A failed page can be retried by the next search's remote lookup. */}
     // Yield between pages rather than competing with active video playback.

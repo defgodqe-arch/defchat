@@ -4,7 +4,10 @@ import './DoomScroll.css';
 
 export default function DoomScroll({db,user,onClose}){
  const [videos,setVideos]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[uploading,setUploading]=useState(false),[caption,setCaption]=useState(''),[showUpload,setShowUpload]=useState(false),[muted,setMuted]=useState(true),[likes,setLikes]=useState({}),[active,setActive]=useState(0);
- const feedRef=useRef(null),fileRef=useRef(null);
+ const feedRef=useRef(null),fileRef=useRef(null),hfOffsetRef=useRef(0),hfLoadingRef=useRef(false),hfHasMoreRef=useRef(true);
+ function mapHfRows(rows){return (rows||[]).map(({row},i)=>{const asset=row?.video;const url=typeof asset==='string'?asset:(asset?.src||asset?.url||'');if(!url||!/^https:\/\//i.test(url))return null;return {id:'hf-'+String(row.video_id??(hfOffsetRef.current+i)),user_id:null,caption:row.description||row.transcript||'',video_url:url,created_at:row.date_posted||null,source:'huggingface',feedSource:'huggingface',external_url:row.web_url||'',profiles:{username:row.creator||'Hugging Face creator',avatar_url:null}}}).filter(Boolean)}
+ async function fetchHfPage(offset){const endpoint='https://datasets-server.huggingface.co/rows?dataset=Shofo%2Fshofo-tiktok-general-small&config=default&split=train&offset='+offset+'&length=100';const response=await fetch(endpoint);if(!response.ok)throw new Error('Hugging Face dataset returned HTTP '+response.status);const payload=await response.json();const rows=payload.rows||[];hfOffsetRef.current=offset+rows.length;hfHasMoreRef.current=rows.length>0&&hfOffsetRef.current<(payload.num_rows_total||58000);return mapHfRows(rows)}
+ async function loadMoreHf(){if(hfLoadingRef.current||!hfHasMoreRef.current)return;hfLoadingRef.current=true;try{const next=await fetchHfPage(hfOffsetRef.current);setVideos(prev=>{const seen=new Set(prev.map(v=>v.id));return [...prev,...next.filter(v=>!seen.has(v.id))]})}catch(e){setError('More Hugging Face videos could not load: '+(e?.message||'request failed'))}finally{hfLoadingRef.current=false}}
  async function loadFeed(){
   setLoading(true);setError('');
   let localRows=[];
@@ -18,17 +21,9 @@ export default function DoomScroll({db,user,onClose}){
    localRows=rows.map(v=>({...v,profiles:profileMap[v.user_id]||null,feedSource:'local'}));
   }catch(e){setError('Your uploads could not be loaded: '+(e?.message||'database error'))}
   try{
-   // Hugging Face Dataset Viewer returns temporary playable video URLs for a small slice of the public dataset.
-   const endpoint='https://datasets-server.huggingface.co/rows?dataset=Shofo%2Fshofo-tiktok-general-small&config=default&split=train&offset=0&length=100';
-   const response=await fetch(endpoint);
-   if(!response.ok)throw new Error('Hugging Face dataset returned HTTP '+response.status);
-   const payload=await response.json();
-   const imported=(payload.rows||[]).map(({row},i)=>{
-    const asset=row.video;
-    const url=typeof asset==='string'?asset:(asset?.src||asset?.url||'');
-    if(!url||!/^https:\/\//i.test(url))return null;
-    return {id:'hf-'+String(row.video_id??i),user_id:null,caption:row.description||row.transcript||'',video_url:url,created_at:row.date_posted||null,source:'huggingface',feedSource:'huggingface',external_url:row.web_url||'',profiles:{username:row.creator||'Hugging Face creator',avatar_url:null}};
-   }).filter(Boolean);
+   // Stream the public dataset in pages; signed asset URLs are refreshed when each page is requested.
+   hfOffsetRef.current=0;hfHasMoreRef.current=true;
+   const imported=await fetchHfPage(0);
    const seen=new Set(localRows.map(v=>v.video_url));
    setVideos([...localRows,...imported.filter(v=>!seen.has(v.video_url))]);
    if(!imported.length&&!localRows.length)setError('No playable videos were returned. Try again later or upload a video.');
@@ -36,7 +31,7 @@ export default function DoomScroll({db,user,onClose}){
   setLoading(false);
  }
  useEffect(()=>{loadFeed()},[]);
- useEffect(()=>{const root=feedRef.current;if(!root)return;const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting&&entry.intersectionRatio>=0.65){const idx=Number(entry.target.dataset.index);setActive(idx);entry.target.querySelector('video')?.play().catch(()=>{});root.querySelectorAll('video').forEach(v=>{if(v!==entry.target.querySelector('video'))v.pause()})}}),{root,threshold:[0.65]});root.querySelectorAll('.doom-video-card').forEach(el=>observer.observe(el));return()=>observer.disconnect()},[videos]);
+ useEffect(()=>{const root=feedRef.current;if(!root)return;const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting&&entry.intersectionRatio>=0.65){const idx=Number(entry.target.dataset.index);setActive(idx);entry.target.querySelector('video')?.play().catch(()=>{});if(idx>=videos.length-5)loadMoreHf();root.querySelectorAll('video').forEach(v=>{if(v!==entry.target.querySelector('video'))v.pause()})}}),{root,threshold:[0.65]});root.querySelectorAll('.doom-video-card').forEach(el=>observer.observe(el));return()=>observer.disconnect()},[videos]);
  async function uploadVideo(file){
   if(!file||!user)return;
   if(!file.type.startsWith('video/')){setError('Choose a video file.');return}

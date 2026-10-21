@@ -25,6 +25,7 @@ export default function DefgodqeAI({ onClose }) {
   const [listening, setListening] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [speaker, setSpeaker] = useState('luna');
+  const [voiceLanguage, setVoiceLanguage] = useState('auto');
   const [webSearch, setWebSearch] = useState(false);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
@@ -59,10 +60,37 @@ export default function DefgodqeAI({ onClose }) {
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
   }
 
+  function detectSpeechLanguage(text) {
+    if (voiceLanguage === 'en' || voiceLanguage === 'es') return voiceLanguage;
+    const sample = ' ' + String(text).toLowerCase() + ' ';
+    const spanishHits = (sample.match(/\\b(el|la|los|las|de|que|para|por|con|una|uno|como|pero|gracias|hola|estoy|puedo|tienes|quiero|porque|tambien|sí|si)\\b/g) || []).length;
+    const englishHits = (sample.match(/\\b(the|and|you|your|for|with|this|that|what|how|can|have|are|was|hello|thanks|please|because|want|would)\\b/g) || []).length;
+    return /[¿¡ñáéíóúü]/i.test(sample) || spanishHits > englishHits ? 'es' : 'en';
+  }
+
+  function speakWithBrowser(text, lang) {
+    if (!('speechSynthesis' in window)) throw new Error('Browser speech synthesis is unavailable');
+    const utterance = new SpeechSynthesisUtterance(text.slice(0, 4500));
+    utterance.lang = lang === 'es' ? 'es-ES' : 'en-US';
+    const voices = window.speechSynthesis.getVoices();
+    const preferred = voices.find(v => v.lang.toLowerCase().startsWith(lang === 'es' ? 'es' : 'en'));
+    if (preferred) utterance.voice = preferred;
+    utterance.onend = () => setStatus('Ready when you are');
+    utterance.onerror = () => { setStatus('Ready when you are'); setError('Voice playback failed. You can still read replies.'); };
+    window.speechSynthesis.speak(utterance);
+  }
+
   async function speak(text) {
     if (!voiceEnabled || !text) return;
     stopAudio();
     setStatus('Speaking');
+    const lang = detectSpeechLanguage(text);
+    // The current hosted TTS voice is English-only; use the browser's Spanish voice
+    // for Spanish replies so they are spoken with a Spanish locale instead of an English accent.
+    if (lang === 'es') {
+      try { speakWithBrowser(text, lang); return; }
+      catch { setStatus('Ready when you are'); setError('Spanish speech is unavailable on this device. Install or enable a Spanish voice in system speech settings.'); return; }
+    }
     try {
       const response = await fetch(AI_API + '/tts', {
         method: 'POST',
@@ -80,19 +108,11 @@ export default function DefgodqeAI({ onClose }) {
         if (audioRef.current === audio) audioRef.current = null;
         setStatus('Ready when you are');
       };
-      audio.onerror = () => { setStatus('Ready when you are'); setError('Voice playback failed. You can still read replies.'); };
+      audio.onerror = () => { URL.revokeObjectURL(url); setStatus('Ready when you are'); setError('Voice playback failed. You can still read replies.'); };
       await audio.play();
     } catch {
-      if ('speechSynthesis' in window) {
-        try {
-          const utterance = new SpeechSynthesisUtterance(text.slice(0, 4500));
-          utterance.onend = () => setStatus('Ready when you are');
-          window.speechSynthesis.speak(utterance);
-          return;
-        } catch {}
-      }
-      setStatus('Ready when you are');
-      setError('Voice playback could not start. You can still read replies.');
+      try { speakWithBrowser(text, lang); }
+      catch { setStatus('Ready when you are'); setError('Voice playback could not start. You can still read replies.'); }
     }
   }
 
@@ -152,7 +172,7 @@ export default function DefgodqeAI({ onClose }) {
     stopAudio();
     try { recognitionRef.current?.abort(); } catch {}
     const recognition = new Recognition();
-    recognition.lang = navigator.language || 'en-US';
+    recognition.lang = voiceLanguage === 'es' ? 'es-ES' : voiceLanguage === 'en' ? 'en-US' : (navigator.language || 'en-US');
     recognition.interimResults = true;
     recognition.continuous = false;
     let finalText = '';
@@ -213,7 +233,7 @@ export default function DefgodqeAI({ onClose }) {
           <div className="dga-voice-copy"><strong>{listening ? 'I’m listening…' : status === 'Speaking' ? 'Speaking to you' : 'Talk to defgodqe'}</strong><small>{Recognition ? 'Use your voice or type naturally.' : 'Type naturally, or use a supported browser for voice input.'}</small></div>
           <button type="button" className={'dga-voice-btn' + (listening ? ' active' : '')} disabled={busy || !Recognition} onClick={listening ? stopListening : startListening} aria-label={listening ? 'Stop listening' : 'Start talking'}>{listening ? <MicOff size={18} /> : <Mic size={18} />}</button>
           <button type="button" className={'dga-voice-btn' + (voiceEnabled ? ' active' : '')} onClick={() => { setVoiceEnabled(v => !v); if (voiceEnabled) stopAudio(); }} title={voiceEnabled ? 'Turn voice replies off' : 'Turn voice replies on'} aria-label={voiceEnabled ? 'Turn voice replies off' : 'Turn voice replies on'}>{voiceEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}</button>
-          <label className="dga-speaker"><span>Voice</span><select value={speaker} onChange={e => setSpeaker(e.target.value)}>{VOICES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+          <label className="dga-speaker"><span>Language</span><select value={voiceLanguage} onChange={e => setVoiceLanguage(e.target.value)} aria-label="Voice language"><option value="auto">Auto</option><option value="en">English</option><option value="es">Español</option></select></label><label className="dga-speaker"><span>Voice</span><select value={speaker} onChange={e => setSpeaker(e.target.value)}>{VOICES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
         </div>
         <div className="dga-messages" ref={listRef} aria-live="polite">
           {messages.map((message, index) => (

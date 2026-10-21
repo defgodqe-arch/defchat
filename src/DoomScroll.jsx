@@ -11,33 +11,10 @@ export default function DoomScroll({db,user,onClose}){
  function mapHfRows(rows,baseOffset=hfOffsetRef.current){return (rows||[]).filter(({row})=>isLikelyEnglish(row)).map(({row},i)=>{const asset=row?.video;const url=typeof asset==='string'?asset:(asset?.src||asset?.url||'');if(!url||!/^https:\/\//i.test(url))return null;return {id:'hf-'+String(row.video_id??(baseOffset+i)),user_id:null,caption:row.description||row.transcript||'',video_url:url,created_at:row.date_posted||null,source:'huggingface',feedSource:'huggingface',external_url:row.web_url||'',profiles:{username:row.creator||'Hugging Face creator',avatar_url:null}}}).filter(Boolean)}
  async function fetchHfPage(offset){const endpoint='https://datasets-server.huggingface.co/rows?dataset=Shofo%2Fshofo-tiktok-general-small&config=default&split=train&offset='+offset+'&length=100';const response=await fetch(endpoint);if(!response.ok)throw new Error('Hugging Face dataset returned HTTP '+response.status);const payload=await response.json();const rows=payload.rows||[];hfOffsetRef.current=offset+rows.length;hfHasMoreRef.current=rows.length>0&&hfOffsetRef.current<(payload.num_rows_total||58000);return mapHfRows(rows)}
  async function buildBackgroundSearchIndex(){
-  if(indexingRef.current||indexCompleteRef.current)return;
-  indexingRef.current=true;
-  try{
-   // Cache only searchable metadata in memory; never create video elements or download video bytes.
-   // Use small, yielding batches so the visible feed and playback remain responsive.
-   const pageSize=100,totalRows=58000;
-   for(let offset=0;offset<totalRows;offset+=pageSize){
-    if(!indexingRef.current)break;
-    while(typeof document!=='undefined'&&document.hidden){
-     await new Promise(resolve=>setTimeout(resolve,1200));
-     if(!indexingRef.current)break;
-    }
-    if(!indexingRef.current)break;
-    const endpoint='https://datasets-server.huggingface.co/rows?dataset=Shofo%2Fshofo-tiktok-general-small&config=default&split=train&offset='+offset+'&length='+pageSize+'&columns='+encodeURIComponent('description,transcript,creator,video,video_id,date_posted,web_url');
-    try{
-     const response=await fetch(endpoint,{priority:'low'});
-     if(!response.ok){await new Promise(resolve=>setTimeout(resolve,900));continue}
-     const payload=await response.json();
-     const rows=mapHfRows(payload.rows||[],offset);
-     for(const video of rows){if(!searchIndexIdsRef.current.has(video.id)){searchIndexIdsRef.current.add(video.id);searchIndexRef.current.push(video)}}
-     if(!payload.rows?.length)break;
-    }catch(e){/* A failed page can be retried by the next search's remote lookup. */}
-    // Yield between pages rather than competing with active video playback.
-    await new Promise(resolve=>setTimeout(resolve,180));
-   }
-   indexCompleteRef.current=true;
-  }finally{indexingRef.current=false}
+  // Hugging Face rate-limits large client-side crawls. Use its server-side
+  // search endpoint on demand instead of issuing hundreds of /rows requests.
+  indexingRef.current=false;
+  indexCompleteRef.current=false;
  }
  async function loadMoreHf(){if(hfLoadingRef.current||!hfHasMoreRef.current)return;hfLoadingRef.current=true;try{const next=await fetchHfPage(hfOffsetRef.current);setVideos(prev=>{const seen=new Set(prev.map(v=>v.id));const combined=[...prev,...shuffleVideos(next.filter(v=>!seen.has(v.id)))];allVideosRef.current=combined;return combined})}catch(e){setError('More English-language videos could not load: '+(e?.message||'request failed'))}finally{hfLoadingRef.current=false}}
  async function loadFeed(){
@@ -91,7 +68,7 @@ export default function DoomScroll({db,user,onClose}){
   }catch(e){setError('Some uploaded videos could not be searched: '+(e?.message||'database query failed'))}
   // Query Hugging Face's dataset search API so matching videos are fetched even when
   // they were never loaded into the feed. This searches the dataset server-side.
-  for(const term of [...new Set(terms)].slice(0,4)){
+  for(const term of [...new Set([query,...terms.filter(t=>t.toLowerCase()!==query.toLowerCase())])].slice(0,2)){
    try{
     const endpoint='https://datasets-server.huggingface.co/search?dataset=Shofo%2Fshofo-tiktok-general-small&config=default&split=train&query='+encodeURIComponent(term)+'&columns=description,transcript,creator,video,video_id,date_posted,web_url&limit=100';
     const response=await fetch(endpoint);
@@ -105,11 +82,11 @@ export default function DoomScroll({db,user,onClose}){
   // later scrolling, while preserving the feed's existing videos.
   const tokens=s=>String(s||'').toLowerCase().normalize('NFKD').replace(/[^a-z0-9\\s]/g,' ').split(/\\s+/).filter(w=>w.length>2);
   const allTerms=terms.map(tokens);
-  const candidates=[...found,...searchIndexRef.current.filter(v=>!seen.has(v.video_url)),...allVideosRef.current.filter(v=>!seen.has(v.video_url))];
+  const candidateSeen=new Set(found.map(v=>v.video_url));const candidates=[...found,...searchIndexRef.current.filter(v=>v.video_url&&!candidateSeen.has(v.video_url)&&candidateSeen.add(v.video_url)),...allVideosRef.current.filter(v=>v.video_url&&!candidateSeen.has(v.video_url)&&candidateSeen.add(v.video_url))];
   const ranked=candidates.map(v=>{const words=tokens(String(v.caption||'')+' '+String(v.profiles?.username||''));let score=0;for(const t of allTerms){const hits=t.filter(w=>words.includes(w)).length;score=Math.max(score,hits/Math.max(1,t.length))}return {v,score}}).filter(x=>x.score>0);
   ranked.sort((a,b)=>b.score-a.score);
   const results=ranked.map(x=>x.v);
-  setVideos(results);setSearchActive(true);setSearchNote(results.length?'Found '+results.length+' matching videos'+(indexCompleteRef.current?' in the background-indexed video library.':indexingRef.current?' in the indexed library; the rest are still indexing in the background.':' in the searchable database and remote dataset.'):'No videos matched that phrase in the searchable database or remote dataset. Try different words.');
+  setVideos(results);setSearchActive(true);setSearchNote(results.length?'Found '+results.length+' matching videos in your uploads and Hugging Face’s server-side dataset search.':'No videos matched that phrase in your uploads or the remote dataset. Try different words.');
   if(feedRef.current)feedRef.current.scrollTop=0;setSearching(false);
  }
  function clearVideoSearch(){setSearchText('');setSearchActive(false);setSearchNote('');setVideos(allVideosRef.current);if(feedRef.current)feedRef.current.scrollTop=0}

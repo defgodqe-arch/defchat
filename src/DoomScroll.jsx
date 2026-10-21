@@ -7,9 +7,15 @@ export default function DoomScroll({db,user,onClose}){
  const feedRef=useRef(null),fileRef=useRef(null);
  async function loadFeed(){
   setLoading(true);setError('');
-  const {data,error:queryError}=await db.from('doomscroll_videos').select('id,user_id,caption,video_url,created_at,source,profiles(username,avatar_url)').eq('is_public',true).order('created_at',{ascending:false}).limit(100);
-  if(queryError){setError(queryError.message+' — run supabase/migrations/20261020190000_doomscroll_videos.sql in the Supabase SQL editor.');setVideos([])}
-  else setVideos(data||[]);
+  const {data,error:queryError}=await db.from('doomscroll_videos').select('id,user_id,caption,video_url,created_at,source').eq('is_public',true).order('created_at',{ascending:false}).limit(100);
+  if(queryError){setError(queryError.message+' — Doom Scroll database setup may be incomplete.');setVideos([])}
+  else {
+   const rows=data||[];
+   const ids=[...new Set(rows.map(v=>v.user_id).filter(Boolean))];
+   let profileMap={};
+   if(ids.length){const {data:profiles}=await db.from('profiles').select('id,username,avatar_url').in('id',ids);(profiles||[]).forEach(p=>{profileMap[p.id]=p})}
+   setVideos(rows.map(v=>({...v,profiles:profileMap[v.user_id]||null})));
+  }
   setLoading(false);
  }
  useEffect(()=>{loadFeed()},[]);

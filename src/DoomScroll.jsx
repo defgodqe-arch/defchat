@@ -39,12 +39,10 @@ export default function DoomScroll({db,user,onClose}){
   event.preventDefault();const query=searchText.trim();
   if(!query){clearVideoSearch();return}
   setSearching(true);setSearchNote('Searching the full video library and remote video dataset…');setError('');
-  let terms=[query];
-  try{
-   const api=(import.meta.env.VITE_DEFGODQE_AI_API||'https://ai.defgodqe.workers.dev').replace(/\/+$/,'');
-   const response=await fetch(api+'/chat',{method:'POST',headers:{'Content-Type':'application/json','X-Defgodqe-Client':'defchat-web'},body:JSON.stringify({messages:[{role:'system',content:'Return only JSON: {"terms":["phrase"]}. Expand the user query into 6 short related video search phrases, synonyms, topics, and visual concepts.'},{role:'user',content:query}],stream:false})});
-   if(response.ok){const data=await response.json();const raw=String(data.reply||data.response||data.content||data.choices?.[0]?.message?.content||'');const parsed=JSON.parse(raw.replace(/```json|```/g,''));if(Array.isArray(parsed.terms))terms=[query,...parsed.terms.map(String).slice(0,8)]}
-  }catch(e){/* Search still works without AI query expansion. */}
+  // Avoid a cross-origin POST to the AI worker here: its current deployment does not
+  // answer OPTIONS preflight requests with CORS headers. Search remains available via
+  // Supabase and the Hugging Face dataset API; broaden phrases locally as a fallback.
+  const terms=[query,...query.toLowerCase().split(/[^a-z0-9]+/).filter(w=>w.length>2)].slice(0,8);
   const found=[];
   const seen=new Set();
   const addRows=rows=>(rows||[]).forEach(v=>{if(v?.video_url&&!seen.has(v.video_url)){seen.add(v.video_url);found.push(v)}});

@@ -4,7 +4,7 @@ import './DefgodqeAI.css';
 
 // This is a native defchat React feature, not an embedded external website.
 // The API endpoint supplies model inference and audio generation only.
-const AI_API = (import.meta.env.VITE_DEFGODQE_AI_API || 'https://defgodqe-ai.defgodqe.workers.dev').replace(/\/+$/, '');
+const AI_API = (import.meta.env.VITE_DEFGODQE_AI_API || 'https://ai.defgodqe.workers.dev').replace(/\/+$/, '');
 const HISTORY_KEY = 'defchat:personal-ai:history';
 const SYSTEM_PROMPT = 'You are defgodqe, the user’s personal AI assistant, created by defgodqe. If asked who created you, who made you, or who your creator is, clearly answer: “I was created by defgodqe.” Do not claim another person or company created you. Be warm, capable, conversational, concise when speaking aloud, and honest about actions you cannot perform.';
 const VOICES = [['luna','Luna'],['orion','Orion'],['athena','Athena'],['apollo','Apollo'],['aurora','Aurora'],['draco','Draco'],['hera','Hera'],['zeus','Zeus']];
@@ -63,8 +63,8 @@ export default function DefgodqeAI({ onClose }) {
   function detectSpeechLanguage(text) {
     if (voiceLanguage === 'en' || voiceLanguage === 'es') return voiceLanguage;
     const sample = ' ' + String(text).toLowerCase() + ' ';
-    const spanishHits = (sample.match(/\\b(el|la|los|las|de|que|para|por|con|una|uno|como|pero|gracias|hola|estoy|puedo|tienes|quiero|porque|tambien|sí|si)\\b/g) || []).length;
-    const englishHits = (sample.match(/\\b(the|and|you|your|for|with|this|that|what|how|can|have|are|was|hello|thanks|please|because|want|would)\\b/g) || []).length;
+    const spanishHits = (sample.match(/\b(el|la|los|las|de|que|para|por|con|una|uno|como|pero|gracias|hola|estoy|puedo|tienes|quiero|porque|tambien|sí|si)\b/g) || []).length;
+    const englishHits = (sample.match(/\b(the|and|you|your|for|with|this|that|what|how|can|have|are|was|hello|thanks|please|because|want|would)\b/g) || []).length;
     return /[¿¡ñáéíóúü]/i.test(sample) || spanishHits > englishHits ? 'es' : 'en';
   }
 

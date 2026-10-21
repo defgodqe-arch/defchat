@@ -5,9 +5,10 @@ import './DoomScroll.css';
 export default function DoomScroll({db,user,onClose}){
  const [videos,setVideos]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[uploading,setUploading]=useState(false),[caption,setCaption]=useState(''),[showUpload,setShowUpload]=useState(false),[muted,setMuted]=useState(true),[likes,setLikes]=useState({}),[active,setActive]=useState(0);
  const feedRef=useRef(null),fileRef=useRef(null),hfOffsetRef=useRef(0),hfLoadingRef=useRef(false),hfHasMoreRef=useRef(true);
+ function shuffleVideos(items){const result=[...items];for(let i=result.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[result[i],result[j]]=[result[j],result[i]]}return result}
  function mapHfRows(rows){return (rows||[]).map(({row},i)=>{const asset=row?.video;const url=typeof asset==='string'?asset:(asset?.src||asset?.url||'');if(!url||!/^https:\/\//i.test(url))return null;return {id:'hf-'+String(row.video_id??(hfOffsetRef.current+i)),user_id:null,caption:row.description||row.transcript||'',video_url:url,created_at:row.date_posted||null,source:'huggingface',feedSource:'huggingface',external_url:row.web_url||'',profiles:{username:row.creator||'Hugging Face creator',avatar_url:null}}}).filter(Boolean)}
  async function fetchHfPage(offset){const endpoint='https://datasets-server.huggingface.co/rows?dataset=Shofo%2Fshofo-tiktok-general-small&config=default&split=train&offset='+offset+'&length=100';const response=await fetch(endpoint);if(!response.ok)throw new Error('Hugging Face dataset returned HTTP '+response.status);const payload=await response.json();const rows=payload.rows||[];hfOffsetRef.current=offset+rows.length;hfHasMoreRef.current=rows.length>0&&hfOffsetRef.current<(payload.num_rows_total||58000);return mapHfRows(rows)}
- async function loadMoreHf(){if(hfLoadingRef.current||!hfHasMoreRef.current)return;hfLoadingRef.current=true;try{const next=await fetchHfPage(hfOffsetRef.current);setVideos(prev=>{const seen=new Set(prev.map(v=>v.id));return [...prev,...next.filter(v=>!seen.has(v.id))]})}catch(e){setError('More Hugging Face videos could not load: '+(e?.message||'request failed'))}finally{hfLoadingRef.current=false}}
+ async function loadMoreHf(){if(hfLoadingRef.current||!hfHasMoreRef.current)return;hfLoadingRef.current=true;try{const next=await fetchHfPage(hfOffsetRef.current);setVideos(prev=>{const seen=new Set(prev.map(v=>v.id));return [...prev,...shuffleVideos(next.filter(v=>!seen.has(v.id)))]})}catch(e){setError('More Hugging Face videos could not load: '+(e?.message||'request failed'))}finally{hfLoadingRef.current=false}}
  async function loadFeed(){
   setLoading(true);setError('');
   let localRows=[];
@@ -22,10 +23,11 @@ export default function DoomScroll({db,user,onClose}){
   }catch(e){setError('Your uploads could not be loaded: '+(e?.message||'database error'))}
   try{
    // Stream the public dataset in pages; signed asset URLs are refreshed when each page is requested.
-   hfOffsetRef.current=0;hfHasMoreRef.current=true;
-   const imported=await fetchHfPage(0);
+   hfHasMoreRef.current=true;
+   const randomStart=Math.floor(Math.random()*Math.max(1,58000-100));
+   const imported=await fetchHfPage(randomStart);
    const seen=new Set(localRows.map(v=>v.video_url));
-   setVideos([...localRows,...imported.filter(v=>!seen.has(v.video_url))]);
+   setVideos(shuffleVideos([...localRows,...imported.filter(v=>!seen.has(v.video_url))]));
    if(!imported.length&&!localRows.length)setError('No playable videos were returned. Try again later or upload a video.');
   }catch(e){setVideos(localRows);setError(prev=>(prev?prev+' · ':'')+'Hugging Face source unavailable: '+(e?.message||'request failed')+'. Your own uploaded videos still work.')}
   setLoading(false);

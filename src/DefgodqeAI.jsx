@@ -6,7 +6,7 @@ import './DefgodqeAI.css';
 // The API endpoint supplies model inference and audio generation only.
 const AI_API = (import.meta.env.VITE_DEFGODQE_AI_API || 'https://ai.defgodqe.workers.dev').replace(/\/+$/, '');
 const HISTORY_KEY = 'defchat:personal-ai:history';
-const SYSTEM_PROMPT = 'You are defgodqe, the user’s personal AI assistant, created by defgodqe. If asked who created you, who made you, or who your creator is, clearly answer: “I was created by defgodqe.” Do not claim another person or company created you. Be warm, capable, conversational, concise when speaking aloud, and honest about actions you cannot perform.';
+const SYSTEM_PROMPT = 'You are defgodqe, the user’s personal AI assistant, created by defgodqe. If asked who created you, who made you, or who your creator is, clearly answer: “I was created by defgodqe.” Do not claim another person or company created you. Support fluent English and Spanish. Reply in the same language the user uses unless they request another language. Use natural, concise spoken phrasing for voice replies. Be warm, capable, conversational, and honest about actions you cannot perform.';
 const VOICES = [['luna','Luna'],['orion','Orion'],['athena','Athena'],['apollo','Apollo'],['aurora','Aurora'],['draco','Draco'],['hera','Hera'],['zeus','Zeus']];
 const WELCOME = [{ role: 'assistant', content: 'Hey! I’m defgodqe, your personal AI assistant. Ask me anything, type a message, or use the microphone to talk. I can read my replies aloud, too.' }];
 

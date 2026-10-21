@@ -2257,3 +2257,65 @@ body{min-width:320px;overflow:hidden;overscroll-behavior:none;position:fixed;ins
 @supports(height:100dvh){
   .app{height:100dvh}
 }
+
+
+/* Cinder UI polish pass: consistent surfaces, spacing, focus, and motion */
+:root{
+  --dc-bg:#0d0e12;
+  --dc-panel:#15171d;
+  --dc-panel-raised:#1b1e26;
+  --dc-panel-hover:#232631;
+  --dc-border:rgba(255,255,255,.085);
+  --dc-border-strong:rgba(255,255,255,.14);
+  --dc-muted:#969baa;
+  --dc-text:#f4f5f7;
+  --dc-accent:#ffc83d;
+  --dc-radius-sm:9px;
+  --dc-radius-md:13px;
+  --dc-radius-lg:18px;
+  --dc-shadow:0 18px 55px rgba(0,0,0,.28);
+  color-scheme:dark;
+}
+::selection{background:rgba(255,200,61,.28);color:#fff}
+button,input,textarea,select{font-family:inherit}
+button{transition:background-color .16s ease,border-color .16s ease,color .16s ease,transform .16s ease,box-shadow .16s ease}
+button:active:not(:disabled){transform:translateY(1px)}
+button:disabled{cursor:not-allowed;opacity:.55}
+input,textarea,select{accent-color:var(--dc-accent)}
+input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid rgba(255,200,61,.82);outline-offset:2px}
+:where(.rail,.sidebar,.chat,.modal-backdrop,.modal-backdrop>section,.settings-panel,.settings-content,.friends-panel,.notification-list){min-width:0;min-height:0}
+:where(.rail,.sidebar,.chat,.modal-backdrop>section){border-color:var(--dc-border)}
+.rail{background:#101116;border-right:1px solid var(--dc-border)}
+.sidebar{background:#15171d;border-right:1px solid var(--dc-border)}
+.server-title{border-bottom-color:var(--dc-border);transition:background .16s ease}
+.server-title:hover{background:rgba(255,255,255,.035)}
+.channel{border-radius:9px;transition:background .16s ease,color .16s ease}
+.channel:hover{background:rgba(255,255,255,.055);color:#f4f5f7}
+.channel.active{background:rgba(255,200,61,.12);color:#fff}
+.channel.active svg{color:var(--dc-accent)}
+.user-row{background:#101116;border-top:1px solid var(--dc-border)}
+.chat{background:var(--dc-bg)}
+.chat header{border-bottom-color:var(--dc-border);background:rgba(13,14,18,.92)}
+.messages{scrollbar-color:#414450 transparent}
+.message{border-radius:12px;transition:background .14s ease}
+.message:hover{background:rgba(255,255,255,.025)}
+.composer{border:1px solid var(--dc-border-strong);background:#191b22;box-shadow:0 5px 22px rgba(0,0,0,.12);border-radius:14px}
+.composer:focus-within{border-color:rgba(255,200,61,.5);box-shadow:0 0 0 3px rgba(255,200,61,.07)}
+.composer input{color:var(--dc-text)}
+.composer button{border-radius:9px}
+.format-toolbar{border:1px solid var(--dc-border);border-radius:12px;background:#171920}
+.format-toolbar button{border-radius:8px}
+.modal-backdrop{backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}
+.modal-backdrop>section{border:1px solid var(--dc-border-strong);border-radius:18px;box-shadow:var(--dc-shadow)}
+.notification-item,.poll-option,.message-search,.message-attachment{border-radius:11px}
+.message-search{border-color:var(--dc-border-strong);background:var(--dc-panel)}
+.message-search:focus-within{border-color:rgba(255,200,61,.5)}
+a{color:var(--dc-accent);text-underline-offset:3px}
+:focus-visible{outline-color:var(--dc-accent)}
+@media(max-width:700px){
+  .rail{border-right:1px solid var(--dc-border)}
+  .sidebar{box-shadow:12px 0 35px rgba(0,0,0,.25)}
+  .chat header{background:rgba(13,14,18,.96)}
+  .composer{border-radius:12px}
+}
+@media(prefers-reduced-motion:reduce){button{transition:none}}

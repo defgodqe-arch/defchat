@@ -5,10 +5,41 @@ import './DoomScroll.css';
 export default function DoomScroll({db,user,onClose}){
  const [videos,setVideos]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[uploading,setUploading]=useState(false),[caption,setCaption]=useState(''),[showUpload,setShowUpload]=useState(false),[muted,setMuted]=useState(true),[likes,setLikes]=useState({}),[active,setActive]=useState(0),[searchText,setSearchText]=useState(''),[searching,setSearching]=useState(false),[searchActive,setSearchActive]=useState(false),[searchNote,setSearchNote]=useState('');
  const feedRef=useRef(null),fileRef=useRef(null),hfOffsetRef=useRef(0),hfLoadingRef=useRef(false),hfHasMoreRef=useRef(true),allVideosRef=useRef([]);
+ const searchIndexRef=useRef([]),indexingRef=useRef(false),indexCompleteRef=useRef(false);
  function shuffleVideos(items){const result=[...items];for(let i=result.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[result[i],result[j]]=[result[j],result[i]]}return result}
  function isLikelyEnglish(row){const text=String(row?.description||row?.transcript||'').toLowerCase().replace(/https?:\/\/\S+/g,' ').trim();if(text.length<12)return false;const words=text.match(/[a-z]+/g)||[];if(words.length<3)return false;const common=new Set(['the','and','you','youre','your','that','this','with','for','are','was','have','what','when','how','not','but','they','them','just','like','from','its','im','ive','we','our','can','will','all','one','out','get','got','about','because','really','know','then','there','here','look','video']);const hits=words.filter(w=>common.has(w)).length;return hits>=1||words.length>=8}
  function mapHfRows(rows){return (rows||[]).filter(({row})=>isLikelyEnglish(row)).map(({row},i)=>{const asset=row?.video;const url=typeof asset==='string'?asset:(asset?.src||asset?.url||'');if(!url||!/^https:\/\//i.test(url))return null;return {id:'hf-'+String(row.video_id??(hfOffsetRef.current+i)),user_id:null,caption:row.description||row.transcript||'',video_url:url,created_at:row.date_posted||null,source:'huggingface',feedSource:'huggingface',external_url:row.web_url||'',profiles:{username:row.creator||'Hugging Face creator',avatar_url:null}}}).filter(Boolean)}
  async function fetchHfPage(offset){const endpoint='https://datasets-server.huggingface.co/rows?dataset=Shofo%2Fshofo-tiktok-general-small&config=default&split=train&offset='+offset+'&length=100';const response=await fetch(endpoint);if(!response.ok)throw new Error('Hugging Face dataset returned HTTP '+response.status);const payload=await response.json();const rows=payload.rows||[];hfOffsetRef.current=offset+rows.length;hfHasMoreRef.current=rows.length>0&&hfOffsetRef.current<(payload.num_rows_total||58000);return mapHfRows(rows)}
+ async function buildBackgroundSearchIndex(){
+  if(indexingRef.current||indexCompleteRef.current)return;
+  indexingRef.current=true;
+  try{
+   // Cache only searchable metadata in memory; never create video elements or download video bytes.
+   // Use small, yielding batches so the visible feed and playback remain responsive.
+   const pageSize=100,totalRows=58000;
+   for(let offset=0;offset<totalRows;offset+=pageSize){
+    if(!indexingRef.current)break;
+    while(typeof document!=='undefined'&&document.hidden){
+     await new Promise(resolve=>setTimeout(resolve,1200));
+     if(!indexingRef.current)break;
+    }
+    if(!indexingRef.current)break;
+    const endpoint='https://datasets-server.huggingface.co/rows?dataset=Shofo%2Fshofo-tiktok-general-small&config=default&split=train&offset='+offset+'&length='+pageSize+'&columns='+encodeURIComponent('description,transcript,creator,video,video_id,date_posted,web_url');
+    try{
+     const response=await fetch(endpoint,{priority:'low'});
+     if(!response.ok){await new Promise(resolve=>setTimeout(resolve,900));continue}
+     const payload=await response.json();
+     const rows=mapHfRows(payload.rows||[]);
+     const known=new Set(searchIndexRef.current.map(v=>v.id));
+     searchIndexRef.current.push(...rows.filter(v=>!known.has(v.id)));
+     if(!payload.rows?.length)break;
+    }catch(e){/* A failed page can be retried by the next search's remote lookup. */}
+    // Yield between pages rather than competing with active video playback.
+    await new Promise(resolve=>setTimeout(resolve,180));
+   }
+   indexCompleteRef.current=true;
+  }finally{indexingRef.current=false}
+ }
  async function loadMoreHf(){if(hfLoadingRef.current||!hfHasMoreRef.current)return;hfLoadingRef.current=true;try{const next=await fetchHfPage(hfOffsetRef.current);setVideos(prev=>{const seen=new Set(prev.map(v=>v.id));const combined=[...prev,...shuffleVideos(next.filter(v=>!seen.has(v.id)))];allVideosRef.current=combined;return combined})}catch(e){setError('More English-language videos could not load: '+(e?.message||'request failed'))}finally{hfLoadingRef.current=false}}
  async function loadFeed(){
   setLoading(true);setError('');
@@ -34,6 +65,7 @@ export default function DoomScroll({db,user,onClose}){
   setLoading(false);
  }
  useEffect(()=>{loadFeed()},[]);
+ useEffect(()=>{let cancelled=false;const start=()=>{if(!cancelled)buildBackgroundSearchIndex()};const timer=setTimeout(start,5000);return()=>{cancelled=true;clearTimeout(timer);indexingRef.current=false}},[]);
  useEffect(()=>{const root=feedRef.current;if(!root)return;const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting&&entry.intersectionRatio>=0.65){const idx=Number(entry.target.dataset.index);setActive(idx);entry.target.querySelector('video')?.play().catch(()=>{});if(idx>=videos.length-5)loadMoreHf();root.querySelectorAll('video').forEach(v=>{if(v!==entry.target.querySelector('video'))v.pause()})}}),{root,threshold:[0.65]});root.querySelectorAll('.doom-video-card').forEach(el=>observer.observe(el));return()=>observer.disconnect()},[videos]);
  async function searchSimilarVideos(event){
   event.preventDefault();const query=searchText.trim();
@@ -74,11 +106,11 @@ export default function DoomScroll({db,user,onClose}){
   // later scrolling, while preserving the feed's existing videos.
   const tokens=s=>String(s||'').toLowerCase().normalize('NFKD').replace(/[^a-z0-9\\s]/g,' ').split(/\\s+/).filter(w=>w.length>2);
   const allTerms=terms.map(tokens);
-  const candidates=[...found,...allVideosRef.current.filter(v=>!seen.has(v.video_url))];
+  const candidates=[...found,...searchIndexRef.current.filter(v=>!seen.has(v.video_url)),...allVideosRef.current.filter(v=>!seen.has(v.video_url))];
   const ranked=candidates.map(v=>{const words=tokens(String(v.caption||'')+' '+String(v.profiles?.username||''));let score=0;for(const t of allTerms){const hits=t.filter(w=>words.includes(w)).length;score=Math.max(score,hits/Math.max(1,t.length))}return {v,score}}).filter(x=>x.score>0);
   ranked.sort((a,b)=>b.score-a.score);
   const results=ranked.map(x=>x.v);
-  setVideos(results);setSearchActive(true);setSearchNote(results.length?'Found '+results.length+' matching videos, including videos fetched from the full remote dataset.':'No videos matched that phrase in the searchable database or remote dataset. Try different words.');
+  setVideos(results);setSearchActive(true);setSearchNote(results.length?'Found '+results.length+' matching videos'+(indexCompleteRef.current?' in the background-indexed video library.':indexingRef.current?' in the indexed library; the rest are still indexing in the background.':' in the searchable database and remote dataset.'):'No videos matched that phrase in the searchable database or remote dataset. Try different words.');
   if(feedRef.current)feedRef.current.scrollTop=0;setSearching(false);
  }
  function clearVideoSearch(){setSearchText('');setSearchActive(false);setSearchNote('');setVideos(allVideosRef.current);if(feedRef.current)feedRef.current.scrollTop=0}

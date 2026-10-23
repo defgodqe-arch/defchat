@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Bot, ExternalLink, Mic, MicOff, Paperclip, Search, Send, Sparkles, Volume2, VolumeX, X } from 'lucide-react';
+import { Bot, Database, ExternalLink, Mic, MicOff, Paperclip, Search, Send, Sparkles, Volume2, VolumeX, X } from 'lucide-react';
 import './DefgodqeAI.css';
+import HFDatasetLab from './HFDatasetLab.jsx';
 
 // This is a native defchat React feature, not an embedded external website.
 // The API endpoint supplies model inference and audio generation only.
@@ -27,6 +28,7 @@ export default function DefgodqeAI({ onClose }) {
   const [speaker, setSpeaker] = useState('luna');
   const [voiceLanguage, setVoiceLanguage] = useState('auto');
   const [webSearch, setWebSearch] = useState(false);
+  const [datasetsOpen, setDatasetsOpen] = useState(false);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
   const [error, setError] = useState('');
@@ -282,9 +284,11 @@ export default function DefgodqeAI({ onClose }) {
           <div className="dga-brand-icon"><Sparkles size={22} /></div>
           <div className="dga-brand-copy"><strong>defgodqe <span>AI</span></strong><small>Your personal assistant · {status}</small></div>
           <button className="dga-icon-btn" type="button" onClick={() => window.open(AI_API + '/voice-studio.html', '_blank', 'noopener,noreferrer')} title="Open Drama 3 Voice Studio" aria-label="Open Drama 3 Voice Studio"><ExternalLink size={17} /></button>
+          <button className="dga-icon-btn" type="button" onClick={() => setDatasetsOpen(v => !v)} title="Explore Hugging Face datasets" aria-label="Explore Hugging Face datasets" aria-expanded={datasetsOpen}><Database size={17} /></button>
           <button className="dga-icon-btn" type="button" onClick={clearHistory} title="Clear conversation" aria-label="Clear conversation">↻</button>
           <button className="dga-icon-btn" type="button" onClick={onClose} title="Back to chat" aria-label="Close assistant"><X size={19} /></button>
         </header>
+        {datasetsOpen && <HFDatasetLab onClose={() => setDatasetsOpen(false)} onAsk={prompt => { setInput(prompt); setDatasetsOpen(false); inputRef.current?.focus(); }} />}
         <div className="dga-voice-panel">
           <div className={'dga-orb' + (listening ? ' dga-listening' : status === 'Speaking' ? ' dga-speaking' : '')}><Bot size={27} /></div>
           <div className="dga-voice-copy"><strong>{listening ? 'I’m listening…' : status === 'Speaking' ? 'Speaking to you' : 'Talk to defgodqe'}</strong><small>{Recognition ? 'Use your voice or type naturally.' : 'Type naturally, or use a supported browser for voice input.'}</small></div>

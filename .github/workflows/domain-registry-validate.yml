@@ -1,0 +1,54 @@
+name: Validate domain registry
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "registry/domains.json"
+      - "registry/README.md"
+      - ".github/workflows/domain-registry-validate.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: domain-registry-validation
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Validate registry structure and records
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const file = 'registry/domains.json';
+          const registry = JSON.parse(fs.readFileSync(file, 'utf8'));
+          if (registry.schema_version !== 1) throw new Error('Unsupported schema_version');
+          if (!Array.isArray(registry.domains)) throw new Error('domains must be an array');
+          if (registry.issuance_enabled !== false) {
+            throw new Error('Issuance must remain disabled until an authorized parent domain and DNS provider are configured.');
+          }
+          const seen = new Set();
+          const labelPattern = /^(?=.{3,32}$)[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
+          for (const record of registry.domains) {
+            if (!record || typeof record !== 'object') throw new Error('Each record must be an object');
+            if (typeof record.name !== 'string' || !labelPattern.test(record.name)) {
+              throw new Error('Invalid domain label: ' + String(record.name));
+            }
+            if (seen.has(record.name)) throw new Error('Duplicate label: ' + record.name);
+            seen.add(record.name);
+            if (record.target !== undefined) {
+              let url;
+              try { url = new URL(record.target); } catch { throw new Error('Invalid target URL for ' + record.name); }
+              if (!['http:', 'https:'].includes(url.protocol)) throw new Error('Only HTTP(S) destinations are allowed in registry metadata');
+            }
+          }
+          if (registry.parent_domain !== null && typeof registry.parent_domain !== 'string') throw new Error('parent_domain must be a string or null');
+          if (registry.dns_provider !== null && typeof registry.dns_provider !== 'string') throw new Error('dns_provider must be a string or null');
+          console.log('Registry valid:', registry.domains.length, 'records; DNS issuance remains disabled.');
+          NODE

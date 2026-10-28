@@ -26,20 +26,17 @@ jobs:
         run: |
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
-          const file = 'registry/domains.json';
-          const registry = JSON.parse(fs.readFileSync(file, 'utf8'));
+          const registry = JSON.parse(fs.readFileSync('registry/domains.json', 'utf8'));
           if (registry.schema_version !== 1) throw new Error('Unsupported schema_version');
           if (!Array.isArray(registry.domains)) throw new Error('domains must be an array');
-          if (registry.issuance_enabled !== false) {
-            throw new Error('Issuance must remain disabled until an authorized parent domain and DNS provider are configured.');
-          }
+          if (typeof registry.issuance_enabled !== 'boolean') throw new Error('issuance_enabled must be boolean');
+          if (registry.parent_domain !== 'de5.net') throw new Error('parent_domain must be de5.net for the DNSHE free suffix setup');
+          if (registry.dns_provider !== 'DNSHE') throw new Error('dns_provider must be DNSHE');
           const seen = new Set();
           const labelPattern = /^(?=.{3,32}$)[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
           for (const record of registry.domains) {
             if (!record || typeof record !== 'object') throw new Error('Each record must be an object');
-            if (typeof record.name !== 'string' || !labelPattern.test(record.name)) {
-              throw new Error('Invalid domain label: ' + String(record.name));
-            }
+            if (typeof record.name !== 'string' || !labelPattern.test(record.name)) throw new Error('Invalid domain label: ' + String(record.name));
             if (seen.has(record.name)) throw new Error('Duplicate label: ' + record.name);
             seen.add(record.name);
             if (record.target !== undefined) {
@@ -48,7 +45,6 @@ jobs:
               if (!['http:', 'https:'].includes(url.protocol)) throw new Error('Only HTTP(S) destinations are allowed in registry metadata');
             }
           }
-          if (registry.parent_domain !== null && typeof registry.parent_domain !== 'string') throw new Error('parent_domain must be a string or null');
-          if (registry.dns_provider !== null && typeof registry.dns_provider !== 'string') throw new Error('dns_provider must be a string or null');
-          console.log('Registry valid:', registry.domains.length, 'records; DNS issuance remains disabled.');
+          console.log('Registry valid:', registry.domains.length, 'records; issuance_enabled=' + registry.issuance_enabled);
+          if (registry.issuance_enabled) console.log('WARNING: live registration is enabled; verify DNSHE API secrets exist in repository Actions settings.');
           NODE

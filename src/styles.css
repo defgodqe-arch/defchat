@@ -2718,3 +2718,13 @@ body,.app,.chat{background:var(--discord-chat);color:var(--discord-text)}
 .server-customize-preview div{display:flex;flex-direction:column;gap:4px;min-width:0}
 .server-customize-preview b{overflow-wrap:anywhere}
 .server-customize-preview small{color:var(--muted,#a1a1aa);overflow-wrap:anywhere}
+
+/* Add Friends account discovery */
+.account-discovery-card>p{margin:5px 0 12px;color:var(--muted,#a1a1aa);font-size:13px}
+.account-discovery-search{display:flex;width:100%;box-sizing:border-box;margin:10px 0 14px}
+.account-discovery-row{gap:10px;padding:10px 0;border-top:1px solid var(--border,rgba(255,255,255,.08))}
+.account-discovery-row .feature-person-main{flex:1;min-width:0;text-align:left}
+.account-discovery-row .friend-person-copy{min-width:0}
+.account-discovery-row .friend-person-copy b,.account-discovery-row .friend-bio-preview{overflow-wrap:anywhere}
+.account-add-button{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
+@media(max-width:560px){.account-discovery-row{align-items:center;gap:7px}.account-discovery-row .account-add-button{padding:8px 10px;font-size:12px}.account-discovery-row .role-chip{font-size:11px}}

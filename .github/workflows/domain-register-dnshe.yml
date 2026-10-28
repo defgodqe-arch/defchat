@@ -1,0 +1,118 @@
+name: Register approved free subdomain
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: domain-request-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  register:
+    if: github.event.label.name == 'domain-approved'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate configuration and request
+        id: validate
+        env:
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const registry = JSON.parse(fs.readFileSync('registry/domains.json', 'utf8'));
+          if (registry.issuance_enabled !== true) throw new Error('Issuance is disabled. Configure DNSHE secrets first, then enable issuance in registry/domains.json.');
+          if (registry.parent_domain !== 'de5.net' || registry.dns_provider !== 'DNSHE') throw new Error('Registry provider/suffix configuration is not the expected DNSHE de5.net setup.');
+          const match = process.env.ISSUE_TITLE.match(/^\[Domain request\] ([a-z0-9](?:[a-z0-9-]{1,30}[a-z0-9])?)\.de5\.net$/);
+          if (!match) throw new Error('Issue title must exactly match [Domain request] name.de5.net with a valid 3–32 character label.');
+          const name = match[1];
+          const reserved = new Set(['www','mail','ftp','admin','administrator','api','ns1','ns2','root','support','security','abuse','status','docs','help']);
+          if (reserved.has(name)) throw new Error('Requested label is reserved.');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'name=' + name + '\n');
+          NODE
+
+      - name: Check for duplicate successful registration
+        id: duplicate
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number });
+            const marker = '<!-- dnshe-registration-success -->';
+            const existing = comments.find(c => c.body && c.body.includes(marker));
+            core.setOutput('already_registered', existing ? 'true' : 'false');
+
+      - name: Register hostname with DNSHE
+        if: steps.duplicate.outputs.already_registered != 'true'
+        id: register
+        env:
+          DNSHE_API_KEY: ${{ secrets.DNSHE_API_KEY }}
+          DNSHE_API_SECRET: ${{ secrets.DNSHE_API_SECRET }}
+          DOMAIN_LABEL: ${{ steps.validate.outputs.name }}
+        run: |
+          node --input-type=module <<'NODE'
+          const key = process.env.DNSHE_API_KEY;
+          const secret = process.env.DNSHE_API_SECRET;
+          if (!key || !secret) throw new Error('Missing DNSHE_API_KEY or DNSHE_API_SECRET repository Actions secret.');
+          const response = await fetch('https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=create', {
+            method: 'POST',
+            headers: {
+              'X-API-Key': key,
+              'X-API-Secret': secret,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ subdomain: process.env.DOMAIN_LABEL, domain: 'de5.net' }),
+            signal: AbortSignal.timeout(30000)
+          });
+          const raw = await response.text();
+          let data;
+          try { data = JSON.parse(raw); } catch { throw new Error('DNSHE returned a non-JSON response (HTTP ' + response.status + ').'); }
+          if (!response.ok || data.success !== true) {
+            const code = data.error_code || 'provider_error';
+            const message = String(data.message || 'Registration failed').slice(0, 300);
+            throw new Error('DNSHE registration failed (HTTP ' + response.status + ', ' + code + '): ' + message);
+          }
+          const fullDomain = data.full_domain || (process.env.DOMAIN_LABEL + '.de5.net');
+          fsWriteOutput(fullDomain, data.subdomain_id);
+          function fsWriteOutput(domain, id) {
+            const fs = requireFs();
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, 'full_domain=' + domain + '\nsubdomain_id=' + String(id ?? '') + '\n');
+          }
+          function requireFs() { return process.getBuiltinModule('node:fs'); }
+          console.log('DNSHE registration succeeded for ' + fullDomain);
+          NODE
+
+      - name: Comment registration result
+        if: always() && steps.duplicate.outputs.already_registered != 'true'
+        uses: actions/github-script@v7
+        env:
+          REGISTRATION_OUTCOME: ${{ steps.register.outcome }}
+          REGISTERED_DOMAIN: ${{ steps.register.outputs.full_domain }}
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const outcome = process.env.REGISTRATION_OUTCOME;
+            const domain = process.env.REGISTERED_DOMAIN || '';
+            let body;
+            if (outcome === 'success' && domain) {
+              body = '<!-- dnshe-registration-success -->\n## Registration successful\n\nDNSHE registered **' + domain + '**. This confirms registration only; it does not confirm that an optional website destination or HTTPS is configured.';
+            } else {
+              body = '## Registration not completed\n\nThe protected DNSHE registration workflow did not complete successfully. Check the GitHub Actions run logs for the error. Do not post API credentials in this issue.';
+            }
+            await github.rest.issues.createComment({ owner, repo, issue_number, body });
+
+      - name: Note duplicate request
+        if: steps.duplicate.outputs.already_registered == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.info('A prior successful registration marker exists; skipping a duplicate provider request.');

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "parent_domain": "defchat.net",
-  "dns_provider": null,
+  "parent_domain": "de5.net",
+  "dns_provider": "DNSHE",
   "issuance_enabled": false,
   "domains": []
 }

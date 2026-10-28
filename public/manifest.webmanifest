@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "Cinder",
-  "short_name": "Cinder",
+  "name": "defchat",
+  "short_name": "defchat",
   "description": "Powered by the sun. Find your people, share your spark, and let your community shine.",
   "start_url": "./",
   "scope": "./",

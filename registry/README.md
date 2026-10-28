@@ -1,19 +1,33 @@
 # Domain registry
 
-This directory is the source of truth for domain records.
+This directory is the source of truth for defchat's free subdomain service.
 
-## Current state
+## Selected suffix
 
-- `parent_domain`: `defchat.net` (proposed; ownership/control not verified here)
-- `dns_provider`: `null`
-- `issuance_enabled`: `false`
+- Public hostname format: `name.de5.net`
+- Provider: DNSHE
+- Provider information: https://github.com/dnshe/DNSHE-FreeDomains
+- API documentation: https://github.com/dnshe/DNSHE-FreeDomains/blob/main/docs/api.md
+- `issuance_enabled`: `false` until the maintainer configures and tests credentials
 
-Naming a parent domain in this registry does not prove ownership or grant DNS authority. Do not enable issuance until the project owner has verified control of `defchat.net`, connected an authorized DNS provider, and stored provider credentials as GitHub Actions secrets.
+This is a free subdomain suffix that ends in `.net`; it is **not** a standalone `.net` domain. The repository maintainer must confirm that the DNSHE account can register names under `de5.net` and review the provider's current rules, quotas, and availability.
+
+## Turn on protected registration
+
+1. Create/sign in to a DNSHE account at https://my.dnshe.com.
+2. In the DNSHE console, create an API key and secret with the least privileges available. Never put these credentials in frontend files or commit them.
+3. In GitHub, open **Settings → Secrets and variables → Actions** for this repository and add:
+   - `DNSHE_API_KEY`
+   - `DNSHE_API_SECRET`
+4. Test the workflow using a harmless request and verify the API response and quota.
+5. Requests arrive as GitHub issues. Review the requested label and purpose, then apply the `domain-approved` label to authorize registration. Do not enable unattended approval for public submissions.
+
+The workflow registers the hostname under DNSHE's `de5.net` suffix after approval. A registered hostname is not automatically pointed at the optional website destination in the issue; DNS records and HTTPS behavior must be configured and verified separately.
 
 ## Record policy
 
-A future active record should include a normalized label, destination, requester identity, creation timestamp, and verification status. Never treat a user-submitted GitHub issue as proof of ownership. Verify destination control before publishing DNS.
+Never treat a user-submitted GitHub issue as proof of destination ownership. Check provider availability and quotas, reject reserved names, and review requests for abuse before approval. Maintain an audit trail for successful registrations and failed attempts.
 
 ## Security
 
-DNS write credentials must only be available to a protected workflow running on trusted code. Do not expose secrets to pull-request workflows or forked code. Validate every destination and restrict allowed record types and targets.
+DNS write credentials are available only to the protected issue-label workflow, not pull-request workflows. Issue contents are untrusted input and must be validated. Do not log secrets. If credentials are exposed, revoke and rotate them immediately.

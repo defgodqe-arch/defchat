@@ -105,22 +105,38 @@ export default function FeatureCenter({db,user,profile,onlineUsers={},server,onC
     // Publish the final score again after direct-message counts are added.
     setFriendScores({...scoreMap});
     setBlocks((bl||[]).map(b=>({...b,person:people[b.blocked_id]})));
-    // Discover registered Cinder profiles so users can add people without already knowing a username.
-    setAccountsLoading(true);
-    try{
-      const {data:allProfiles,error:profilesError}=await db.from('profiles').select('id,username,avatar_url,banner_url,status,bio').order('username',{ascending:true}).limit(100);
-      if(profilesError)throw profilesError;
-      const blockedIds=new Set((bl||[]).map(row=>row.blocked_id));
-      const relationshipById={};
-      for(const request of raw){
-        const otherId=request.sender_id===user.id?request.receiver_id:request.sender_id;
-        if(!otherId)continue;
-        relationshipById[otherId]=request.status==='accepted'?'friend':request.status==='pending'?(request.sender_id===user.id?'sent':'received'):null;
-      }
-      setDiscoveredAccounts((allProfiles||[]).filter(person=>person.id!==user.id&&!blockedIds.has(person.id)).map(person=>({...person,relationship:relationshipById[person.id]||'none'})));
-    }catch(e){console.warn('Could not load account directory:',e);setError(e.message||'Could not load Cinder accounts.')}finally{setAccountsLoading(false)}
   }
   useEffect(()=>{if(!user?.id)return;const friendsSub=db.channel('cinder-friends-'+user.id).on('postgres_changes',{event:'*',schema:'public',table:'friend_requests'},()=>{loadSocial()}).subscribe();const dmSub=db.channel('cinder-friendship-score-'+user.id).on('postgres_changes',{event:'INSERT',schema:'public',table:'dm_messages'},()=>{loadSocial()}).subscribe();return()=>{db.removeChannel(friendsSub);db.removeChannel(dmSub)}},[user?.id]);
+  // Load the account directory only while the Friends screen is open. Social realtime
+  // updates can fire for every DM message, so directory reads must not run in loadSocial().
+  useEffect(()=>{
+    if(tab!=='friends'||!user?.id)return;
+    let cancelled=false;
+    async function loadDirectory(){
+      setAccountsLoading(true);
+      try{
+        const [{data:allProfiles,error:profilesError},{data:allRequests,error:requestsError},{data:blockedRows,error:blockedError}]=await Promise.all([
+          db.from('profiles').select('id,username,avatar_url,banner_url,status,bio').order('username',{ascending:true}).limit(100),
+          db.from('friend_requests').select('sender_id,receiver_id,status').or('sender_id.eq.'+user.id+',receiver_id.eq.'+user.id),
+          db.from('user_blocks').select('blocked_id').eq('blocker_id',user.id)
+        ]);
+        if(profilesError)throw profilesError;
+        if(requestsError)throw requestsError;
+        if(blockedError&&!blockedError.message.includes('user_blocks'))throw blockedError;
+        if(cancelled)return;
+        const blockedIds=new Set((blockedRows||[]).map(row=>row.blocked_id));
+        const relationshipById={};
+        for(const request of allRequests||[]){
+          const otherId=request.sender_id===user.id?request.receiver_id:request.sender_id;
+          if(!otherId)continue;
+          relationshipById[otherId]=request.status==='accepted'?'friend':request.status==='pending'?(request.sender_id===user.id?'sent':'received'):null;
+        }
+        setDiscoveredAccounts((allProfiles||[]).filter(person=>person.id!==user.id&&!blockedIds.has(person.id)).map(person=>({...person,relationship:relationshipById[person.id]||'none'})));
+      }catch(e){if(!cancelled){console.warn('Could not load account directory:',e);setError(e.message||'Could not load Cinder accounts.')}}finally{if(!cancelled)setAccountsLoading(false)}
+    }
+    loadDirectory();
+    return()=>{cancelled=true};
+  },[tab,user?.id,db]);
   async function loadServer(){
     if(!server)return;
     const [{data:c,error:ce},{data:r,error:re},{data:m,error:me},{data:i,error:ie}]=await Promise.all([

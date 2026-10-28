@@ -1,0 +1,33 @@
+/* defchat experience pass: unified focus, feedback, scrollbars, and responsive surfaces */
+:root{
+  --dc-quality-accent:var(--dc-accent,#ffc83d);
+  --dc-quality-border:rgba(255,255,255,.085);
+  --dc-quality-shadow:0 12px 34px rgba(0,0,0,.18);
+}
+::selection{background:rgba(255,200,61,.3);color:inherit}
+:where(button,a,input,textarea,select,[role="button"]){-webkit-tap-highlight-color:transparent}
+:where(button,a,[role="button"]):focus-visible{outline:2px solid var(--dc-quality-accent);outline-offset:3px}
+:where(input,textarea,select):focus-visible{outline:2px solid var(--dc-quality-accent);outline-offset:1px}
+:where(button,a,[role="button"]):disabled{opacity:.55;cursor:not-allowed}
+:where(input,textarea,select)::placeholder{opacity:.72}
+:where(textarea){resize:vertical}
+:where(.modal-backdrop,.feature-modal,.settings-modal,[role="dialog"]){overscroll-behavior:contain}
+:where(.messages,.channel-list,.friends-main,.feature-content,.settings-content){scrollbar-width:thin;scrollbar-color:rgba(180,185,196,.35) transparent}
+:where(.messages,.channel-list,.friends-main,.feature-content,.settings-content)::-webkit-scrollbar{width:7px;height:7px}
+:where(.messages,.channel-list,.friends-main,.feature-content,.settings-content)::-webkit-scrollbar-thumb{background:rgba(180,185,196,.28);border:2px solid transparent;background-clip:padding-box;border-radius:20px}
+:where(.messages,.channel-list,.friends-main,.feature-content,.settings-content)::-webkit-scrollbar-thumb:hover{background:rgba(180,185,196,.48);background-clip:padding-box}
+:where(.message,.friend-row,.account-discovery-row,.upload-choice,.profile-modal,.modal,.feature-card){min-width:0}
+:where(.message p,.friend-row b,.account-discovery-row b,.feature-card p){overflow-wrap:anywhere}
+:where(.primary,.inline-primary,.account-add-button,.auth-submit){transition:filter .16s ease,transform .16s ease,box-shadow .16s ease}
+:where(.primary,.inline-primary,.account-add-button,.auth-submit):not(:disabled):hover{filter:brightness(1.06)}
+:where(.primary,.inline-primary,.account-add-button,.auth-submit):not(:disabled):active{transform:translateY(1px)}
+:where(.notice,.error,.success-notice,.error-notice){overflow-wrap:anywhere}
+:where(.empty-state,.empty-dms,.friends-empty){line-height:1.65}
+@media(max-width:700px){
+  :where(.modal-backdrop){padding:10px}
+  :where(.profile-modal,.modal,.feature-modal,.settings-modal){max-width:100%;max-height:calc(100dvh - 20px);overflow:auto}
+  :where(.account-discovery-row,.friend-row){flex-wrap:wrap}
+}
+@media(prefers-reduced-motion:reduce){
+  :where(.primary,.inline-primary,.account-add-button,.auth-submit){transition:none}
+}

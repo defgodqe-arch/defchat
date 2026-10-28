@@ -18,12 +18,12 @@
       <div class="eyebrow"><span class="pulse"></span> OPEN-SOURCE DOMAIN PROJECT</div>
       <h1>Your name.<br><span>Your corner of the web.</span></h1>
       <p class="intro">A simple home for requesting memorable project addresses. Check a name, prepare a request, and follow its status transparently.</p>
-      <div class="notice"><strong>Honest status:</strong> This is the first registration portal prototype. A parent domain and authorized DNS provider have not been connected yet, so requests do not create live domains or DNS records.</div>
+      <div class="notice"><strong>Setup status:</strong> <code>defchat.net</code> is the proposed parent domain. Its ownership and DNS control have not been verified, and no DNS provider is connected. Requests do not create live domains or DNS records.</div>
     </section>
     <section class="panel" aria-labelledby="check-title">
       <div class="section-head"><div><div class="eyebrow">NAME CHECKER</div><h2 id="check-title">Find your name</h2></div><span class="tag">Prototype</span></div>
       <label for="domain-name">Choose a subdomain name</label>
-      <div class="input-row"><input id="domain-name" autocomplete="off" maxlength="32" placeholder="your-project" spellcheck="false"><span class="suffix">.PARENT-DOMAIN-TBD</span></div>
+      <div class="input-row"><input id="domain-name" autocomplete="off" maxlength="32" placeholder="your-project" spellcheck="false"><span class="suffix">.defchat.net</span></div>
       <p class="hint">Use 3–32 lowercase letters, numbers, or hyphens. Names must start and end with a letter or number.</p>
       <div id="feedback" class="feedback" aria-live="polite">Enter a name to validate its format.</div>
       <label for="target-url">Website destination (optional for initial request)</label>
@@ -38,7 +38,7 @@
       <article><span class="feature-icon">⑂</span><h3>Public audit trail</h3><p>Requests and future registry changes can be reviewed in GitHub.</p></article>
       <article><span class="feature-icon">◇</span><h3>DNS-ready design</h3><p>Built to add a real DNS provider only after the parent domain is authorized.</p></article>
     </section>
-    <section class="bottom-note"><h2>How this becomes real</h2><p>First select a parent domain that you own or are authorized to manage. Then connect its DNS provider, verify destinations, and enable a restricted automation workflow. Until those steps are complete, this site only prepares requests.</p><a href="https://github.com/defgodqe-arch/defchat/tree/main/registry" target="_blank" rel="noreferrer">View registry files ↗</a></section>
+    <section class="bottom-note"><h2>How this becomes real</h2><p>Before issuing any subdomains under <code>defchat.net</code>, the project owner must verify control of that domain, connect an authorized DNS provider, verify destinations, and enable a restricted automation workflow. Until then, this site only prepares requests.</p><a href="https://github.com/defgodqe-arch/defchat/tree/main/registry" target="_blank" rel="noreferrer">View registry files ↗</a></section>
   </main>
   <footer><span>© defchat Domains</span><span>Free to explore · No domain ownership implied</span></footer>
   <script src="./app.js" defer></script>

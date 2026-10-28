@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#101010">
-  <meta name="description" content="defchat Domains — request and manage memorable project subdomains.">
+  <meta name="description" content="defchat Domains — request free project subdomains ending in .net.">
   <title>defchat Domains</title>
   <link rel="stylesheet" href="./styles.css">
 </head>
@@ -17,30 +17,30 @@
     <section class="hero">
       <div class="eyebrow"><span class="pulse"></span> OPEN-SOURCE DOMAIN PROJECT</div>
       <h1>Your name.<br><span>Your corner of the web.</span></h1>
-      <p class="intro">A simple home for requesting memorable project addresses. Check a name, prepare a request, and follow its status transparently.</p>
-      <div class="notice"><strong>Setup status:</strong> <code>defchat.net</code> is the proposed parent domain. Its ownership and DNS control have not been verified, and no DNS provider is connected. Requests do not create live domains or DNS records.</div>
+      <p class="intro">Request a free project hostname ending in .net. Names are reviewed before registration to prevent abuse.</p>
+      <div class="notice"><strong>Free suffix:</strong> This project is configured for <code>.de5.net</code>, a free subdomain suffix offered by DNSHE. That means names look like <code>your-project.de5.net</code> — not <code>your-project.net</code>. Live registration requires the maintainer to configure DNSHE API credentials in GitHub Actions.</div>
     </section>
     <section class="panel" aria-labelledby="check-title">
-      <div class="section-head"><div><div class="eyebrow">NAME CHECKER</div><h2 id="check-title">Find your name</h2></div><span class="tag">Prototype</span></div>
+      <div class="section-head"><div><div class="eyebrow">NAME CHECKER</div><h2 id="check-title">Find your name</h2></div><span class="tag">Free .net suffix</span></div>
       <label for="domain-name">Choose a subdomain name</label>
-      <div class="input-row"><input id="domain-name" autocomplete="off" maxlength="32" placeholder="your-project" spellcheck="false"><span class="suffix">.defchat.net</span></div>
+      <div class="input-row"><input id="domain-name" autocomplete="off" maxlength="32" placeholder="your-project" spellcheck="false"><span class="suffix">.de5.net</span></div>
       <p class="hint">Use 3–32 lowercase letters, numbers, or hyphens. Names must start and end with a letter or number.</p>
       <div id="feedback" class="feedback" aria-live="polite">Enter a name to validate its format.</div>
-      <label for="target-url">Website destination (optional for initial request)</label>
+      <label for="target-url">Website destination (optional)</label>
       <input id="target-url" type="url" placeholder="https://your-project.github.io">
       <label for="reason">What will you use it for?</label>
       <textarea id="reason" rows="3" maxlength="500" placeholder="Tell us briefly about your project."></textarea>
       <button id="request-button" disabled>Prepare registration request <span aria-hidden="true">↗</span></button>
-      <p class="hint">The button opens a GitHub issue draft for review. It does not reserve a name. Do not submit passwords, API keys, or other secrets.</p>
+      <p class="hint">A request opens a GitHub issue. A maintainer must approve it before the protected workflow registers the name. Do not submit passwords, API keys, or other secrets.</p>
     </section>
     <section class="features">
       <article><span class="feature-icon">⌕</span><h3>Clear name rules</h3><p>Catch invalid names before a request is prepared.</p></article>
-      <article><span class="feature-icon">⑂</span><h3>Public audit trail</h3><p>Requests and future registry changes can be reviewed in GitHub.</p></article>
-      <article><span class="feature-icon">◇</span><h3>DNS-ready design</h3><p>Built to add a real DNS provider only after the parent domain is authorized.</p></article>
+      <article><span class="feature-icon">⑂</span><h3>Public audit trail</h3><p>Requests and registration outcomes are tracked in GitHub issues.</p></article>
+      <article><span class="feature-icon">◇</span><h3>Protected automation</h3><p>DNSHE credentials stay in GitHub Actions secrets, never in browser code.</p></article>
     </section>
-    <section class="bottom-note"><h2>How this becomes real</h2><p>Before issuing any subdomains under <code>defchat.net</code>, the project owner must verify control of that domain, connect an authorized DNS provider, verify destinations, and enable a restricted automation workflow. Until then, this site only prepares requests.</p><a href="https://github.com/defgodqe-arch/defchat/tree/main/registry" target="_blank" rel="noreferrer">View registry files ↗</a></section>
+    <section class="bottom-note"><h2>Enable live registration</h2><p>The repository workflow is prepared for DNSHE's domain API. The repository owner must create a DNSHE account, confirm that <code>de5.net</code> is available to that account, and add <code>DNSHE_API_KEY</code> and <code>DNSHE_API_SECRET</code> under GitHub repository Settings → Secrets and variables → Actions. Requests must be reviewed and labeled <code>domain-approved</code> before the workflow registers them.</p><a href="https://github.com/dnshe/DNSHE-FreeDomains" target="_blank" rel="noreferrer">DNSHE free-domain information ↗</a> · <a href="https://github.com/defgodqe-arch/defchat/tree/main/registry" target="_blank" rel="noreferrer">View registry files ↗</a></section>
   </main>
-  <footer><span>© defchat Domains</span><span>Free to explore · No domain ownership implied</span></footer>
+  <footer><span>© defchat Domains</span><span>Free subdomain · Ends in .net · Not a standalone .net registration</span></footer>
   <script src="./app.js" defer></script>
 </body>
 </html>

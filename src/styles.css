@@ -2690,3 +2690,9 @@ body,.app,.chat{background:var(--discord-chat);color:var(--discord-text)}
 .app:has(.discord-friends) .format-toolbar,.app:has(.discord-friends) .composer,.app:has(.discord-friends) .composer-hint,.app:has(.discord-friends) .chat footer{display:none}
 @media(max-width:850px){.active-now{display:none}.friends-main{padding:10px 14px}.friends-top{gap:10px;padding:0 12px}.friends-tabs{gap:2px}.friend-profile{min-width:0;flex:0 1 190px}.friend-preview{display:none}}
 @media(max-width:520px){.rail{width:48px;min-width:48px}.sidebar{width:min(242px,calc(100vw - 48px));min-width:0}.friends-top{flex-wrap:wrap;height:auto;min-height:48px;padding:8px 10px;gap:8px}.friends-tabs button{padding:6px 8px;font-size:12px}.friend-profile{flex:1}.friend-row{gap:6px}.friend-message,.friend-more{width:30px;height:30px;flex-basis:30px}}
+
+/* Sidebar-only color correction: mini logo and Direct Messages icon */
+.rail .logo.mini{background:#ffc83d!important;color:#17130b!important}
+.rail .logo.mini svg{color:#17130b!important;stroke:#17130b!important}
+.rail button.rail-action[title="Direct messages"]{color:#ffc83d!important}
+.rail button.rail-action[title="Direct messages"] svg{color:#ffc83d!important;stroke:#ffc83d!important}

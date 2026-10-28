@@ -2690,3 +2690,10 @@ body,.app,.chat{background:var(--discord-chat);color:var(--discord-text)}
 .app:has(.discord-friends) .format-toolbar,.app:has(.discord-friends) .composer,.app:has(.discord-friends) .composer-hint,.app:has(.discord-friends) .chat footer{display:none}
 @media(max-width:850px){.active-now{display:none}.friends-main{padding:10px 14px}.friends-top{gap:10px;padding:0 12px}.friends-tabs{gap:2px}.friend-profile{min-width:0;flex:0 1 190px}.friend-preview{display:none}}
 @media(max-width:520px){.rail{width:48px;min-width:48px}.sidebar{width:min(242px,calc(100vw - 48px));min-width:0}.friends-top{flex-wrap:wrap;height:auto;min-height:48px;padding:8px 10px;gap:8px}.friends-tabs button{padding:6px 8px;font-size:12px}.friend-profile{flex:1}.friend-row{gap:6px}.friend-message,.friend-more{width:30px;height:30px;flex-basis:30px}}
+
+
+/* Cinder icon accent fix: neon yellow instead of purple */
+:root{--discord-accent:#eaff00;--accent:#eaff00}
+svg{color:#eaff00}
+svg[stroke="#5865f2"],svg[fill="#5865f2"],svg[style*="#5865f2"],svg[style*="rgb(88, 101, 242)"],
+svg[stroke="#8b5cf6"],svg[fill="#8b5cf6"],svg[style*="#8b5cf6"],svg[style*="rgb(139, 92, 246)"]{stroke:#eaff00!important;fill:#eaff00!important;color:#eaff00!important}

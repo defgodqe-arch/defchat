@@ -2706,3 +2706,15 @@ body,.app,.chat{background:var(--discord-chat);color:var(--discord-text)}
 .rail-action,.sidebar button,.main-header button{transition:background .16s ease,color .16s ease,transform .16s ease}
 .rail-action:active,.sidebar button:active,.main-header button:active{transform:scale(.97)}
 @media(prefers-reduced-motion:reduce){.message-row,.rail-action,.sidebar button,.main-header button{transition:none!important}}
+
+.server-customize-card label{display:flex;flex-direction:column;gap:7px;margin:12px 0;color:var(--text,#f4f4f5);font-size:13px;font-weight:600}
+.server-customize-card label input:not([type=color]),.server-customize-card label textarea{width:100%;box-sizing:border-box;border:1px solid var(--border,rgba(255,255,255,.12));border-radius:10px;background:rgba(0,0,0,.18);color:inherit;padding:11px 12px;font:inherit;outline:none}
+.server-customize-card label input:focus,.server-customize-card label textarea:focus{border-color:var(--server-custom-accent,#ffc83d)}
+.server-customize-card label textarea{min-height:72px;resize:vertical}
+.server-customize-grid{display:grid;grid-template-columns:minmax(0,1fr) 100px;gap:12px}
+.server-customize-card input[type=color]{width:100%;height:42px;padding:4px;border-radius:10px;border:1px solid var(--border,rgba(255,255,255,.12));background:rgba(0,0,0,.18)}
+.server-customize-preview{display:flex;align-items:center;gap:12px;padding:13px;border:1px solid color-mix(in srgb,var(--server-custom-accent,#ffc83d) 35%,transparent);border-radius:12px;margin:14px 0;background:color-mix(in srgb,var(--server-custom-accent,#ffc83d) 7%,transparent)}
+.server-customize-preview>span{display:grid;place-items:center;min-width:42px;height:42px;border-radius:12px;background:color-mix(in srgb,var(--server-custom-accent,#ffc83d) 18%,transparent);font-size:23px}
+.server-customize-preview div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.server-customize-preview b{overflow-wrap:anywhere}
+.server-customize-preview small{color:var(--muted,#a1a1aa);overflow-wrap:anywhere}

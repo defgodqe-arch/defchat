@@ -2635,3 +2635,58 @@ body,.app,.chat{background:var(--discord-chat);color:var(--discord-text)}
   .messages{padding-inline:7px}
   .message{margin-inline:-7px;padding-inline:7px}
 }
+
+/* Discord-Clone-inspired Discord layout pass */
+:root{--dc-bg:#313338;--dc-sidebar:#2b2d31;--dc-rail:#1e1f22;--dc-input:#383a40;--dc-text:#f2f3f5;--dc-muted:#b5bac1}
+.app{height:100dvh;min-height:0;overflow:hidden;background:var(--dc-bg);color:var(--dc-text)}
+.rail{width:58px;min-width:58px;background:var(--dc-rail);padding:12px 0;gap:8px}
+.rail .logo.mini{width:38px;height:38px;border-radius:13px;background:#5865f2}
+.rail-action,.server,.add{width:38px;height:38px;min-height:38px;border-radius:12px}
+.sidebar{width:242px;min-width:242px;background:var(--dc-sidebar);color:var(--dc-muted)}
+.server-title{height:48px;min-height:48px;padding:0 14px;border-bottom:1px solid #232428;color:var(--dc-text);font-size:14px}
+.channel-list{padding:10px 8px;overflow:auto}
+.section{padding:12px 7px 7px;font-size:11px;letter-spacing:.2px;color:#949ba4}
+.channel{height:34px;min-height:34px;display:flex;align-items:center;gap:8px;padding:0 9px;border-radius:4px;color:#b5bac1;font-size:14px;text-align:left}
+.channel:hover{background:#35373c;color:#dbdee1}.channel.active{background:#404249;color:#fff}
+.dm-title{margin:0}.dm-title>span{font-size:12px;text-transform:uppercase;color:#b5bac1}
+.user-row{min-height:52px;background:#232428;padding:6px 8px;gap:5px}
+.chat{background:var(--dc-bg);min-width:0;min-height:0}
+.chat>header{height:48px;min-height:48px;background:var(--dc-bg);border-bottom:1px solid #26272b;padding:0 16px;gap:10px}
+.chat>header>b{font-size:15px}
+.messages{background:var(--dc-bg);min-height:0;overscroll-behavior:contain}
+.message{padding:5px 16px;gap:14px}.message:hover{background:#2e3035}
+.composer{background:var(--dc-input);border-radius:8px;border:0;min-height:44px;margin:0 16px 8px}
+.composer input{color:#dbdee1}.composer button{color:#b5bac1}
+.format-toolbar{margin:0 16px;background:var(--dc-input)}
+.composer-hint,.chat footer{display:none}
+.friends-nav{margin:8px 8px 2px;width:calc(100% - 16px);flex-shrink:0}
+.friends-nav svg{color:#b5bac1}
+.discord-friends{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;background:#313338;color:#f2f3f5;overflow:hidden}
+.friends-top{height:48px;min-height:48px;display:flex;align-items:center;gap:20px;padding:0 20px;border-bottom:1px solid #26272b;background:#313338}
+.friends-top>b{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:650}
+.friends-tabs{display:flex;align-items:center;gap:8px;height:100%}
+.friends-tabs button{border:0;border-radius:5px;padding:7px 10px;background:transparent;color:#b5bac1;font-size:14px}
+.friends-tabs button:hover,.friends-tabs button.selected{background:#404249;color:#fff}
+.friends-tabs .add-friend-tab{background:#23a559;color:#fff;font-weight:600}
+.friends-layout{display:flex;flex:1;min-height:0;min-width:0}
+.friends-main{flex:1;min-width:0;overflow:auto;padding:10px 20px;overscroll-behavior:contain}
+.friends-search{height:34px;display:flex;align-items:center;gap:10px;padding:0 10px;border-radius:5px;background:#1e1f22;color:#949ba4}
+.friends-search input{width:100%;border:0;outline:0;background:transparent;color:#dbdee1;font-size:14px}
+.friends-count{margin:20px 0 12px;padding-bottom:12px;border-bottom:1px solid #3f4147;color:#b5bac1;font-size:12px;font-weight:700}
+.friend-row{display:flex;align-items:center;gap:12px;min-height:66px;padding:8px 4px;border-top:1px solid #3f4147}
+.friend-row:hover{background:#2e3035}
+.friend-profile{display:flex;align-items:center;gap:12px;min-width:170px;flex:0 0 230px;text-align:left;border:0;background:transparent;color:#f2f3f5}
+.friend-avatar{position:relative;width:34px;height:34px;flex:0 0 34px;display:grid;place-items:center;border-radius:50%;background:#5865f2;color:white;font-size:11px;overflow:hidden}
+.friend-avatar img{width:100%;height:100%;object-fit:cover}
+.friend-avatar i{position:absolute;right:-1px;bottom:-1px;width:11px;height:11px;border:2px solid #313338;border-radius:50%;background:#23a559}
+.friend-avatar i.is-offline{background:#80848e}
+.friend-profile>span:last-child{display:grid;gap:3px}.friend-profile b{font-size:14px}.friend-profile small{font-size:12px;color:#b5bac1}
+.friend-preview{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#949ba4;font-size:12px}
+.friend-message,.friend-more{width:36px;height:36px;display:grid;place-items:center;flex:0 0 36px;border:0;border-radius:50%;background:#232428;color:#b5bac1}
+.friend-message:hover,.friend-more:hover{background:#1e1f22;color:#fff}
+.active-now{width:300px;flex:0 0 300px;padding:22px 16px;border-left:1px solid #26272b}
+.active-now h3{margin:0 0 14px;font-size:16px}.active-empty{padding:18px 12px;border-radius:8px;background:#2b2d31;text-align:center}
+.active-empty b{font-size:13px}.active-empty p{margin:8px 0 0;color:#b5bac1;font-size:12px;line-height:1.5}.friends-empty{padding:22px 0;color:#b5bac1;font-size:13px}
+.app:has(.discord-friends) .format-toolbar,.app:has(.discord-friends) .composer,.app:has(.discord-friends) .composer-hint,.app:has(.discord-friends) .chat footer{display:none}
+@media(max-width:850px){.active-now{display:none}.friends-main{padding:10px 14px}.friends-top{gap:10px;padding:0 12px}.friends-tabs{gap:2px}.friend-profile{min-width:0;flex:0 1 190px}.friend-preview{display:none}}
+@media(max-width:520px){.rail{width:48px;min-width:48px}.sidebar{width:min(242px,calc(100vw - 48px));min-width:0}.friends-top{flex-wrap:wrap;height:auto;min-height:48px;padding:8px 10px;gap:8px}.friends-tabs button{padding:6px 8px;font-size:12px}.friend-profile{flex:1}.friend-row{gap:6px}.friend-message,.friend-more{width:30px;height:30px;flex-basis:30px}}

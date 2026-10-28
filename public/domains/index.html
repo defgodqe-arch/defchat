@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#101010">
+  <meta name="description" content="defchat Domains — request and manage memorable project subdomains.">
+  <title>defchat Domains</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./"><span class="brand-icon">D</span><span>defchat <span class="muted">Domains</span></span></a>
+    <a class="github-link" href="https://github.com/defgodqe-arch/defchat" target="_blank" rel="noreferrer">View on GitHub ↗</a>
+  </header>
+  <main>
+    <section class="hero">
+      <div class="eyebrow"><span class="pulse"></span> OPEN-SOURCE DOMAIN PROJECT</div>
+      <h1>Your name.<br><span>Your corner of the web.</span></h1>
+      <p class="intro">A simple home for requesting memorable project addresses. Check a name, prepare a request, and follow its status transparently.</p>
+      <div class="notice"><strong>Honest status:</strong> This is the first registration portal prototype. A parent domain and authorized DNS provider have not been connected yet, so requests do not create live domains or DNS records.</div>
+    </section>
+    <section class="panel" aria-labelledby="check-title">
+      <div class="section-head"><div><div class="eyebrow">NAME CHECKER</div><h2 id="check-title">Find your name</h2></div><span class="tag">Prototype</span></div>
+      <label for="domain-name">Choose a subdomain name</label>
+      <div class="input-row"><input id="domain-name" autocomplete="off" maxlength="32" placeholder="your-project" spellcheck="false"><span class="suffix">.PARENT-DOMAIN-TBD</span></div>
+      <p class="hint">Use 3–32 lowercase letters, numbers, or hyphens. Names must start and end with a letter or number.</p>
+      <div id="feedback" class="feedback" aria-live="polite">Enter a name to validate its format.</div>
+      <label for="target-url">Website destination (optional for initial request)</label>
+      <input id="target-url" type="url" placeholder="https://your-project.github.io">
+      <label for="reason">What will you use it for?</label>
+      <textarea id="reason" rows="3" maxlength="500" placeholder="Tell us briefly about your project."></textarea>
+      <button id="request-button" disabled>Prepare registration request <span aria-hidden="true">↗</span></button>
+      <p class="hint">The button opens a GitHub issue draft for review. It does not reserve a name. Do not submit passwords, API keys, or other secrets.</p>
+    </section>
+    <section class="features">
+      <article><span class="feature-icon">⌕</span><h3>Clear name rules</h3><p>Catch invalid names before a request is prepared.</p></article>
+      <article><span class="feature-icon">⑂</span><h3>Public audit trail</h3><p>Requests and future registry changes can be reviewed in GitHub.</p></article>
+      <article><span class="feature-icon">◇</span><h3>DNS-ready design</h3><p>Built to add a real DNS provider only after the parent domain is authorized.</p></article>
+    </section>
+    <section class="bottom-note"><h2>How this becomes real</h2><p>First select a parent domain that you own or are authorized to manage. Then connect its DNS provider, verify destinations, and enable a restricted automation workflow. Until those steps are complete, this site only prepares requests.</p><a href="https://github.com/defgodqe-arch/defchat/tree/main/registry" target="_blank" rel="noreferrer">View registry files ↗</a></section>
+  </main>
+  <footer><span>© defchat Domains</span><span>Free to explore · No domain ownership implied</span></footer>
+  <script src="./app.js" defer></script>
+</body>
+</html>

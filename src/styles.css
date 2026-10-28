@@ -2696,3 +2696,13 @@ body,.app,.chat{background:var(--discord-chat);color:var(--discord-text)}
 .rail .logo.mini svg{color:#17130b!important;stroke:#17130b!important}
 .rail button.rail-action[title="Direct messages"]{color:#ffc83d!important}
 .rail button.rail-action[title="Direct messages"] svg{color:#ffc83d!important;stroke:#ffc83d!important}
+
+
+/* Cinder polish pass: calmer surfaces, cleaner spacing, hidden formatting strip */
+.format-toolbar{display:none!important}
+.composer{border:1px solid rgba(255,200,61,.16);box-shadow:0 8px 28px rgba(0,0,0,.16)}
+.composer:focus-within{border-color:rgba(255,200,61,.48);box-shadow:0 0 0 3px rgba(255,200,61,.08),0 10px 32px rgba(0,0,0,.2)}
+.message-row{transition:background .16s ease,border-color .16s ease}
+.rail-action,.sidebar button,.main-header button{transition:background .16s ease,color .16s ease,transform .16s ease}
+.rail-action:active,.sidebar button:active,.main-header button:active{transform:scale(.97)}
+@media(prefers-reduced-motion:reduce){.message-row,.rail-action,.sidebar button,.main-header button{transition:none!important}}

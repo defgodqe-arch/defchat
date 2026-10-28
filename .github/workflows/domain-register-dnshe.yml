@@ -30,12 +30,12 @@ jobs:
           const registry = JSON.parse(fs.readFileSync('registry/domains.json', 'utf8'));
           if (registry.issuance_enabled !== true) throw new Error('Issuance is disabled. Add DNSHE secrets first, then enable issuance in registry/domains.json.');
           if (registry.parent_domain !== 'de5.net' || registry.dns_provider !== 'DNSHE') throw new Error('Unexpected provider/suffix configuration.');
-          const match = process.env.ISSUE_TITLE.match(/^\\[Domain request\\] ([a-z0-9](?:[a-z0-9-]{1,30}[a-z0-9]))\\.de5\\.net$/);
+          const match = process.env.ISSUE_TITLE.match(/^\[Domain request\] ([a-z0-9](?:[a-z0-9-]{1,30}[a-z0-9]))\.de5\.net$/);
           if (!match) throw new Error('Issue title must exactly match [Domain request] name.de5.net with a valid 3–32 character label.');
           const name = match[1];
           const reserved = new Set(['www','mail','ftp','admin','administrator','api','ns1','ns2','root','support','security','abuse','status','docs','help']);
           if (reserved.has(name)) throw new Error('Requested label is reserved.');
-          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'name=' + name + '\\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'name=' + name + '\n');
           NODE
 
       - name: Check for duplicate successful registration
@@ -74,7 +74,7 @@ jobs:
             throw new Error('DNSHE registration failed (HTTP ' + response.status + ', ' + String(data.error_code || 'provider_error') + '): ' + String(data.message || 'Registration failed').slice(0, 300));
           }
           const fullDomain = data.full_domain || (process.env.DOMAIN_LABEL + '.de5.net');
-          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'full_domain=' + fullDomain + '\\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'full_domain=' + fullDomain + '\n');
           console.log('DNSHE registration succeeded for ' + fullDomain);
           NODE
 
@@ -91,9 +91,9 @@ jobs:
             const domain = process.env.REGISTERED_DOMAIN || '';
             let body;
             if (outcome === 'success' && domain) {
-              body = '<!-- dnshe-registration-success -->\\n## Registration successful\\n\\nDNSHE registered **' + domain + '**. This confirms registration only; it does not confirm that an optional website destination or HTTPS is configured.';
+              body = '<!-- dnshe-registration-success -->\n## Registration successful\n\nDNSHE registered **' + domain + '**. This confirms registration only; it does not confirm that an optional website destination or HTTPS is configured.';
             } else {
-              body = '## Registration not completed\\n\\nThe protected DNSHE registration workflow did not complete successfully. Check the GitHub Actions run logs for the error. Do not post API credentials in this issue.';
+              body = '## Registration not completed\n\nThe protected DNSHE registration workflow did not complete successfully. Check the GitHub Actions run logs for the error. Do not post API credentials in this issue.';
             }
             await github.rest.issues.createComment({ owner, repo, issue_number: context.issue.number, body });
 

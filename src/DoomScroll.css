@@ -107,3 +107,32 @@
 .doom-video-card{border-radius:15px;box-shadow:0 8px 30px rgba(0,0,0,.25)}
 @media(max-width:850px){.video-library-grid{gap:20px 13px;padding:13px}.video-watch-layout{gap:20px}.video-recommendations{gap:10px}}
 @media(max-width:600px){.doom-header{padding-inline:8px;gap:5px}.doom-header>div b{font-size:13px}.video-mode-tabs button{padding:8px 10px}.video-library-grid{gap:16px 10px;padding:10px}.video-library-thumb{border-radius:9px}.video-library-card:hover{transform:none}.video-library-info{gap:7px}.video-library-title{font-size:12px}.video-watch-layout{padding:10px}.video-player-frame{border-radius:9px}.video-recommendations{gap:9px}}
+
+/* VYBE-inspired social video controls */
+.video-feed-tabs{display:flex;gap:8px;padding:12px 22px 0;flex-shrink:0}
+.video-feed-tabs button,.video-social-actions button,.video-watch-meta button{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid #34343a;background:#18181b;color:#e4e4e7;border-radius:999px;padding:8px 12px;cursor:pointer;font:inherit;font-size:12px;transition:background .16s,border-color .16s}
+.video-feed-tabs button.selected{background:#facc15;color:#18181b;border-color:#facc15;font-weight:750}
+.video-social-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.video-social-actions button:hover,.video-watch-meta button:hover{border-color:#facc15}
+.video-social-actions button:disabled,.video-watch-meta button:disabled{opacity:.4;cursor:not-allowed}
+.video-social-actions button.liked,.video-watch-meta button.liked{color:#facc15;border-color:#a16207}
+.doom-video-actions button:disabled{opacity:.35;cursor:not-allowed}
+.doom-comments-backdrop{position:fixed;inset:0;z-index:10002;background:rgba(0,0,0,.64);display:flex;justify-content:flex-end;align-items:stretch}
+.doom-comments-panel{width:min(440px,100%);background:#111113;border-left:1px solid #2e2e33;display:flex;flex-direction:column;min-height:0;box-shadow:-20px 0 60px #0007}
+.doom-comments-panel>header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px;border-bottom:1px solid #2c2c31}
+.doom-comments-panel>header>div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.doom-comments-panel>header small{color:#a1a1aa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:320px}
+.doom-comments-panel>header button,.doom-comment>button{background:transparent;color:#d4d4d8;border:0;padding:8px;cursor:pointer;border-radius:8px}
+.doom-comments-list{flex:1;min-height:0;overflow:auto;padding:10px 14px}
+.doom-comment{display:flex;gap:10px;align-items:flex-start;padding:12px 0;border-bottom:1px solid #252529}
+.doom-comment-avatar{width:32px;height:32px;flex:0 0 32px;border-radius:50%;background:#3f3f46;color:#facc15;display:grid;place-items:center;font-weight:800}
+.doom-comment-body{flex:1;min-width:0}
+.doom-comment-body b{font-size:13px;color:#fafafa}
+.doom-comment-body p{margin:5px 0 6px;white-space:pre-wrap;overflow-wrap:anywhere;color:#e4e4e7;font-size:14px}
+.doom-comment-body small{font-size:11px;color:#a1a1aa}
+.doom-comments-empty{padding:30px 12px;display:flex;align-items:center;justify-content:center;gap:8px;color:#a1a1aa;text-align:center}
+.doom-comment-form{display:flex;gap:8px;padding:12px;border-top:1px solid #2c2c31;padding-bottom:max(12px,env(safe-area-inset-bottom))}
+.doom-comment-form input{flex:1;min-width:0;background:#202024;border:1px solid #3f3f46;color:#fff;border-radius:12px;padding:12px;font:inherit}
+.doom-comment-form button{width:42px;border:0;border-radius:12px;background:#facc15;color:#18181b;display:grid;place-items:center;cursor:pointer}
+.doom-comment-form button:disabled{opacity:.45;cursor:not-allowed}
+@media(max-width:640px){.video-feed-tabs{padding:10px 12px 0}.video-feed-tabs button{flex:1;padding:9px 6px}.video-social-actions{gap:5px}.video-social-actions button{padding:7px 9px}.doom-comments-panel{width:100%;border-left:0}.video-watch-meta{flex-wrap:wrap}.doom-header{gap:6px;padding:0 9px}.doom-header small{display:none}.video-mode-tabs button{padding:7px 8px!important}}

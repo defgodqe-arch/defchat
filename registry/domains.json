@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "parent_domain": null,
+  "dns_provider": null,
+  "issuance_enabled": false,
+  "domains": []
+}

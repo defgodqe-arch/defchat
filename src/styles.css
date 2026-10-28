@@ -2425,3 +2425,213 @@ button:focus-visible,.channel:focus-visible,.rail-action:focus-visible,.server:f
 .asset-preview{transition:border-color .15s,background .15s}
 .asset-preview:hover{border-color:#77704a;background:#202026}
 .asset-library-empty{margin:0 20px 18px;padding:22px;text-align:center;color:#a1a1aa;border:1px dashed #45454e;border-radius:12px;font-size:12px}
+
+
+/* Discord-Clone (yajatkaul) visual reference pass.
+   Preserve Cinder features and brand accents while matching Discord's compact dark workspace geometry. */
+:root{
+  --discord-rail:#1e1f22;
+  --discord-sidebar:#2b2d31;
+  --discord-chat:#313338;
+  --discord-raised:#383a40;
+  --discord-hover:#404249;
+  --discord-selected:#404249;
+  --discord-line:#26272b;
+  --discord-muted:#949ba4;
+  --discord-text:#dbdee1;
+  --discord-accent:#5865f2;
+  --dc-bg:var(--discord-chat);
+  --dc-panel:var(--discord-sidebar);
+  --dc-panel-raised:var(--discord-raised);
+  --dc-panel-hover:var(--discord-hover);
+  --dc-text:#f2f3f5;
+  --dc-muted:var(--discord-muted);
+}
+body,.app,.chat{background:var(--discord-chat);color:var(--discord-text)}
+.rail{
+  flex:0 0 72px;width:72px;background:var(--discord-rail);
+  border-right:0;padding:12px 0;gap:8px;
+}
+.rail .logo.mini{
+  width:48px;height:48px;flex:0 0 48px;border-radius:16px;
+  background:#5865f2;color:#fff;margin:0;
+}
+.rail .logo.mini:hover{border-radius:16px}
+.rail .line{width:32px;flex:0 0 1px;background:#3f4147;margin:2px 0}
+.rail-action,.server,.add{
+  width:48px;height:48px;min-width:48px;min-height:48px;
+  flex:0 0 48px;border-radius:50%;box-shadow:none;
+  background:#313338;color:#dbdee1;
+}
+.rail-action:hover,.server:hover,.add:hover{
+  transform:none;box-shadow:none;border-radius:16px;background:#5865f2;color:#fff;
+}
+.rail-action.rail-active{border-radius:16px;background:#5865f2;color:#fff}
+.rail-action.asset-library-rail-button,.rail-action.shop-rail-button,.rail-action.astral-rail-button{color:#b5bac1}
+.rail-action.asset-library-rail-button:hover,.rail-action.shop-rail-button:hover,.rail-action.astral-rail-button:hover{color:#fff}
+.server{font-size:12px;border-radius:16px}
+.server.selected{border-radius:16px;outline:0;background:#5865f2!important;color:#fff}
+.server.selected:before{left:-12px;top:10px;height:28px;width:4px;background:#f2f3f5}
+.add{background:#313338;color:#23a559}
+.add:hover{background:#23a559;color:#fff}
+.sidebar{
+  flex:0 0 240px;width:240px;background:var(--discord-sidebar);
+  color:var(--discord-text);border-right:0;
+}
+.server-title{
+  height:48px;min-height:48px;flex:0 0 48px;padding:0 16px;
+  background:var(--discord-sidebar);border-bottom:1px solid #232428;
+  box-shadow:0 1px 0 #00000012;font-size:15px;letter-spacing:0;
+}
+.server-title:hover{background:#35373c}
+.channel-list{padding:16px 8px 10px;gap:0}
+.section{
+  padding:0 8px 8px;color:#949ba4;font-size:11px;
+  letter-spacing:.02em;font-weight:700;
+}
+.section button{opacity:0;color:#b5bac1}
+.section:hover button{opacity:1}
+.channel{
+  display:flex;gap:6px;min-height:34px;margin:1px 0;padding:6px 8px;
+  border-radius:4px;color:#949ba4;font-size:14px;font-weight:500;
+}
+.channel>svg{width:20px;height:20px;flex:0 0 20px;color:#80848e}
+.channel:hover{background:#35373c;color:#dbdee1}
+.channel.active{
+  background:#404249;color:#fff;box-shadow:none;
+}
+.channel.active svg{color:#dbdee1}
+.channel .avatar{border-radius:50%}
+.dm-sidebar-username{font-weight:500}
+.unread-badge{background:#f23f43;color:#fff;border-radius:8px;padding:1px 5px;font-size:10px}
+.user-row{
+  min-height:53px;padding:8px;background:#232428;border-top:0;
+  gap:7px;flex:0 0 auto;
+}
+.user-row .avatar{box-shadow:none}
+.user-row .user-label{font-size:12px;gap:2px}
+.user-row .user-label small{font-size:10px;color:#b5bac1}
+.user-row .voice-control{width:30px;height:34px;display:grid;place-items:center;border-radius:4px;color:#b5bac1}
+.user-row .voice-control:hover{background:#35373c;color:#fff}
+.user-row .profile-open{gap:8px}
+.chat{min-width:0;background:var(--discord-chat)}
+.chat>header{
+  height:48px;min-height:48px;flex:0 0 48px;padding:0 16px;gap:10px;
+  background:var(--discord-chat);border-bottom:1px solid #26272b;box-shadow:none;
+}
+.chat>header>svg{width:24px;height:24px;color:#80848e}
+.chat>header>b{font-size:15px;font-weight:650;letter-spacing:0;color:#f2f3f5}
+.header-divider{height:24px;width:1px;background:#3f4147;margin:0 2px}
+.chat>header .live{font-size:0;color:#23a559}
+.chat>header .live i{display:inline-block;width:8px;height:8px;border-radius:50%;background:#23a559}
+.chat>header .spacer{flex:1}
+.header-action{
+  width:32px;height:32px;min-width:32px;display:grid;place-items:center;
+  border:0;border-radius:4px;background:transparent;color:#b5bac1;position:relative;
+}
+.header-action:hover{background:#404249;color:#fff;box-shadow:none}
+.header-action:disabled{opacity:.3}
+.notification-count{position:absolute;right:-3px;top:-3px;min-width:15px;height:15px;border:2px solid var(--discord-chat);border-radius:8px;background:#f23f43;color:#fff;font-size:9px;line-height:11px}
+.messages{
+  flex:1 1 0;min-height:0;overflow-y:auto;overflow-x:hidden;
+  padding:16px 16px 24px;background:var(--discord-chat);
+  scrollbar-color:#1a1b1e #2b2d31;scrollbar-width:thin;
+}
+.welcome{
+  padding:0 0 20px;margin:0 0 12px;border-bottom:1px solid #3f4147;
+}
+.welcome>div:first-child{
+  width:68px;height:68px;margin-bottom:16px;border-radius:50%;
+  display:grid;place-items:center;background:#41434a;color:#fff;
+}
+.welcome h2{font-family:Inter,system-ui,sans-serif;font-size:30px;letter-spacing:-.6px;color:#f2f3f5;margin:0 0 8px}
+.welcome p{font-size:14px;line-height:1.5;color:#b5bac1}
+.message{
+  position:relative;display:flex;gap:16px;margin:0 -16px;padding:2px 16px 3px;
+  border:0;border-radius:0;background:transparent;
+}
+.message:hover{background:#2e3035;border-color:transparent}
+.message .avatar,.message-author-avatar .avatar{width:40px;height:40px}
+.message-author-avatar{width:40px;height:40px;flex:0 0 40px;border:0;background:transparent;padding:0;border-radius:50%}
+.message-body{flex:1;min-width:0}
+.message .meta{gap:8px;align-items:center;margin:0 0 2px;min-height:22px}
+.message .meta b,.message-author-name{font-size:16px;font-weight:600;letter-spacing:0}
+.message .meta time{font-size:12px;color:#949ba4}
+.message-content,.message p{font-size:15px;line-height:1.375;color:#dbdee1;overflow-wrap:anywhere}
+.message-tools{top:-12px;right:12px;background:#313338;border:1px solid #202126;border-radius:8px;padding:4px;box-shadow:0 4px 12px #0004}
+.message-tools button{width:30px;height:30px;color:#b5bac1}
+.message-tools button:hover{background:#404249;color:#fff}
+.reply-reference{border-left-color:#4e5058;color:#b5bac1}
+.reactions .reaction,.reaction{background:#2b2d31;border:1px solid #3f4147;color:#dbdee1;border-radius:8px}
+.reactions .reaction.mine,.reaction.mine{background:#404b87;border-color:#5865f2}
+.composer{
+  flex:0 0 auto;min-height:44px;margin:0 16px 8px;padding:4px 8px;gap:8px;
+  background:#383a40;border:0;border-radius:8px;box-shadow:none;
+}
+.composer:focus-within{border:0;box-shadow:none}
+.composer input{
+  flex:1;min-width:0;background:transparent;color:#dbdee1;
+  font-size:15px;line-height:1.4;padding:8px 2px;
+}
+.composer input::placeholder{color:#949ba4}
+.composer-extra,.composer button[type="submit"],.composer>button:last-child{
+  width:32px;min-width:32px;height:32px;min-height:32px;flex:0 0 32px;
+  border:0;border-radius:50%;background:transparent;color:#b5bac1;
+}
+.composer-extra:hover{background:#404249;color:#fff}
+.composer button[type="submit"],.composer>button:last-child{background:transparent;color:#b5bac1}
+.composer button[type="submit"]:hover,.composer>button:last-child:hover{background:#404249;color:#fff}
+.format-toolbar{
+  display:flex;align-items:center;gap:3px;margin:0 16px 6px;padding:3px 6px;
+  background:#383a40;border:0;border-radius:8px;
+}
+.format-toolbar-label{font-size:11px;color:#949ba4;padding:0 7px}
+.format-toolbar button{width:28px;min-width:28px;height:28px;min-height:28px;color:#b5bac1;background:transparent}
+.format-toolbar button:hover{background:#404249;color:#fff}
+.format-toolbar-hint{font-size:11px;color:#949ba4;margin-left:auto;padding-right:8px}
+.composer-hint{display:none}
+.chat>footer{padding:7px 12px 8px;color:#949ba4;font-size:11px;background:var(--discord-chat)}
+.chat>footer b{color:#c9cdd2}
+.typing-indicator{color:#b5bac1;padding:0 18px 5px;font-size:12px}
+.mention-suggestions,.emoji-picker{background:#2b2d31;border:1px solid #202126;box-shadow:0 12px 32px #0005}
+.message-search{background:#383a40;border:0;border-radius:6px}
+.message-search input{font-size:14px}
+.error{margin:4px 12px;background:#5d2024;color:#f2b8bc}
+.modal-backdrop{background:#000b;backdrop-filter:blur(4px)}
+.modal-backdrop>section{background:#313338;border:1px solid #202126;border-radius:8px;box-shadow:0 8px 32px #0006}
+.primary{background:#5865f2;color:#fff}
+.primary:hover:not(:disabled){background:#4752c4}
+.secondary-button{background:#2b2d31;border-color:#202126;color:#dbdee1;border-radius:4px}
+.secondary-button:hover{background:#404249}
+@media(min-width:1000px){
+  .messages{padding-left:32px;padding-right:32px}
+  .message{margin-left:-32px;margin-right:-32px;padding-left:32px;padding-right:32px}
+}
+@media(max-width:700px){
+  .rail{width:52px;flex-basis:52px;padding:8px 0;gap:6px}
+  .rail .logo.mini,.rail-action,.server,.add{width:38px;height:38px;min-width:38px;min-height:38px;flex-basis:38px}
+  .sidebar{width:min(240px,calc(100vw - 52px));max-width:calc(100vw - 52px)}
+  .chat>header{height:48px;min-height:48px;flex-basis:48px;padding:0 9px;gap:6px}
+  .chat>header .header-divider,.chat>header .live{display:none}
+  .header-action{width:29px;min-width:29px;height:29px}
+  .messages{padding:12px 10px 18px}
+  .message{margin:0 -10px;padding:5px 10px;gap:10px}
+  .message-author-avatar,.message .avatar{width:34px;height:34px;flex-basis:34px}
+  .message .meta{flex-wrap:wrap;gap:5px}
+  .message .meta b,.message-author-name{font-size:14px}
+  .message-content,.message p{font-size:14px}
+  .composer{margin:0 8px 6px;padding:4px;gap:3px}
+  .format-toolbar{margin:0 8px 5px}
+  .format-toolbar-hint{display:none}
+  .chat>footer{font-size:10px;padding-bottom:max(7px,env(safe-area-inset-bottom))}
+}
+@media(max-width:420px){
+  .rail{width:46px;flex-basis:46px}
+  .rail .logo.mini,.rail-action,.server,.add{width:34px;height:34px;min-width:34px;min-height:34px;flex-basis:34px}
+  .sidebar{width:calc(100vw - 46px);max-width:calc(100vw - 46px)}
+  .chat>header{padding:0 6px}
+  .chat>header>b{max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .header-action{width:26px;min-width:26px;height:28px}
+  .messages{padding-inline:7px}
+  .message{margin-inline:-7px;padding-inline:7px}
+}

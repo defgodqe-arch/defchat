@@ -4,7 +4,7 @@
   const reasonInput = document.getElementById('reason');
   const feedback = document.getElementById('feedback');
   const requestButton = document.getElementById('request-button');
-  const parentDomain = 'defchat.net';
+  const parentDomain = 'de5.net';
   const reserved = new Set(['www','mail','ftp','admin','administrator','api','ns1','ns2','root','support','security','abuse','status','docs','help']);
   const pattern = /^(?=.{3,32}$)[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
   function validate() {
@@ -15,7 +15,7 @@
     if (name) {
       if (!pattern.test(name)) message = 'Use 3–32 lowercase letters, numbers or hyphens. Do not start or end with a hyphen.';
       else if (reserved.has(name)) message = 'That name is reserved for infrastructure or safety.';
-      else { message = 'Name format looks valid. Availability and DNS ownership for ' + parentDomain + ' have not been verified.'; valid = true; }
+      else { message = 'Name format looks valid. Availability must be checked by DNSHE when the request is approved.'; valid = true; }
     }
     feedback.textContent = message;
     feedback.className = 'feedback' + (valid ? ' good' : (name ? ' bad' : ''));
@@ -44,16 +44,16 @@
       '## Domain request',
       '',
       '- Requested hostname: `' + name + '.' + parentDomain + '`',
-      '- Proposed destination: ' + (target || '(not supplied)'),
+      '- Proposed website destination: ' + (target || '(not supplied)'),
       '- Purpose: ' + (reason || '(not supplied)'),
       '',
-      '## Verification',
-      '- [ ] Requester controls the destination',
-      '- [ ] Name is available in the authoritative registry',
-      '- [ ] Ownership/control of ' + parentDomain + ' is verified',
-      '- [ ] DNS provider is configured and authorized',
+      '## Maintainer checklist',
+      '- [ ] Request is legitimate and follows provider policy',
+      '- [ ] Destination is controlled by requester (if supplied)',
+      '- [ ] Name is available under DNSHE account quota',
+      '- [ ] Apply the `domain-approved` label to register it',
       '',
-      '**Note:** This request is not a reservation. ' + parentDomain + ' is the proposed parent domain, but ownership and DNS configuration have not been verified by this project.'
+      '**Important:** This request is not a reservation. The hostname ends in .de5.net, a free provider suffix; it is not a standalone .net domain. Registration requires the repository maintainer to configure DNSHE API secrets.'
     ].join('\n');
     const url = 'https://github.com/defgodqe-arch/defchat/issues/new?title=' + encodeURIComponent(title) + '&body=' + encodeURIComponent(body) + '&labels=' + encodeURIComponent('domain-request');
     window.open(url, '_blank', 'noopener,noreferrer');

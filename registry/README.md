@@ -1,14 +1,14 @@
 # Domain registry
 
-This directory is the source of truth for domain records. The initial registry is intentionally empty and has no parent domain configured.
+This directory is the source of truth for domain records.
 
 ## Current state
 
-- `parent_domain`: `null`
+- `parent_domain`: `defchat.net` (proposed; ownership/control not verified here)
 - `dns_provider`: `null`
 - `issuance_enabled`: `false`
 
-Do not enable issuance until the project has documented authorization to manage DNS for a real parent domain and has configured provider credentials as GitHub Actions secrets.
+Naming a parent domain in this registry does not prove ownership or grant DNS authority. Do not enable issuance until the project owner has verified control of `defchat.net`, connected an authorized DNS provider, and stored provider credentials as GitHub Actions secrets.
 
 ## Record policy
 

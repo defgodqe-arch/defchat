@@ -27,6 +27,8 @@ export default function VoiceCall({ db, user, peer }) {
   const [cameraOff, setCameraOff] = useState(false);
   const [error, setError] = useState('');
   const [audioNeedsTap, setAudioNeedsTap] = useState(false);
+  const [showDiagnostics,setShowDiagnostics]=useState(false);
+  const [connectionStats,setConnectionStats]=useState({state:'new',rtt:null,jitter:null,packetsLost:null,bitrate:null});
   const pcRef = useRef(null);
   const streamRef = useRef(null);
   const remoteStreamRef = useRef(null);
@@ -228,6 +230,28 @@ export default function VoiceCall({ db, user, peer }) {
     }
   }, [call, incoming]);
 
+  useEffect(() => {
+    if (!call?.id) { setConnectionStats({state:'new',rtt:null,jitter:null,packetsLost:null,bitrate:null}); return; }
+    let alive=true,previousBytes=null,previousAt=null;
+    const sample=async()=>{
+      const pc=pcRef.current;
+      if(!pc||!alive)return;
+      const next={state:pc.connectionState||'connecting',rtt:null,jitter:null,packetsLost:null,bitrate:null};
+      try{
+        const stats=await pc.getStats();
+        let bytes=0,lost=0,received=0;
+        stats.forEach(report=>{
+          if(report.type==='candidate-pair'&&(report.selected||report.nominated&&report.state==='succeeded')&&report.currentRoundTripTime!=null)next.rtt=Math.round(report.currentRoundTripTime*1000);
+          if(report.type==='inbound-rtp'&&!report.isRemote){if(report.kind==='audio'||report.mediaType==='audio'){if(report.jitter!=null)next.jitter=Math.round(report.jitter*1000)}lost+=Number(report.packetsLost||0);received+=Number(report.packetsReceived||0);bytes+=Number(report.bytesReceived||0)}
+        });
+        next.packetsLost=lost+received?Math.round(lost/(lost+received)*1000)/10:0;
+        const now=Date.now();if(previousBytes!=null&&previousAt!=null&&now>previousAt)next.bitrate=Math.round((bytes-previousBytes)*8/((now-previousAt)*1000));previousBytes=bytes;previousAt=now;
+      }catch{}
+      if(alive)setConnectionStats(next);
+    };
+    sample();const timer=setInterval(sample,2000);
+    return()=>{alive=false;clearInterval(timer)};
+  },[call?.id]);
   if (!incoming && !call && !busy && !error) return null;
   const panelStyle = { position: 'fixed', zIndex: 10000, right: 22, bottom: 22, width: 'min(430px, calc(100vw - 28px))', maxHeight: 'calc(100vh - 36px)', overflow: 'auto', padding: 20, borderRadius: 20, background: '#15161b', color: '#f8fafc', border: '1px solid #353741', boxShadow: '0 20px 70px #0009', fontFamily: 'inherit' };
   const actionStyle = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, border: 0, borderRadius: 12, padding: '11px 14px', cursor: 'pointer', fontWeight: 700, color: '#fff' };
@@ -239,6 +263,13 @@ export default function VoiceCall({ db, user, peer }) {
     </div>
     {error && <p role="alert" style={{ color: '#fca5a5', fontSize: 13 }}>{error}</p>}
     {audioNeedsTap && call && <button onClick={() => remoteAudioRef.current?.play().then(() => setAudioNeedsTap(false)).catch(() => setError('Your browser is blocking audio playback. Check the tab audio setting and try again.'))} style={{ ...actionStyle, width: '100%', marginBottom: 12, background: '#4f46e5' }}>Tap to enable sound</button>}
+    {call && <div style={{ marginTop: 12 }}>
+      <button type="button" onClick={()=>setShowDiagnostics(v=>!v)} aria-expanded={showDiagnostics} style={{ ...actionStyle, width:'100%', background:'#24252c', border:'1px solid #3b3c45', fontSize:12, padding:'9px 12px' }}>{showDiagnostics?'Hide':'Show'} connection inspector · {connectionStats.state}</button>
+      {showDiagnostics&&<div style={{ marginTop:8,padding:12,borderRadius:12,background:'#101115',border:'1px solid #30313a',display:'grid',gridTemplateColumns:'repeat(2,minmax(0,1fr))',gap:10 }}>
+        {[['Connection',connectionStats.state],['Round-trip',connectionStats.rtt==null?'—':connectionStats.rtt+' ms'],['Audio jitter',connectionStats.jitter==null?'—':connectionStats.jitter+' ms'],['Packet loss',connectionStats.packetsLost==null?'—':connectionStats.packetsLost+'%'],['Inbound bitrate',connectionStats.bitrate==null?'—':connectionStats.bitrate+' kbps']].map(([label,value])=><div key={label} style={{display:'grid',gap:3}}><span style={{fontSize:10,color:'#a1a1aa'}}>{label}</span><b style={{fontSize:12,overflowWrap:'anywhere'}}>{value}</b></div>)}
+        <p style={{gridColumn:'1 / -1',margin:0,fontSize:10,color:'#a1a1aa',lineHeight:1.5}}>Backspace-inspired call diagnostics. Values are measured from this peer-to-peer call; some browsers do not expose every metric.</p>
+      </div>}
+    </div>}
     {call?.video && <div style={{ position: 'relative', background: '#09090b', borderRadius: 14, overflow: 'hidden', aspectRatio: '16 / 9', marginBottom: 14 }}>
       <video ref={remoteVideoRef} autoPlay muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }}/>
       <video ref={localVideoRef} autoPlay muted playsInline style={{ position: 'absolute', width: 96, height: 72, right: 10, bottom: 10, objectFit: 'cover', borderRadius: 10, background: '#27272a' }}/>

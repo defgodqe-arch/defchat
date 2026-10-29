@@ -185,8 +185,19 @@ def process_local(payload: ClipRequest, request: Request):
         raise HTTPException(400, "Unsupported aspect ratio.")
     if payload.captionStyle not in ("bold", "minimal", "karaoke"):
         raise HTTPException(400, "Unsupported caption style.")
-    if payload.jobId in _jobs and _jobs[payload.jobId].get("status") == "processing":
-        return {"jobId": payload.jobId, "status": "processing", "clips": []}
+    job_record = {
+        "id": payload.jobId, "user_id": payload.userId, "status": "processing",
+        "source_type": payload.sourceType, "source_url": payload.sourceUrl if payload.sourceType == "url" else None,
+        "clip_length": payload.clipLength, "clip_count": payload.clipCount,
+        "aspect_ratio": payload.aspectRatio, "caption_style": payload.captionStyle
+    }
+    created = requests.post(
+        f"{SUPABASE_URL}/rest/v1/clip_jobs",
+        headers={**admin_headers(), "Content-Type": "application/json", "Prefer": "return=minimal"},
+        json=job_record, timeout=30
+    )
+    if created.status_code not in (200, 201, 204):
+        raise HTTPException(502, "Could not create the clip job in Supabase: " + created.text[:300])
     _jobs[payload.jobId] = {"status": "processing"}
     threading.Thread(target=process, args=(payload.model_dump(),), daemon=True).start()
     return {"jobId": payload.jobId, "status": "processing", "clips": []}

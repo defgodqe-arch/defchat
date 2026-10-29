@@ -92,7 +92,9 @@ function ClipStudio() {
         const count = Math.min(maxClips, Math.max(1, Math.ceil(seconds / Math.max(duration * 4, 120))));
         const windows = [];
         for (let i = 0; i < count; i++) {
-          const start = Math.max(0, Math.min(Math.max(0, seconds - duration), Math.round((seconds - duration) * (count === 1 ? .5 : i / (count - 1))));
+          const latestStart = Math.max(0, seconds - duration);
+          const position = count === 1 ? 0.5 : i / (count - 1);
+          const start = Math.round(latestStart * position);
           windows.push({ id: i + 1, start, end: Math.min(seconds, start + duration), title: 'Candidate ' + (i + 1), score: null });
         }
         setJob({ localOnly: true, duration: seconds, candidates: windows });

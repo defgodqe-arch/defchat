@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { FFmpeg } from '@ffmpeg/ffmpeg';
+import { toBlobURL } from '@ffmpeg/util';
 import { ArrowLeft, Upload, Link2, Sparkles, Scissors, Captions, Download, ExternalLink, Film, LoaderCircle, Play, X, Clock3, AlertCircle, CheckCircle2, Settings2 } from 'lucide-react';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://jklhnhnxyzqjvmqgfpjs.supabase.co';
@@ -31,6 +33,7 @@ export default function ClipStudio({ onClose, db: supabase }) {
   const [duration, setDuration] = useState(0);
   const [clips, setClips] = useState([]);
   const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [clipLength, setClipLength] = useState('30');
@@ -57,6 +60,7 @@ export default function ClipStudio({ onClose, db: supabase }) {
   }
 
   function resetResults() {
+    clips.forEach(clip => { if (clip.videoUrl && clip.videoUrl.startsWith('blob:')) URL.revokeObjectURL(clip.videoUrl); });
     setClips([]);
     setActiveClip(null);
     setError('');
@@ -64,79 +68,49 @@ export default function ClipStudio({ onClose, db: supabase }) {
   }
 
   async function analyze() {
-    setError(''); setNotice(''); setClips([]); setActiveClip(null);
-    if (mode === 'link' && !source) { setError('Paste a valid YouTube, Vimeo, or Twitch URL first.'); return; }
-    if (mode === 'upload' && !file) { setError('Choose a video file from your device first.'); return; }
-    if (mode === 'upload' && file.size > 1024 * 1024 * 1024) { setError('This upload is larger than 1 GB. Choose a smaller video for now.'); return; }
+    setError(''); setNotice(''); setClips([]); setActiveClip(null); setProgress(0);
+    if (mode === 'link') { setError('To keep processing free and inside defchat, switch to Upload video. Video-platform links cannot be downloaded reliably from a browser.'); return; }
+    if (!file) { setError('Choose a video file from your device first.'); return; }
+    if (file.size > 500 * 1024 * 1024) { setError('Choose a video smaller than 500 MB for browser-based processing.'); return; }
+    if (!Number.isFinite(duration) || duration < 1) { setError('Wait for the video preview to load its duration, then try again.'); return; }
     setBusy(true);
+    let ffmpeg;
     try {
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      const session = sessionData?.session;
-      if (sessionError || !session?.access_token || !session.user?.id) throw new Error('Sign in to defchat first. Clip Studio uses your Supabase account to protect your videos.');
-      const requestBody = {
-        sourceType: mode === 'link' ? 'url' : 'upload',
-        url: mode === 'link' ? sourceUrl.trim() : undefined,
-        clipLength: Number(clipLength), clipCount: Number(clipCount),
-        aspectRatio: aspect, captionStyle: captionStyle === 'boxed' ? 'bold' : captionStyle
-      };
-      if (mode === 'upload') {
-        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-100) || 'video.mp4';
-        const sourcePath = session.user.id + '/' + crypto.randomUUID() + '-' + safeName;
-        const { error: uploadError } = await supabase.storage.from('clip-studio').upload(sourcePath, file, {
-          contentType: file.type || 'video/mp4', cacheControl: '3600', upsert: false
-        });
-        if (uploadError) throw new Error('Could not upload your video to Supabase Storage: ' + uploadError.message);
-        requestBody.sourcePath = sourcePath;
+      setNotice('Loading the free video engine into your browser. The first load may take a minute…');
+      ffmpeg = new FFmpeg();
+      ffmpeg.on('progress', ({ progress: value }) => { const percent = Math.max(0, Math.min(100, Math.round((Number(value) || 0) * 100))); setProgress(percent); setNotice('Rendering clips in your browser… ' + percent + '%'); });
+      const base = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd';
+      await ffmpeg.load({ coreURL: await toBlobURL(base + '/ffmpeg-core.js', 'text/javascript'), wasmURL: await toBlobURL(base + '/ffmpeg-core.wasm', 'application/wasm') });
+      setNotice('Preparing your video in this browser…');
+      const extMatch = file.name.match(/\.[a-zA-Z0-9]{1,8}$/);
+      const inputName = 'defchat-input-' + Date.now() + (extMatch ? extMatch[0] : '.mp4');
+      await ffmpeg.writeFile(inputName, new Uint8Array(await file.arrayBuffer()));
+      const seconds = Number(clipLength);
+      const count = Math.min(Number(clipCount), Math.max(1, Math.ceil(duration / seconds)));
+      const maxStart = Math.max(0, duration - seconds);
+      const starts = count === 1 ? [0] : Array.from({ length: count }, (_, i) => Math.round((maxStart * i / (count - 1)) * 100) / 100);
+      const dims = aspect === '9:16' ? [720, 1280] : aspect === '1:1' ? [720, 720] : [1280, 720];
+      const generated = [];
+      for (let i = 0; i < starts.length; i++) {
+        const outputName = 'defchat-clip-' + (i + 1) + '-' + Date.now() + '.mp4';
+        const startAt = starts[i];
+        const actualLength = Math.max(1, Math.min(seconds, duration - startAt));
+        const filter = 'scale=' + dims[0] + ':' + dims[1] + ':force_original_aspect_ratio=increase,crop=' + dims[0] + ':' + dims[1];
+        setNotice('Rendering clip ' + (i + 1) + ' of ' + starts.length + ' in your browser…');
+        const exitCode = await ffmpeg.exec(['-ss', String(startAt), '-i', inputName, '-t', String(actualLength), '-vf', filter, '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '27', '-c:a', 'aac', '-b:a', '128k', '-movflags', '+faststart', '-y', outputName]);
+        if (exitCode !== 0) throw new Error('FFmpeg could not render this clip. Try an MP4 with H.264 video and AAC audio.');
+        const data = await ffmpeg.readFile(outputName);
+        if (!data || !data.length) throw new Error('The browser video engine returned an empty clip. Try a shorter MP4.');
+        const url = URL.createObjectURL(new Blob([data], { type: 'video/mp4' }));
+        generated.push({ id: outputName, title: 'Clip ' + (i + 1), start: startAt, end: startAt + actualLength, caption: '', videoUrl: url, downloadUrl: url, thumbnailUrl: '' });
+        await ffmpeg.deleteFile(outputName).catch(() => {});
+        setProgress(Math.round(((i + 1) / starts.length) * 100));
       }
-      let processorSource = requestBody.url || '';
-      if (mode === 'upload') {
-        const { data: signedData, error: signedError } = await supabase.storage.from('clip-studio').createSignedUrl(requestBody.sourcePath, 60 * 60);
-        if (signedError || !signedData?.signedUrl) throw new Error('Could not create a temporary link for your uploaded video: ' + (signedError?.message || 'No signed URL returned.'));
-        processorSource = signedData.signedUrl;
-      }
-      const jobId = crypto.randomUUID();
-      let response;
-      try {
-        response = await fetch('http://localhost:8765/process-local', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            jobId, userId: session.user.id, sourceType: requestBody.sourceType,
-            sourceUrl: processorSource, clipLength: Number(clipLength), clipCount: Number(clipCount),
-            aspectRatio: aspect, captionStyle: requestBody.captionStyle,
-            output: { bucket: 'clip-studio', prefix: session.user.id + '/' + jobId + '/' }
-          })
-        });
-      } catch {
-        throw new Error('The free local processor is not running. Start clip-processor/start-windows.bat, then retry.');
-      }
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(payload.detail || payload.error || 'The local clip processor could not accept this video.');
-      let results = Array.isArray(payload.clips) ? payload.clips : Array.isArray(payload.results) ? payload.results : [];
-      if (!results.length && payload.jobId) {
-        setNotice('Your video is queued. AI is transcribing, finding highlights, adding captions, and rendering MP4 clips…');
-        const deadline = Date.now() + 15 * 60 * 1000;
-        while (Date.now() < deadline) {
-          await new Promise(resolve => window.setTimeout(resolve, 5000));
-          const { data: job, error: jobError } = await supabase.from('clip_jobs')
-            .select('status, clips, error_message')
-            .eq('id', payload.jobId)
-            .maybeSingle();
-          if (jobError) throw new Error('The processor is running, but the job status could not be read: ' + jobError.message);
-          if (job?.status === 'completed' && Array.isArray(job.clips) && job.clips.length) { results = job.clips; break; }
-          if (job?.status === 'failed') throw new Error(job.error_message || 'The video processor could not finish this job.');
-          setNotice('AI processing is still running… This can take several minutes for a long video.');
-        }
-      }
-      if (!results.length) { setNotice('Your clip job is still processing. Keep this window open and try again shortly if it takes longer than 15 minutes.'); return; }
-      setClips(results.map((clip, index) => ({
-        id: clip.id || 'clip-' + index, title: clip.title || clip.caption || 'Highlight ' + (index + 1),
-        start: Number(clip.start ?? clip.startSeconds ?? 0), end: Number(clip.end ?? clip.endSeconds ?? 0),
-        caption: clip.captionText || clip.caption || '', videoUrl: clip.videoUrl || clip.video_url || '',
-        downloadUrl: clip.downloadUrl || clip.download_url || '', thumbnailUrl: clip.thumbnailUrl || clip.thumbnail_url || ''
-      })));
-      setNotice('Highlights are ready. Preview each clip or download the rendered file.');
-    } catch (e) { setError(e.message || 'Could not analyze this video. Please try again.'); }
-    finally { setBusy(false); }
+      await ffmpeg.deleteFile(inputName).catch(() => {});
+      setClips(generated);
+      setNotice('Finished! ' + generated.length + ' MP4 clips were rendered locally in your browser. This version creates evenly spaced clips; AI highlight detection and burned-in captions are not included yet.');
+    } catch (e) { setError((e && e.message ? e.message : 'Could not process this video in your browser.') + ' Try a shorter MP4 if the browser runs out of memory.'); }
+    finally { if (ffmpeg) { try { ffmpeg.terminate(); } catch {} } setBusy(false); }
   }
 
   function seekTo(clip) {
@@ -227,15 +201,15 @@ export default function ClipStudio({ onClose, db: supabase }) {
           </div>
           {mode === 'link' ? <>
             <label className="clip-studio-field-label" htmlFor="clip-source-url">Video URL</label>
-            <div className="clip-studio-url-row"><input id="clip-source-url" className="clip-studio-input" type="url" value={sourceUrl} onChange={event => {setSourceUrl(event.target.value);resetResults()}} placeholder="Paste a YouTube, Vimeo, or Twitch link…"/><button className="clip-studio-primary" type="button" onClick={analyze} disabled={busy}>{busy ? <LoaderCircle size={16} className="spin"/> : <Sparkles size={16}/>} Find clips</button></div>
-            <p className="clip-studio-hint">{source ? <><CheckCircle2 size={12} style={{verticalAlign:'-2px',marginRight:5,color:'#86efac'}}/>{source} link recognized.</> : 'Paste a public video link. Processing depends on the connected clip service and the source platform’s access rules.'}</p>
+            <div className="clip-studio-url-row"><input id="clip-source-url" className="clip-studio-input" type="url" value={sourceUrl} onChange={event => {setSourceUrl(event.target.value);resetResults()}} placeholder="Paste a YouTube, Vimeo, or Twitch link…"/><button className="clip-studio-primary" type="button" onClick={analyze} disabled={busy}>{busy ? <LoaderCircle size={16} className="spin"/> : <Sparkles size={16}/>} Create clips</button></div>
+            <p className="clip-studio-hint">{source ? <><CheckCircle2 size={12} style={{verticalAlign:'-2px',marginRight:5,color:'#86efac'}}/>{source} link recognized.</> : 'Paste a public video link. Direct video links require a backend and may be blocked by the platform. Upload a video to process it inside your browser.'}</p>
           </> : <>
             <label className="clip-studio-field-label">Video file</label>
             <input ref={fileInput} type="file" accept="video/*,.mp4,.mov,.webm,.m4v" hidden onChange={event => {setFile(event.target.files?.[0] || null);resetResults()}}/>
             <button type="button" className="clip-studio-drop" onClick={() => fileInput.current?.click()} onDragOver={event => event.preventDefault()} onDrop={event => {event.preventDefault();const dropped=event.dataTransfer.files?.[0];if(dropped&&dropped.type.startsWith('video/')){setFile(dropped);resetResults()}else setError('Drop a supported video file.')}}>
               <span className="clip-studio-drop-icon"><Upload size={22}/></span><b>{file ? file.name : 'Choose a video or drag it here'}</b><span>{file ? ((file.size / 1024 / 1024).toFixed(1) + ' MB · local preview ready') : 'MP4, MOV, WebM and other browser-supported video formats'}</span>
             </button>
-            <div style={{display:'flex',justifyContent:'flex-end',marginTop:13}}><button className="clip-studio-primary" type="button" onClick={analyze} disabled={busy || !file}>{busy ? <LoaderCircle size={16} className="spin"/> : <Sparkles size={16}/>} Analyze and find clips</button></div>
+            <div style={{display:'flex',justifyContent:'flex-end',marginTop:13}}><button className="clip-studio-primary" type="button" onClick={analyze} disabled={busy || !file}>{busy ? <LoaderCircle size={16} className="spin"/> : <Sparkles size={16}/>} Create clips in browser</button></div>
           </>}
           <div className="clip-studio-settings">
             <h3><Settings2 size={14} style={{verticalAlign:'-3px',marginRight:6}}/> Clip settings</h3>
@@ -248,13 +222,13 @@ export default function ClipStudio({ onClose, db: supabase }) {
           </div>
           {error && <div className="clip-studio-notice clip-studio-error" role="alert"><AlertCircle size={15} style={{verticalAlign:'-3px',marginRight:7}}/>{error}</div>}
           {notice && <div className="clip-studio-notice clip-studio-success" role="status"><CheckCircle2 size={15} style={{verticalAlign:'-3px',marginRight:7}}/>{notice}</div>}
-          <div className="clip-studio-footer"><AlertCircle size={15}/><span>AI analysis, rendered captions, and final MP4 exports require a configured processing backend. This interface will not label timestamp suggestions as finished clips.</span></div>
+          <div className="clip-studio-footer"><AlertCircle size={15}/><span>Video processing runs inside your browser using the free FFmpeg WebAssembly engine. This version creates evenly spaced MP4 clips; AI highlight detection and burned-in captions are not included yet.</span></div>
         </section>
 
         <section className="clip-studio-panel">
           <div className="clip-studio-panel-head"><span className="clip-studio-panel-icon"><Play size={18}/></span><div><h2>Source preview</h2><p>{file ? 'Local file preview' : source ? source + ' source link' : 'Your video appears here'}</p></div></div>
           <div className="clip-studio-preview">
-            {videoUrl ? <video ref={videoRef} src={videoUrl} controls playsInline onLoadedMetadata={onVideoReady} /> : <div className="clip-studio-empty-preview"><Film size={30}/><div><b>Ready for your next highlight</b><p>Upload a video to preview it in the workspace. For remote links, the connected clip backend handles source access.</p></div></div>}
+            {videoUrl ? <video ref={videoRef} src={videoUrl} controls playsInline onLoadedMetadata={onVideoReady} /> : <div className="clip-studio-empty-preview"><Film size={30}/><div><b>Ready for your next highlight</b><p>Upload a video to preview it in the workspace. Upload a video to create clips entirely inside defchat.</p></div></div>}
             <div className="clip-studio-video-meta"><span>{file ? file.name : source || 'No source selected'}</span><span className="clip-studio-pill">{duration ? formatTime(duration) : 'No duration'}</span></div>
           </div>
           {sourceUrl && source && <div style={{marginTop:12,fontSize:11,color:'#a3a3b2'}}>Source link: <a href={sourceUrl} target="_blank" rel="noopener noreferrer" style={{color:'#facc15',wordBreak:'break-all'}}><ExternalLink size={11} style={{verticalAlign:'-2px',marginRight:4}}/>Open original video</a></div>}
@@ -262,7 +236,7 @@ export default function ClipStudio({ onClose, db: supabase }) {
       </div>
 
       {clips.length > 0 && <section className="clip-studio-results">
-        <div className="clip-studio-results-head"><div><h2>Your highlights</h2><p>{clips.length} clip{clips.length === 1 ? '' : 's'} returned by the processing service.</p></div><button className="clip-studio-primary" type="button" onClick={downloadAll}><Download size={15}/> Download all</button></div>
+        <div className="clip-studio-results-head"><div><h2>Your clips</h2><p>{clips.length} clip{clips.length === 1 ? '' : 's'} returned by the processing service.</p></div><button className="clip-studio-primary" type="button" onClick={downloadAll}><Download size={15}/> Download all</button></div>
         <div className="clip-studio-results-grid">{clips.map((clip,index) => <article className="clip-studio-card" key={clip.id}>
           <div className="clip-studio-card-thumb">{clip.thumbnailUrl ? <img src={clip.thumbnailUrl} alt=""/> : clip.videoUrl ? <video src={clip.videoUrl} muted playsInline preload="metadata"/> : <Film size={28} color="#facc15"/>}<span className="clip-studio-card-duration">{formatTime(clip.end - clip.start)}</span></div>
           <div className="clip-studio-card-body"><h3>{clip.title || 'Highlight ' + (index + 1)}</h3><p>{formatTime(clip.start)}–{formatTime(clip.end)}{clip.caption ? ' · ' + clip.caption : ''}</p><div className="clip-studio-card-actions"><button type="button" onClick={() => seekTo(clip)}><Play size={12}/> Preview</button>{(clip.downloadUrl || clip.videoUrl) ? <a className="clip-download" href={clip.downloadUrl || clip.videoUrl} download={'defchat-clip-' + (index + 1) + '.mp4'} target="_blank" rel="noopener noreferrer"><Download size={12}/> Download</a> : <button type="button" disabled title="The backend has not returned a rendered clip">Export pending</button>}</div></div>

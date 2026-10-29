@@ -94,27 +94,19 @@ export default function ClipStudio({ onClose, db: supabase }) {
         if (signedError || !signedData?.signedUrl) throw new Error('Could not create a temporary link for your uploaded video: ' + (signedError?.message || 'No signed URL returned.'));
         processorSource = signedData.signedUrl;
       }
-      const { data: createdJob, error: createJobError } = await supabase.from('clip_jobs').insert({
-        user_id: session.user.id, status: 'processing', source_type: requestBody.sourceType,
-        source_url: mode === 'link' ? requestBody.url : null,
-        source_path: mode === 'upload' ? requestBody.sourcePath : null,
-        clip_length: Number(clipLength), clip_count: Number(clipCount),
-        aspect_ratio: aspect, caption_style: requestBody.captionStyle
-      }).select('id').single();
-      if (createJobError || !createdJob?.id) throw new Error('Could not create your clip job: ' + (createJobError?.message || 'No job ID returned.'));
+      const jobId = crypto.randomUUID();
       let response;
       try {
         response = await fetch('http://localhost:8765/process-local', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            jobId: createdJob.id, userId: session.user.id, sourceType: requestBody.sourceType,
+            jobId, userId: session.user.id, sourceType: requestBody.sourceType,
             sourceUrl: processorSource, clipLength: Number(clipLength), clipCount: Number(clipCount),
             aspectRatio: aspect, captionStyle: requestBody.captionStyle,
-            output: { bucket: 'clip-studio', prefix: session.user.id + '/' + createdJob.id + '/' }
+            output: { bucket: 'clip-studio', prefix: session.user.id + '/' + jobId + '/' }
           })
         });
       } catch {
-        await supabase.from('clip_jobs').update({ status: 'failed', error_message: 'Local processor is not running.' }).eq('id', createdJob.id);
         throw new Error('The free local processor is not running. Start clip-processor/start-windows.bat, then retry.');
       }
       const payload = await response.json().catch(() => ({}));

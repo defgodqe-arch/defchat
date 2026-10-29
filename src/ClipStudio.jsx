@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { toBlobURL } from '@ffmpeg/util';
-import { ArrowLeft, Upload, Link2, Sparkles, Scissors, Captions, Download, ExternalLink, Film, LoaderCircle, Play, X, Clock3, AlertCircle, CheckCircle2, Settings2 } from 'lucide-react';
+import { ArrowLeft, Upload, Link2, Sparkles, Scissors, Captions, Download, ExternalLink, Film, LoaderCircle, Play, X, Clock3, AlertCircle, CheckCircle2, Settings2, Youtube, LogOut } from 'lucide-react';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://jklhnhnxyzqjvmqgfpjs.supabase.co';
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_MMXxKZkJT0H7-oayT60ddA_8nC0kFjn';
@@ -60,10 +60,76 @@ export default function ClipStudio({ onClose, db: supabase }) {
   const [captionStyle, setCaptionStyle] = useState('bold');
   const [aspect, setAspect] = useState('9:16');
   const [activeClip, setActiveClip] = useState(null);
+  const [youtubeToken, setYoutubeToken] = useState('');
+  const [youtubeChannel, setYoutubeChannel] = useState(null);
+  const [youtubeVideos, setYoutubeVideos] = useState([]);
+  const [youtubeLoading, setYoutubeLoading] = useState(false);
+  const [youtubeError, setYoutubeError] = useState('');
   const fileInput = useRef(null);
   const videoRef = useRef(null);
   const source = useMemo(() => getSource(sourceUrl.trim()), [sourceUrl]);
   const youtubeId = useMemo(() => getYouTubeId(sourceUrl.trim()), [sourceUrl]);
+
+  useEffect(() => {
+    if (!supabase?.auth?.getSession) return;
+    let alive = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (alive && data?.session?.provider_token) setYoutubeToken(data.session.provider_token);
+    }).catch(() => {});
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (alive && session?.provider_token) setYoutubeToken(session.provider_token);
+    });
+    return () => { alive = false; listener?.subscription?.unsubscribe?.(); };
+  }, [supabase]);
+
+  useEffect(() => {
+    if (!youtubeToken) { setYoutubeChannel(null); setYoutubeVideos([]); return; }
+    let cancelled = false;
+    async function loadLibrary() {
+      setYoutubeLoading(true); setYoutubeError('');
+      try {
+        const headers = { Authorization: 'Bearer ' + youtubeToken };
+        const channelResponse = await fetch('https://www.googleapis.com/youtube/v3/channels?part=snippet,contentDetails&mine=true', { headers });
+        const channelData = await channelResponse.json();
+        if (!channelResponse.ok) throw new Error(channelData.error?.message || 'Could not read your YouTube channel.');
+        const channel = channelData.items?.[0];
+        if (!channel) throw new Error('No YouTube channel was found for this Google account.');
+        const playlistId = channel.contentDetails?.relatedPlaylists?.uploads;
+        if (!playlistId) throw new Error('Your channel does not expose an uploads playlist.');
+        const videosResponse = await fetch('https://www.googleapis.com/youtube/v3/playlistItems?part=snippet,contentDetails&maxResults=25&playlistId=' + encodeURIComponent(playlistId), { headers });
+        const videosData = await videosResponse.json();
+        if (!videosResponse.ok) throw new Error(videosData.error?.message || 'Could not load your uploaded videos.');
+        if (!cancelled) { setYoutubeChannel(channel.snippet); setYoutubeVideos(videosData.items || []); }
+      } catch (error) {
+        if (!cancelled) setYoutubeError(error?.message || 'Could not load YouTube videos.');
+      } finally { if (!cancelled) setYoutubeLoading(false); }
+    }
+    loadLibrary();
+    return () => { cancelled = true; };
+  }, [youtubeToken]);
+
+  async function connectYouTube() {
+    setYoutubeError('');
+    if (!supabase?.auth?.signInWithOAuth) { setYoutubeError('Google sign-in is unavailable in this session.'); return; }
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        scopes: 'openid email profile https://www.googleapis.com/auth/youtube.readonly',
+        redirectTo: window.location.href,
+        queryParams: { access_type: 'offline', prompt: 'consent' }
+      }
+    });
+    if (oauthError) setYoutubeError(oauthError.message || 'Could not start Google sign-in.');
+  }
+
+  async function disconnectYouTube() {
+    setYoutubeToken('');
+    setYoutubeChannel(null);
+    setYoutubeVideos([]);
+    setYoutubeError('');
+    // Supabase's Google provider token is part of its auth session; signing out here
+    // would also sign the user out of defchat, so simply clear the Clip Studio connection.
+  }
 
   useEffect(() => {
     if (!file) { setVideoUrl(''); setDuration(0); return; }
@@ -306,6 +372,28 @@ export default function ClipStudio({ onClose, db: supabase }) {
             <button type="button" role="tab" aria-selected={mode === 'upload'} className={mode === 'upload' ? 'active' : ''} onClick={() => {setMode('upload');resetResults()}}><Upload size={14} style={{verticalAlign:'-3px',marginRight:6}}/>Upload video</button>
           </div>
           {mode === 'link' ? <>
+            <div style={{border:'1px solid #34343f',background:'#0d0d12',borderRadius:13,padding:14,marginBottom:17}}>
+              <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
+                <span style={{width:34,height:34,borderRadius:10,display:'grid',placeItems:'center',background:'#29220c',color:'#facc15'}}><Youtube size={19}/></span>
+                <div style={{flex:1,minWidth:150}}><b style={{fontSize:12}}>Your YouTube library</b><div style={{fontSize:10,color:'#9292a0',marginTop:3}}>{youtubeChannel?.title ? 'Connected to ' + youtubeChannel.title : 'Sign in to browse videos uploaded to your channel'}</div></div>
+                {youtubeToken ? <button type="button" className="clip-studio-primary" onClick={disconnectYouTube}><LogOut size={14}/> Disconnect</button> : <button type="button" className="clip-studio-primary" onClick={connectYouTube}><Youtube size={14}/> Connect YouTube</button>}
+              </div>
+              {youtubeLoading && <p className="clip-studio-hint" style={{marginBottom:0}}>Loading your channel uploads…</p>}
+              {youtubeError && <p role="alert" className="clip-studio-hint" style={{color:'#fca5a5',marginBottom:0}}>{youtubeError}</p>}
+              {youtubeVideos.length > 0 && <div style={{display:'grid',gap:8,marginTop:12,maxHeight:260,overflowY:'auto'}}>
+                {youtubeVideos.map(item => {
+                  const videoId = item.contentDetails?.videoId || item.snippet?.resourceId?.videoId;
+                  const title = item.snippet?.title || 'Untitled video';
+                  const thumb = item.snippet?.thumbnails?.medium?.url || item.snippet?.thumbnails?.default?.url;
+                  return <div key={item.id} style={{display:'flex',alignItems:'center',gap:10,background:'#15151c',borderRadius:10,padding:8}}>
+                    {thumb && <img src={thumb} alt="" style={{width:76,height:48,objectFit:'cover',borderRadius:6}}/>}
+                    <div style={{flex:1,minWidth:0}}><b style={{display:'block',fontSize:11,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{title}</b><small style={{color:'#9292a0',fontSize:10}}>{item.snippet?.publishedAt ? new Date(item.snippet.publishedAt).toLocaleDateString() : ''}</small></div>
+                    <a href={'https://www.youtube.com/watch?v=' + encodeURIComponent(videoId || '')} target="_blank" rel="noreferrer" style={{color:'#facc15',fontSize:10,fontWeight:700,whiteSpace:'nowrap'}}>Open video ↗</a>
+                  </div>;
+                })}
+              </div>}
+              <p className="clip-studio-hint" style={{marginBottom:0}}>YouTube sign-in lets Defchat browse your channel uploads. YouTube does not provide an API to download the original video file, so choose the video file below to create clips.</p>
+            </div>
             <label className="clip-studio-field-label" htmlFor="clip-source-url">Video URL</label>
             <div className="clip-studio-url-row"><input id="clip-source-url" className="clip-studio-input" type="url" value={sourceUrl} onChange={event => {setSourceUrl(event.target.value);resetResults()}} placeholder="Paste a supported video-page link or direct video URL…"/><button className="clip-studio-primary" type="button" onClick={analyze} disabled={busy || (Boolean(source) && !authorizedSource)}>{busy ? <LoaderCircle size={16} className="spin"/> : <Sparkles size={16}/>} Import & create clips</button></div>
             <p className="clip-studio-hint">{source ? <><Play size={12} style={{verticalAlign:'-2px',marginRight:5,color:'#facc15'}}/>{source} link detected. Defchat can import supported public videos when you confirm you have permission to use them.</> : 'Paste a supported public video link or a direct HTTPS video-file URL. Private, login-only, and DRM-protected videos are not supported.'}</p>

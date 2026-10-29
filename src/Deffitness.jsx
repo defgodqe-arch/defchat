@@ -6,6 +6,7 @@ import {
   TrendingDown, TrendingUp, Trophy, X, BookOpen, Search, RefreshCw, Languages
 } from 'lucide-react';
 import './Deffitness.css';
+import DeffitnessStudio from './DeffitnessStudio.jsx';
 
 const STORAGE_PREFIX = 'defchat:deffitness:v1:';
 const EMPTY = { profile: null, weightLogs: [], workouts: [], measurements: [], libraryMoves: [] };
@@ -316,7 +317,8 @@ export default function Deffitness({ userId, onClose }) {
     ['workout', Dumbbell, 'Workout'],
     ['library', BookOpen, 'Exercise library'],
     ['progress', BarChart3, 'Progress'],
-    ['history', History, 'History']
+    ['history', History, 'History'],
+    ['studio', Sparkles, 'Fitness studio']
   ];
   const unit = data.profile?.unit || profileDraft.unit || 'kg';
 
@@ -333,7 +335,7 @@ export default function Deffitness({ userId, onClose }) {
         </div>
       </aside>
       <main className="df-main">
-        <header className="df-topbar"><div><div className="df-date-label">{new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</div><h1 id="df-title">{tab === 'overview' ? 'Your fitness, your pace.' : tab === 'plan' ? 'Your training plan' : tab === 'workout' ? 'Let’s get moving.' : tab === 'library' ? 'Explore 700+ exercises.' : tab === 'progress' ? 'Every step counts.' : 'Your workout history'}</h1></div><div className="df-top-actions"><span className="df-free-pill"><Sparkles size={13}/> FREE FOREVER</span><button type="button" aria-label="Close deffitness" className="df-top-close" onClick={onClose}><X size={19}/></button></div></header>
+        <header className="df-topbar"><div><div className="df-date-label">{new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</div><h1 id="df-title">{tab === 'overview' ? 'Your fitness, your pace.' : tab === 'plan' ? 'Your training plan' : tab === 'workout' ? 'Let’s get moving.' : tab === 'library' ? 'Explore the exercise dataset.' : tab === 'progress' ? 'Every step counts.' : tab === 'studio' ? 'Your all-in-one fitness studio.' : 'Your workout history'}</h1></div><div className="df-top-actions"><span className="df-free-pill"><Sparkles size={13}/> FREE FOREVER</span><button type="button" aria-label="Close deffitness" className="df-top-close" onClick={onClose}><X size={19}/></button></div></header>
         <div className="df-body">
           {showSetup && <section className="df-setup-card"><div className="df-setup-head"><span className="df-setup-icon"><Target size={20}/></span><div><h2>Build your personal plan</h2><p>Pick a goal and we'll adapt routines to your experience and equipment.</p></div></div>
             <form className="df-setup-grid" onSubmit={saveProfile}>
@@ -439,6 +441,7 @@ export default function Deffitness({ userId, onClose }) {
             <div className="df-section-heading"><div><h2>Training history</h2><p>Every logged session is a win — even the short ones.</p></div><span className="df-history-total">{data.workouts.length} sessions</span></div>
             {data.workouts.length ? <div className="df-workout-history">{[...data.workouts].sort((a,b) => (b.date + b.createdAt).localeCompare(a.date + a.createdAt)).map(item => <article key={item.id} className="df-workout-history-card"><div className="df-plan-row-art"><CheckCircle2 size={21}/></div><div className="df-plan-row-copy"><b>{item.title}</b><span>{dateLabel(item.date)} · {item.minutes} min · {item.exercises.length} exercises</span>{item.note && <small>{item.note}</small>}</div><button type="button" className="df-delete-workout" onClick={() => setData(old => ({ ...old, workouts: old.workouts.filter(workout => workout.id !== item.id) }))} aria-label="Delete workout log"><X size={16}/></button></article>)}</div> : <div className="df-empty-state large"><Trophy size={30}/><b>Your story starts with one session.</b><span>Finish a workout and it will show up here, along with your consistency stats.</span><button type="button" className="df-primary-button" onClick={() => setTab('workout')}>Start your first workout</button></div>}
           </>}
+          {!showSetup && tab === 'studio' && <DeffitnessStudio userId={userId} workouts={data.workouts} libraryMoves={data.libraryMoves || []} onOpenLibrary={() => setTab('library')} onOpenWorkout={() => setTab('workout')} />}
           {notice && <div className="df-toast" role="status"><CheckCircle2 size={16}/><span>{notice}</span><button type="button" onClick={() => setNotice('')} aria-label="Dismiss"><X size={14}/></button></div>}
         </div>
         <footer className="df-footer"><span><HeartPulse size={13}/> Train for how you feel, not just a number.</span><span>deffitness · free for everyone</span><a href="https://repdb.co" target="_blank" rel="nofollow noopener noreferrer">Exercise data by RepDB</a></footer>

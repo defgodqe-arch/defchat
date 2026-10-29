@@ -44,11 +44,26 @@ def fetch_source(url, path):
     if parsed.scheme != "https" or not parsed.hostname:
         raise ValueError("Only HTTPS video URLs are accepted.")
     host = parsed.hostname.lower()
+    try:
+        addresses = socket.getaddrinfo(host, None)
+        if not addresses or any(not ipaddress.ip_address(item[4][0]).is_global for item in addresses):
+            raise ValueError("Video URL host resolves to a non-public network address.")
+    except socket.gaierror:
+        raise ValueError("Video URL host could not be resolved.")
     if host == "youtube.com" or host.endswith(".youtube.com") or host == "youtu.be" or host == "vimeo.com" or host.endswith(".vimeo.com") or host == "twitch.tv" or host.endswith(".twitch.tv"):
         raise ValueError("Platform webpage links are not downloadable video files. Upload a video you own or provide an authorized direct HTTPS video-file URL.")
     total = 0
     with requests.get(url, stream=True, timeout=(15, 90), allow_redirects=True) as r:
         r.raise_for_status()
+        final = urlparse(r.url)
+        if final.scheme != "https:" or not final.hostname:
+            raise ValueError("Video URL redirected to an invalid destination.")
+        try:
+            final_ips = socket.getaddrinfo(final.hostname, None)
+            if not final_ips or any(not ipaddress.ip_address(item[4][0]).is_global for item in final_ips):
+                raise ValueError("Video URL redirected to a non-public network address.")
+        except socket.gaierror:
+            raise ValueError("Redirect destination could not be resolved.")
         ctype = r.headers.get("content-type", "").lower()
         if not ctype.startswith("video/") and not re.search(r"\.(mp4|mov|webm|m4v|mkv)(?:$|\?)", r.url, re.I):
             raise ValueError("URL did not return a direct video file.")

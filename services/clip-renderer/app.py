@@ -2,12 +2,14 @@ import os, re, math, secrets, tempfile, subprocess, time, socket, ipaddress
 from pathlib import Path
 from urllib.parse import urlparse
 import requests
+import logging
 import yt_dlp
 import numpy as np
 from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
 
-app = FastAPI(title="defchat self-hosted clip renderer", version="1.0.0")
+app = FastAPI(title="defchat self-hosted clip renderer", version="1.1.0")
+logger = logging.getLogger("clip-renderer")
 WORK = Path(os.getenv("WORK_DIR", "/tmp/defchat-clips"))
 WORK.mkdir(parents=True, exist_ok=True)
 MAX_BYTES = int(os.getenv("MAX_SOURCE_BYTES", str(1024 * 1024 * 1024)))
@@ -84,9 +86,14 @@ def fetch_platform_source(url, path):
         raise
     except Exception as error:
         message = str(error)
+        logger.exception("Platform video import failed (%s)", type(error).__name__)
         if "DRM" in message.upper() or "protected" in message.lower():
             raise ValueError("This video is DRM-protected and cannot be imported.")
-        raise ValueError("Could not import this video. It may be private, restricted, unavailable, or unsupported. Use a video you own or an authorized direct file URL.")
+        # Return a short diagnostic without exposing signed media URLs or query tokens.
+        diagnostic = re.sub(r"https?://\\S+", "[media URL]", message)
+        diagnostic = re.sub(r"[\\r\\n\\t]+", " ", diagnostic).strip()
+        diagnostic = diagnostic[:220] or "No extractor details were returned."
+        raise ValueError(f"Video import failed ({type(error).__name__}): {diagnostic}")
 
 def fetch_source(url, path):
     parsed = urlparse(url)

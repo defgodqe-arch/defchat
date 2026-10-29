@@ -95,8 +95,23 @@ export default function ClipStudio({ onClose, db: supabase }) {
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || payload.message || 'The clip service could not process this video.');
-      const results = Array.isArray(payload.clips) ? payload.clips : Array.isArray(payload.results) ? payload.results : [];
-      if (!results.length) { setNotice(payload.message || 'Your clip job was accepted. It will appear here when the video processor returns finished clips.'); return; }
+      let results = Array.isArray(payload.clips) ? payload.clips : Array.isArray(payload.results) ? payload.results : [];
+      if (!results.length && payload.jobId) {
+        setNotice('Your video is queued. AI is transcribing, finding highlights, adding captions, and rendering MP4 clips…');
+        const deadline = Date.now() + 15 * 60 * 1000;
+        while (Date.now() < deadline) {
+          await new Promise(resolve => window.setTimeout(resolve, 5000));
+          const { data: job, error: jobError } = await supabase.from('clip_jobs')
+            .select('status, clips, error_message')
+            .eq('id', payload.jobId)
+            .maybeSingle();
+          if (jobError) throw new Error('The processor is running, but the job status could not be read: ' + jobError.message);
+          if (job?.status === 'completed' && Array.isArray(job.clips) && job.clips.length) { results = job.clips; break; }
+          if (job?.status === 'failed') throw new Error(job.error_message || 'The video processor could not finish this job.');
+          setNotice('AI processing is still running… This can take several minutes for a long video.');
+        }
+      }
+      if (!results.length) { setNotice('Your clip job is still processing. Keep this window open and try again shortly if it takes longer than 15 minutes.'); return; }
       setClips(results.map((clip, index) => ({
         id: clip.id || 'clip-' + index, title: clip.title || clip.caption || 'Highlight ' + (index + 1),
         start: Number(clip.start ?? clip.startSeconds ?? 0), end: Number(clip.end ?? clip.endSeconds ?? 0),

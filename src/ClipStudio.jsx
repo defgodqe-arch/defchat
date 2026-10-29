@@ -221,8 +221,56 @@ export default function ClipStudio({ onClose, db: supabase }) {
         }
         return;
       }
+
     } else if (!inputFile) { setError('Choose a video file from your device first.'); return; }
-    if (inputFile && inputFile.size > 500 * 1024 * 1024) { setError('Choose a video smaller than 500 MB for browser-based processing.'); return; }
+
+    // Uploaded files are sent to Supabase Storage and rendered on the server.
+    if (mode !== 'link' && inputFile) {
+      const MAX_SERVER_UPLOAD = 1024 * 1024 * 1024;
+      if (inputFile.size > MAX_SERVER_UPLOAD) { setError('This file is larger than Defchat’s current 1 GB server-processing limit.'); return; }
+      if (!supabase?.auth?.getSession || !supabase?.storage?.from) { setError('Server uploads are unavailable. Sign in again and retry.'); return; }
+      setBusy(true); setProgress(0); setNotice('Uploading your video securely to Defchat…');
+      try {
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        const accessToken = sessionData?.session?.access_token;
+        const userId = sessionData?.session?.user?.id;
+        if (sessionError || !accessToken || !userId) throw new Error('Your session has expired. Sign in again and retry.');
+        const safeName = inputFile.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-100) || 'source-video.mp4';
+        const sourcePath = userId + '/source-' + crypto.randomUUID() + '-' + safeName;
+        const { error: uploadError } = await supabase.storage.from('clip-studio').upload(sourcePath, inputFile, {
+          contentType: inputFile.type || 'video/mp4', cacheControl: '3600', upsert: false
+        });
+        if (uploadError) throw new Error('Video upload failed: ' + uploadError.message + '. Check the clip-studio Storage bucket file-size limit.');
+        setNotice('Upload complete. Rendering clips on Defchat’s server…');
+        const response = await fetch(CLIP_FUNCTION_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + accessToken, 'apikey': SUPABASE_KEY },
+          body: JSON.stringify({
+            sourceType: 'upload', sourcePath,
+            clipLength: Number(clipLength), clipCount: Number(clipCount),
+            aspectRatio: aspect, captionStyle
+          })
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(result.error || ('Clip processor returned HTTP ' + response.status + '.'));
+        const serverClips = Array.isArray(result.clips) ? result.clips : [];
+        const normalized = serverClips.map((clip, index) => ({
+          id: clip.id || clip.path || ('server-clip-' + index),
+          title: clip.title || ('Clip ' + (index + 1)),
+          start: Number(clip.start || 0), end: Number(clip.end || 0), caption: clip.caption || '',
+          videoUrl: clip.videoUrl || clip.video_url || clip.url || clip.downloadUrl || clip.download_url || '',
+          downloadUrl: clip.downloadUrl || clip.download_url || clip.videoUrl || clip.video_url || clip.url || '',
+          thumbnailUrl: clip.thumbnailUrl || clip.thumbnail_url || ''
+        }));
+        setClips(normalized);
+        if (result.status === 'processing' || response.status === 202) setNotice(result.message || 'Your video was accepted and is processing.');
+        else if (normalized.length) setNotice('Finished! ' + normalized.length + ' server-rendered clips are ready.');
+        else setNotice(result.message || 'The processor accepted the request but has not returned finished clips yet.');
+      } catch (e) {
+        setError((e?.message || 'Could not upload and process this video.') + ' Check the upload limit and retry.');
+      } finally { setBusy(false); }
+      return;
+    }
     setBusy(true);
     let ffmpeg;
     try {
@@ -403,9 +451,9 @@ export default function ClipStudio({ onClose, db: supabase }) {
             <label className="clip-studio-field-label">Video file</label>
             <input ref={fileInput} type="file" accept="video/*,.mp4,.mov,.webm,.m4v" hidden onChange={event => {setFile(event.target.files?.[0] || null);resetResults()}}/>
             <button type="button" className="clip-studio-drop" onClick={() => fileInput.current?.click()} onDragOver={event => event.preventDefault()} onDrop={event => {event.preventDefault();const dropped=event.dataTransfer.files?.[0];if(dropped&&dropped.type.startsWith('video/')){setFile(dropped);resetResults()}else setError('Drop a supported video file.')}}>
-              <span className="clip-studio-drop-icon"><Upload size={22}/></span><b>{file ? file.name : 'Choose a video or drag it here'}</b><span>{file ? ((file.size / 1024 / 1024).toFixed(1) + ' MB · local preview ready') : 'MP4, MOV, WebM and other browser-supported video formats'}</span>
+              <span className="clip-studio-drop-icon"><Upload size={22}/></span><b>{file ? file.name : 'Choose a video or drag it here'}</b><span>{file ? ((file.size / 1024 / 1024).toFixed(1) + ' MB · local preview ready') : 'MP4, MOV, WebM · uploaded securely for server processing'}</span>
             </button>
-            <div style={{display:'flex',justifyContent:'flex-end',marginTop:13}}><button className="clip-studio-primary" type="button" onClick={analyze} disabled={busy || !file}>{busy ? <LoaderCircle size={16} className="spin"/> : <Sparkles size={16}/>} Create clips in browser</button></div>
+            <div style={{display:'flex',justifyContent:'flex-end',marginTop:13}}><button className="clip-studio-primary" type="button" onClick={analyze} disabled={busy || !file}>{busy ? <LoaderCircle size={16} className="spin"/> : <Sparkles size={16}/>} Upload & create clips</button></div>
           </>}
           <div className="clip-studio-settings">
             <h3><Settings2 size={14} style={{verticalAlign:'-3px',marginRight:6}}/> Clip settings</h3>
@@ -418,7 +466,7 @@ export default function ClipStudio({ onClose, db: supabase }) {
           </div>
           {error && <div className="clip-studio-notice clip-studio-error" role="alert"><AlertCircle size={15} style={{verticalAlign:'-3px',marginRight:7}}/>{error}</div>}
           {notice && <div className="clip-studio-notice clip-studio-success" role="status"><CheckCircle2 size={15} style={{verticalAlign:'-3px',marginRight:7}}/>{notice}{busy && <div style={{height:5,background:'#3a3420',borderRadius:99,overflow:'hidden',marginTop:10}}><div style={{height:'100%',width:Math.max(4,progress)+'%',background:'linear-gradient(90deg,#facc15,#f59e0b)',transition:'width .25s'}}/></div>}</div>}
-          <div className="clip-studio-footer"><AlertCircle size={15}/><span>Video processing runs inside your browser using the free FFmpeg WebAssembly engine. This version creates evenly spaced MP4 clips; AI highlight detection and burned-in captions are not included yet.</span></div>
+          <div className="clip-studio-footer"><AlertCircle size={15}/><span>Uploaded videos are processed on Defchat’s server. Files up to 1 GB are supported when your Supabase Storage upload limit permits; large uploads may take time.</span></div>
         </section>
 
         <section className="clip-studio-panel">

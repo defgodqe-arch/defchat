@@ -54,3 +54,7 @@ Desktop release packages are built by GitHub Actions when a `v*` tag is pushed. 
 
 ## Current limitations
 This is an MVP, not a full-featured replacement for every chat platform. Voice/video, push notifications, and file uploads are not included. Native mobile store packages and signed desktop installers are not yet included.
+
+## Fitness data attribution
+
+deffitness loads its exercise catalog at runtime from the free RepDB exercise dataset hosted on Hugging Face. The dataset and associated free-tier illustrations are used in-app under the RepDB Free Tier License, which requires attribution and prohibits republishing the dataset as a standalone dataset or API. Credit: [Exercise data by RepDB (repdb.co)](https://repdb.co). Dataset: [RepDB/exercise-dataset on Hugging Face](https://huggingface.co/datasets/RepDB/exercise-dataset). Premium sample animations are not used.

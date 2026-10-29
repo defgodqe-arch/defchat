@@ -89,9 +89,11 @@ def fetch_platform_source(url, path):
         logger.exception("Platform video import failed (%s)", type(error).__name__)
         if "DRM" in message.upper() or "protected" in message.lower():
             raise ValueError("This video is DRM-protected and cannot be imported.")
+        if "sign in to confirm" in message.lower() or "not a bot" in message.lower():
+            raise ValueError("YouTube blocked the server-side import with an anti-bot sign-in check. Defchat does not use your browser cookies or bypass that check. Upload the video file you own, or provide an authorized direct HTTPS video-file URL.")
         # Return a short diagnostic without exposing signed media URLs or query tokens.
-        diagnostic = re.sub(r"https?://\\S+", "[media URL]", message)
-        diagnostic = re.sub(r"[\\r\\n\\t]+", " ", diagnostic).strip()
+        diagnostic = re.sub(r"https?://\S+", "[media URL]", message)
+        diagnostic = re.sub(r"[\r\n\t]+", " ", diagnostic).strip()
         diagnostic = diagnostic[:220] or "No extractor details were returned."
         raise ValueError(f"Video import failed ({type(error).__name__}): {diagnostic}")
 

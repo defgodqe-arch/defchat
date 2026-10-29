@@ -36,6 +36,9 @@ const getSource = value => {
     if (host === 'youtube.com' || host === 'youtu.be' || host.endsWith('.youtube.com')) return 'YouTube';
     if (host === 'vimeo.com' || host.endsWith('.vimeo.com')) return 'Vimeo';
     if (host === 'twitch.tv' || host.endsWith('.twitch.tv')) return 'Twitch';
+    if (host === 'tiktok.com' || host.endsWith('.tiktok.com')) return 'TikTok';
+    if (host === 'instagram.com' || host.endsWith('.instagram.com')) return 'Instagram';
+    if (host === 'facebook.com' || host.endsWith('.facebook.com') || host === 'fb.watch') return 'Facebook';
     return null;
   } catch { return null; }
 };

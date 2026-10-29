@@ -3,7 +3,7 @@ import {
   Activity, AlarmClock, BrainCircuit, CalendarDays, CalendarCheck, CheckCircle2,
   Clock3, Download, Footprints, Heart, Medal, Moon, Pause, Play, Plus,
   RotateCcw, Save, ShieldCheck, Sparkles, Target, Timer, Trophy, Users, Watch,
-  X, Zap, Dumbbell, Film, Upload, Link2, Scissors, Captions, DownloadCloud, AlertTriangle
+  X, Zap, Dumbbell, Film, Upload, Link2, Scissors, Captions, DownloadCloud, AlertTriangle, Settings2
 } from 'lucide-react';
 import './DeffitnessStudio.css';
 

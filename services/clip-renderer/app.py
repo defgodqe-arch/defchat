@@ -1,4 +1,4 @@
-import os, re, math, secrets, tempfile, subprocess, time
+import os, re, math, secrets, tempfile, subprocess, time, socket, ipaddress
 from pathlib import Path
 from urllib.parse import urlparse
 import requests

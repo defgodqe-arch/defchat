@@ -1,4 +1,4 @@
-const CACHE_NAME = 'defchat-shell-v7';
+const CACHE_NAME = 'defchat-shell-v8';
 const BASE_URL = new URL('./', self.location.href);
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.add(BASE_URL.href)).then(() => self.skipWaiting()));

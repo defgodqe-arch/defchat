@@ -110,8 +110,8 @@ export default function ClipStudio({ onClose, db: supabase }) {
 
   async function connectYouTube() {
     setYoutubeError('');
-    if (!supabase?.auth?.signInWithOAuth) { setYoutubeError('Google sign-in is unavailable in this session.'); return; }
-    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+    if (!supabase?.auth?.linkIdentity) { setYoutubeError('Secure Google account linking is unavailable in this session.'); return; }
+    const { error: oauthError } = await supabase.auth.linkIdentity({
       provider: 'google',
       options: {
         scopes: 'openid email profile https://www.googleapis.com/auth/youtube.readonly',
@@ -119,7 +119,7 @@ export default function ClipStudio({ onClose, db: supabase }) {
         queryParams: { access_type: 'offline', prompt: 'consent' }
       }
     });
-    if (oauthError) setYoutubeError(oauthError.message || 'Could not start Google sign-in.');
+    if (oauthError) setYoutubeError(oauthError.message || 'Could not connect YouTube.');
   }
 
   async function disconnectYouTube() {

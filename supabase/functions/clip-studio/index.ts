@@ -42,9 +42,10 @@ Deno.serve(async (req: Request) => {
     let parsed: URL;
     try { parsed = new URL(sourceUrl); } catch { return json({ error: "Enter a valid video URL." }, 400); }
     const host = parsed.hostname.toLowerCase().replace(/^www\./, "");
-    if (!(host === "youtube.com" || host.endsWith(".youtube.com") || host === "youtu.be" || host === "vimeo.com" || host.endsWith(".vimeo.com") || host === "twitch.tv" || host.endsWith(".twitch.tv"))) {
-      return json({ error: "Supported links are YouTube, Vimeo, and Twitch." }, 400);
-    }
+    const platformHost = host === "youtube.com" || host.endsWith(".youtube.com") || host === "youtu.be" || host === "vimeo.com" || host.endsWith(".vimeo.com") || host === "twitch.tv" || host.endsWith(".twitch.tv");
+    const directVideo = /\\.(mp4|mov|webm|m4v|mkv)(?:$|\\?)/i.test(parsed.pathname);
+    if (platformHost) return json({ error: "A YouTube, Vimeo, or Twitch page is not a video file. Upload a video you own or provide a direct HTTPS MP4, MOV, WebM, M4V, or MKV URL that you are authorized to process." }, 400);
+    if (parsed.protocol !== "https:" || !directVideo) return json({ error: "Use a direct HTTPS video-file URL (MP4, MOV, WebM, M4V, or MKV), or upload your video." }, 400);
   } else if (!sourcePath.startsWith(user.id + "/")) {
     return json({ error: "The uploaded source must be stored in your own clip-studio folder." }, 403);
   }

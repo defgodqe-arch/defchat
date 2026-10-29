@@ -3,12 +3,20 @@ import {
   Activity, ArrowDownRight, ArrowUpRight, BarChart3, CalendarDays, Check,
   CheckCircle2, ChevronDown, Clock3, Dumbbell, Download, HeartPulse, History,
   ListChecks, Plus, Ruler, Scale, Settings2, Sparkles, Target, Timer,
-  TrendingDown, TrendingUp, Trophy, X
+  TrendingDown, TrendingUp, Trophy, X, BookOpen, Search, RefreshCw, Languages
 } from 'lucide-react';
 import './Deffitness.css';
 
 const STORAGE_PREFIX = 'defchat:deffitness:v1:';
-const EMPTY = { profile: null, weightLogs: [], workouts: [], measurements: [] };
+const EMPTY = { profile: null, weightLogs: [], workouts: [], measurements: [], libraryMoves: [] };
+const REPDB_DATA_URLS = [
+  'https://huggingface.co/datasets/RepDB/exercise-dataset/resolve/main/exercises.json?download=true',
+  'https://exercise-dataset.com/exercises.json'
+];
+const localized = (exercise, field, language = 'en') =>
+  exercise?.[field + '_' + language] || exercise?.[field + '_en'] || '';
+const humanize = value => String(value || '').replace(/_/g, ' ').replace(/\\b\\w/g, char => char.toUpperCase());
+const repdbImageUrl = path => path ? 'https://exercise-dataset.com/' + String(path).replace(/^\\/+/, '') : '';
 const today = () => new Date().toISOString().slice(0, 10);
 const makeId = () => (globalThis.crypto?.randomUUID?.() || Date.now().toString(36) + Math.random().toString(36).slice(2, 8));
 const toKg = (v, unit) => Number(v) * (unit === 'lb' ? 0.45359237 : 1);
@@ -128,6 +136,48 @@ export default function Deffitness({ userId, onClose }) {
   const [sessionMinutes, setSessionMinutes] = useState(35);
   const [sessionNote, setSessionNote] = useState('');
   const [notice, setNotice] = useState('');
+  const [libraryItems, setLibraryItems] = useState([]);
+  const [libraryStatus, setLibraryStatus] = useState('idle');
+  const [libraryError, setLibraryError] = useState('');
+  const [libraryLoadToken, setLibraryLoadToken] = useState(0);
+  const [libraryQuery, setLibraryQuery] = useState('');
+  const [libraryMuscle, setLibraryMuscle] = useState('all');
+  const [libraryEquipment, setLibraryEquipment] = useState('all');
+  const [libraryDifficulty, setLibraryDifficulty] = useState('all');
+  const [libraryLanguage, setLibraryLanguage] = useState('en');
+  const [libraryVisibleCount, setLibraryVisibleCount] = useState(48);
+  const [selectedLibraryId, setSelectedLibraryId] = useState(null);
+
+  useEffect(() => {
+    if (tab !== 'library') return;
+    let cancelled = false;
+    setLibraryStatus('loading');
+    setLibraryError('');
+    (async () => {
+      let lastError = null;
+      for (const source of REPDB_DATA_URLS) {
+        try {
+          const response = await fetch(source, { headers: { Accept: 'application/json' }, cache: 'force-cache' });
+          if (!response.ok) throw new Error('Dataset returned HTTP ' + response.status);
+          const payload = await response.json();
+          if (!Array.isArray(payload?.exercises) || !payload.exercises.length) throw new Error('Exercise data had an unexpected format.');
+          if (!cancelled) {
+            setLibraryItems(payload.exercises);
+            setLibraryStatus('ready');
+            setLibraryError('');
+          }
+          return;
+        } catch (error) {
+          lastError = error;
+        }
+      }
+      if (!cancelled) {
+        setLibraryError(lastError?.message || 'Could not load the exercise library.');
+        setLibraryStatus('error');
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [tab, libraryLoadToken]);
 
   useEffect(() => {
     try { localStorage.setItem(storageKey, JSON.stringify(data)); }
@@ -136,6 +186,34 @@ export default function Deffitness({ userId, onClose }) {
 
   const routines = useMemo(() => makeRoutines(data.profile || profileDraft), [data.profile, profileDraft.equipment, profileDraft.level]);
   const routine = routines.find(item => item.id === activeRoutine) || routines[0];
+  const sessionExercises = [
+    ...routine.exercises,
+    ...(data.libraryMoves || []).map(move => ({
+      name: move.name,
+      prescription: move.category === 'stretching' || move.category === 'mobility' ? '20–30 sec' : '8–12 reps',
+      sets: '2–3 sets',
+      rest: '60 sec rest',
+      tip: move.tip || move.description || 'Follow the exercise-library instructions.',
+      libraryId: move.id
+    }))
+  ];
+  const libraryMuscleOptions = [...new Set(libraryItems.flatMap(exercise => [...(exercise.primary_muscles || []), ...(exercise.secondary_muscles || [])]).filter(Boolean))].sort();
+  const libraryEquipmentOptions = [...new Set(libraryItems.map(exercise => exercise.equipment || (exercise.is_bodyweight ? 'bodyweight' : '')).filter(Boolean))].sort();
+  const filteredLibraryItems = libraryItems.filter(exercise => {
+    const query = libraryQuery.trim().toLowerCase();
+    const searchable = [
+      localized(exercise, 'name', libraryLanguage), localized(exercise, 'description', libraryLanguage),
+      exercise.category, exercise.body_part, exercise.equipment, exercise.difficulty,
+      ...(exercise.primary_muscles || []), ...(exercise.secondary_muscles || []), ...(exercise.tags || [])
+    ].join(' ').toLowerCase();
+    const muscles = [...(exercise.primary_muscles || []), ...(exercise.secondary_muscles || [])];
+    const equipment = exercise.equipment || (exercise.is_bodyweight ? 'bodyweight' : '');
+    return (!query || searchable.includes(query))
+      && (libraryMuscle === 'all' || muscles.includes(libraryMuscle))
+      && (libraryEquipment === 'all' || equipment === libraryEquipment)
+      && (libraryDifficulty === 'all' || exercise.difficulty === libraryDifficulty);
+  });
+  const selectedLibraryExercise = libraryItems.find(exercise => exercise.id === selectedLibraryId) || null;
   const sortedWeights = useMemo(() => [...data.weightLogs].sort((a, b) => a.date.localeCompare(b.date) || a.createdAt - b.createdAt), [data.weightLogs]);
   const latestWeight = sortedWeights.length ? sortedWeights[sortedWeights.length - 1] : null;
   const firstWeight = sortedWeights[0] || null;
@@ -174,7 +252,7 @@ export default function Deffitness({ userId, onClose }) {
   }
   function completeWorkout() {
     if (!checkedExercises.length) { setNotice('Tick at least one completed exercise first.'); return; }
-    setData(old => ({ ...old, workouts: [...old.workouts, { id: makeId(), date: today(), routineId: routine.id, title: routine.title, exercises: [...checkedExercises], minutes: Math.max(1, Number(sessionMinutes) || 1), note: sessionNote.trim().slice(0, 240), createdAt: Date.now() }] }));
+    setData(old => ({ ...old, workouts: [...old.workouts, { id: makeId(), date: today(), routineId: routine.id, title: routine.title, exercises: checkedExercises.map(index => sessionExercises[index]?.name).filter(Boolean), minutes: Math.max(1, Number(sessionMinutes) || 1), note: sessionNote.trim().slice(0, 240), createdAt: Date.now() }] }));
     setCheckedExercises([]); setSessionNote(''); setNotice('Workout logged — great job showing up.'); setTab('overview');
   }
   function exportData() {
@@ -184,11 +262,26 @@ export default function Deffitness({ userId, onClose }) {
   function toggleCheck(index) {
     setCheckedExercises(old => old.includes(index) ? old.filter(item => item !== index) : [...old, index]);
   }
+  function addLibraryExercise(exercise) {
+    const move = {
+      id: exercise.id,
+      name: localized(exercise, 'name', libraryLanguage) || exercise.name_en || 'Exercise',
+      tip: (localized(exercise, 'instructions', libraryLanguage) || [])[0] || localized(exercise, 'description', libraryLanguage) || '',
+      description: localized(exercise, 'description', libraryLanguage) || '',
+      category: exercise.category || 'strength',
+      equipment: exercise.equipment || ''
+    };
+    setData(old => ({ ...old, libraryMoves: [...(old.libraryMoves || []).filter(item => item.id !== move.id), move] }));
+    setCheckedExercises([]);
+    setNotice('Added ' + move.name + ' to your workout.');
+    setTab('workout');
+  }
 
   const nav = [
     ['overview', Activity, 'Overview'],
     ['plan', CalendarDays, 'My plan'],
     ['workout', Dumbbell, 'Workout'],
+    ['library', BookOpen, 'Exercise library'],
     ['progress', BarChart3, 'Progress'],
     ['history', History, 'History']
   ];
@@ -207,7 +300,7 @@ export default function Deffitness({ userId, onClose }) {
         </div>
       </aside>
       <main className="df-main">
-        <header className="df-topbar"><div><div className="df-date-label">{new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</div><h1 id="df-title">{tab === 'overview' ? 'Your fitness, your pace.' : tab === 'plan' ? 'Your training plan' : tab === 'workout' ? 'Let’s get moving.' : tab === 'progress' ? 'Every step counts.' : 'Your workout history'}</h1></div><div className="df-top-actions"><span className="df-free-pill"><Sparkles size={13}/> FREE FOREVER</span><button type="button" aria-label="Close deffitness" className="df-top-close" onClick={onClose}><X size={19}/></button></div></header>
+        <header className="df-topbar"><div><div className="df-date-label">{new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</div><h1 id="df-title">{tab === 'overview' ? 'Your fitness, your pace.' : tab === 'plan' ? 'Your training plan' : tab === 'workout' ? 'Let’s get moving.' : tab === 'library' ? 'Explore 700+ exercises.' : tab === 'progress' ? 'Every step counts.' : 'Your workout history'}</h1></div><div className="df-top-actions"><span className="df-free-pill"><Sparkles size={13}/> FREE FOREVER</span><button type="button" aria-label="Close deffitness" className="df-top-close" onClick={onClose}><X size={19}/></button></div></header>
         <div className="df-body">
           {showSetup && <section className="df-setup-card"><div className="df-setup-head"><span className="df-setup-icon"><Target size={20}/></span><div><h2>Build your personal plan</h2><p>Pick a goal and we'll adapt routines to your experience and equipment.</p></div></div>
             <form className="df-setup-grid" onSubmit={saveProfile}>
@@ -239,6 +332,49 @@ export default function Deffitness({ userId, onClose }) {
             <section className="df-panel"><div className="df-panel-head"><div><b>Your weight</b><small>{data.weightLogs.length} weigh-ins logged</small></div>{latestWeight && <strong>{showWeight(latestWeight.kg, unit)} {unit}</strong>}</div><TrendChart logs={data.weightLogs} unit={unit}/></section>
           </>}
 
+          {!showSetup && tab === 'library' && <>
+            <section className="df-library-intro">
+              <div className="df-library-head"><span className="df-intro-icon"><BookOpen size={21}/></span><div><h2>Exercise library</h2><p>Browse the RepDB exercise catalog with instructions, muscle groups, equipment, and illustrations.</p></div><span className="df-library-count">{libraryStatus === 'ready' ? libraryItems.length + ' moves' : 'Free catalog'}</span></div>
+              <div className="df-library-search"><Search size={17}/><input aria-label="Search exercises" value={libraryQuery} onChange={event => { setLibraryQuery(event.target.value); setLibraryVisibleCount(48); }} placeholder="Search exercises, muscles, equipment…"/><select aria-label="Exercise language" value={libraryLanguage} onChange={event => setLibraryLanguage(event.target.value)}><option value="en">English</option><option value="es">Español</option><option value="de">Deutsch</option></select></div>
+              <div className="df-library-filters">
+                <label>Muscle group<select value={libraryMuscle} onChange={event => { setLibraryMuscle(event.target.value); setLibraryVisibleCount(48); }}><option value="all">All muscles</option>{libraryMuscleOptions.map(muscle => <option key={muscle} value={muscle}>{humanize(muscle)}</option>)}</select></label>
+                <label>Equipment<select value={libraryEquipment} onChange={event => { setLibraryEquipment(event.target.value); setLibraryVisibleCount(48); }}><option value="all">Any equipment</option>{libraryEquipmentOptions.map(equipment => <option key={equipment} value={equipment}>{humanize(equipment)}</option>)}</select></label>
+                <label>Difficulty<select value={libraryDifficulty} onChange={event => { setLibraryDifficulty(event.target.value); setLibraryVisibleCount(48); }}><option value="all">All levels</option><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option></select></label>
+              </div>
+            </section>
+            {libraryStatus === 'loading' && <div className="df-empty-state large"><RefreshCw size={26} className="df-library-spin"/><b>Loading the RepDB exercise library…</b><span>Fetching the catalog from Hugging Face. The full exercise list is loaded only when you open this tab.</span></div>}
+            {libraryStatus === 'error' && <div className="df-empty-state large"><BookOpen size={28}/><b>Exercise library could not load</b><span>{libraryError}. Check your connection and try again.</span><button type="button" className="df-primary-button" onClick={() => setLibraryLoadToken(token => token + 1)}><RefreshCw size={15}/> Try again</button></div>}
+            {libraryStatus === 'ready' && <>
+              <div className="df-section-heading df-library-results-head"><div><h2>{filteredLibraryItems.length.toLocaleString()} exercises</h2><p>Tap a card to see the instructions, or add it to your workout.</p></div><span className="df-panel-badge"><Languages size={14}/> EN · ES · DE</span></div>
+              {selectedLibraryExercise && <section className="df-exercise-detail">
+                <div className="df-detail-title"><div><span className="df-eyebrow">EXERCISE DETAILS</span><h2>{localized(selectedLibraryExercise, 'name', libraryLanguage) || selectedLibraryExercise.name_en}</h2><p>{localized(selectedLibraryExercise, 'description', libraryLanguage)}</p></div><button type="button" aria-label="Close exercise details" onClick={() => setSelectedLibraryId(null)}><X size={17}/></button></div>
+                <div className="df-detail-meta"><span>{humanize(selectedLibraryExercise.category)}</span><span>{humanize(selectedLibraryExercise.difficulty)}</span><span>{humanize(selectedLibraryExercise.equipment || (selectedLibraryExercise.is_bodyweight ? 'bodyweight' : 'no equipment listed'))}</span><span>{humanize(selectedLibraryExercise.body_part)}</span></div>
+                <div className="df-detail-muscles"><b>Primary muscles</b><span>{(selectedLibraryExercise.primary_muscles || []).map(humanize).join(', ') || 'Not specified'}</span>{Boolean(selectedLibraryExercise.secondary_muscles?.length) && <><b>Also involved</b><span>{selectedLibraryExercise.secondary_muscles.map(humanize).join(', ')}</span></>}</div>
+                <div className="df-detail-images">
+                  {(selectedLibraryExercise.images?.flat?.start || selectedLibraryExercise.images?.flat?.main) && <img loading="lazy" src={repdbImageUrl(selectedLibraryExercise.images.flat.start || selectedLibraryExercise.images.flat.main)} alt={localized(selectedLibraryExercise, 'name', libraryLanguage) + ' start pose'}/>}
+                  {selectedLibraryExercise.images?.flat?.peak && <img loading="lazy" src={repdbImageUrl(selectedLibraryExercise.images.flat.peak)} alt={localized(selectedLibraryExercise, 'name', libraryLanguage) + ' peak pose'}/>}
+                </div>
+                <ol className="df-detail-instructions">{(localized(selectedLibraryExercise, 'instructions', libraryLanguage) || []).map((instruction, index) => <li key={index}>{instruction}</li>)}</ol>
+                {Boolean((localized(selectedLibraryExercise, 'tips', libraryLanguage) || []).length) && <div className="df-detail-tips"><b>Form tips</b>{localized(selectedLibraryExercise, 'tips', libraryLanguage).map((tip, index) => <p key={index}>{tip}</p>)}</div>}
+                <button type="button" className="df-primary-button" onClick={() => addLibraryExercise(selectedLibraryExercise)}><Plus size={16}/>{(data.libraryMoves || []).some(move => move.id === selectedLibraryExercise.id) ? 'Add again to workout' : 'Add to workout'}</button>
+              </section>}
+              {filteredLibraryItems.length ? <div className="df-exercise-library-grid">{filteredLibraryItems.slice(0, libraryVisibleCount).map(exercise => {
+                const alreadyAdded = (data.libraryMoves || []).some(move => move.id === exercise.id);
+                const name = localized(exercise, 'name', libraryLanguage) || exercise.name_en;
+                const image = exercise.images?.flat?.main || exercise.images?.flat?.start || exercise.images?.flat?.peak;
+                return <article className={'df-library-card' + (selectedLibraryId === exercise.id ? ' selected' : '')} key={exercise.id}>
+                  <button type="button" className="df-library-card-main" onClick={() => setSelectedLibraryId(exercise.id)} aria-label={'View instructions for ' + name}>
+                    <div className="df-library-card-image">{image ? <img loading="lazy" src={repdbImageUrl(image)} alt="" onError={event => { event.currentTarget.style.visibility = 'hidden'; }}/> : <Dumbbell size={25}/>}<span>{humanize(exercise.difficulty)}</span></div>
+                    <div className="df-library-card-copy"><b>{name}</b><span>{humanize(exercise.body_part)} · {humanize(exercise.category)}</span><small>{(exercise.primary_muscles || []).slice(0, 3).map(humanize).join(', ') || 'General movement'}</small></div>
+                  </button>
+                  <div className="df-library-card-footer"><span>{exercise.equipment ? humanize(exercise.equipment) : 'Bodyweight'}{Number.isFinite(Number(exercise.met)) ? ' · ' + exercise.met + ' MET' : ''}</span><button type="button" onClick={() => addLibraryExercise(exercise)}>{alreadyAdded ? <Check size={13}/> : <Plus size={13}/>} {alreadyAdded ? 'In workout' : 'Add'}</button></div>
+                </article>;
+              })}</div> : <div className="df-empty-state large"><Search size={27}/><b>No exercises match those filters</b><span>Try a different search term or clear one of the filters.</span><button type="button" className="df-ghost-button" onClick={() => { setLibraryQuery(''); setLibraryMuscle('all'); setLibraryEquipment('all'); setLibraryDifficulty('all'); }}>Clear filters</button></div>}
+              {filteredLibraryItems.length > libraryVisibleCount && <button type="button" className="df-library-more" onClick={() => setLibraryVisibleCount(count => count + 48)}>Show {Math.min(48, filteredLibraryItems.length - libraryVisibleCount)} more exercises <ChevronDown size={15}/></button>}
+              <p className="df-repdb-credit">Exercise data by <a href="https://repdb.co" target="_blank" rel="nofollow noopener noreferrer">RepDB (repdb.co)</a>. Free in-app use with attribution.</p>
+            </>}
+          </>}
+
           {!showSetup && tab === 'plan' && <>
             <section className="df-intro-card"><span className="df-intro-icon"><CalendarDays size={21}/></span><div><h2>Your weekly rhythm</h2><p>A flexible {weeklyTarget}-day plan. Rest and recovery are part of training too.</p></div><button type="button" className="df-ghost-button" onClick={() => setShowSetup(true)}><Settings2 size={15}/> Edit</button></section>
             <div className="df-schedule-grid">{Array.from({ length: 7 }, (_, index) => ({ day: index, label: new Date(Date.now() - ((new Date().getDay() + 6) % 7) * 86400000 + index * 86400000).toLocaleDateString(undefined, { weekday: 'short' }) })).map((item, index) => { const sessionDay = index < weeklyTarget; const plan = sessionDay ? routines[index % 3] : routines[3]; const finished = data.workouts.some(workout => workout.date === today() && workout.routineId === plan.id); return <button type="button" key={item.day} className={'df-schedule-day' + (sessionDay ? ' training-day' : ' rest-day')} onClick={() => { setActiveRoutine(plan.id); setCheckedExercises([]); setTab('workout'); }}><span className="df-schedule-label">{item.label}</span><span className="df-schedule-symbol">{finished ? <Check size={17}/> : sessionDay ? plan.icon : '☾'}</span><b>{finished ? 'Done' : sessionDay ? plan.title : 'Recovery'}</b><small>{sessionDay ? data.profile?.minutes || 35 : 'Easy movement' } {sessionDay ? 'min' : 'optional'}</small></button>; })}</div>
@@ -248,9 +384,9 @@ export default function Deffitness({ userId, onClose }) {
 
           {!showSetup && tab === 'workout' && <>
             <section className="df-workout-select"><div><span className="df-eyebrow"><Dumbbell size={13}/> TRAINING SESSION</span><h2>Choose your routine</h2><p>Start easy, use controlled movement, and take rests as needed.</p></div><select value={activeRoutine} onChange={e => { setActiveRoutine(e.target.value); setCheckedExercises([]); }} aria-label="Select routine">{routines.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}</select></section>
-            <section className="df-workout-banner"><div className="df-workout-banner-icon">{routine.icon}</div><div><h2>{routine.title}</h2><p>{routine.intro}</p><div className="df-workout-tags"><span><Clock3 size={12}/> {data.profile?.minutes || 35} min</span><span><ListChecks size={12}/> {routine.exercises.length} moves</span><span><Target size={12}/> {data.profile?.level || 'beginner'}</span></div></div></section>
-            <div className="df-exercise-list">{routine.exercises.map((exercise, index) => <article key={routine.id + '-' + index} className={'df-exercise-row' + (checkedExercises.includes(index) ? ' completed' : '')}><button type="button" className="df-exercise-check" onClick={() => toggleCheck(index)} aria-label={(checkedExercises.includes(index) ? 'Uncheck ' : 'Complete ') + exercise.name}>{checkedExercises.includes(index) ? <Check size={17}/> : <span>{String(index + 1).padStart(2, '0')}</span>}</button><div className="df-exercise-copy"><b>{exercise.name}</b><span>{exercise.tip}</span><div className="df-exercise-meta"><em>{exercise.sets}</em><em>{exercise.prescription}</em><em>{exercise.rest}</em></div></div><span className="df-exercise-state">{checkedExercises.includes(index) ? 'Done' : 'Ready'}</span></article>)}</div>
-            <section className="df-session-footer"><div className="df-session-fields"><label>Minutes completed<input type="number" min="1" max="300" value={sessionMinutes} onChange={e => setSessionMinutes(e.target.value)}/></label><label>Session note (optional)<input maxLength="240" value={sessionNote} onChange={e => setSessionNote(e.target.value)} placeholder="Energy, how it felt…"/></label></div><div className="df-session-summary"><span>{checkedExercises.length} of {routine.exercises.length} exercises checked</span><div className="df-mini-progress"><i style={{ width: checkedExercises.length / routine.exercises.length * 100 + '%' }}/></div></div><button type="button" className="df-primary-button df-complete-button" onClick={completeWorkout}><CheckCircle2 size={17}/> Log completed workout</button></section>
+            <section className="df-workout-banner"><div className="df-workout-banner-icon">{routine.icon}</div><div><h2>{routine.title}</h2><p>{routine.intro}</p><div className="df-workout-tags"><span><Clock3 size={12}/> {data.profile?.minutes || 35} min</span><span><ListChecks size={12}/> {sessionExercises.length} moves</span><span><Target size={12}/> {data.profile?.level || 'beginner'}</span></div></div></section>
+            <div className="df-exercise-list">{sessionExercises.map((exercise, index) => <article key={exercise.libraryId || routine.id + '-' + index} className={'df-exercise-row' + (checkedExercises.includes(index) ? ' completed' : '')}><button type="button" className="df-exercise-check" onClick={() => toggleCheck(index)} aria-label={(checkedExercises.includes(index) ? 'Uncheck ' : 'Complete ') + exercise.name}>{checkedExercises.includes(index) ? <Check size={17}/> : <span>{String(index + 1).padStart(2, '0')}</span>}</button><div className="df-exercise-copy"><b>{exercise.name}</b><span>{exercise.tip}</span><div className="df-exercise-meta"><em>{exercise.sets}</em><em>{exercise.prescription}</em><em>{exercise.rest}</em></div></div><span className="df-exercise-state">{checkedExercises.includes(index) ? 'Done' : 'Ready'}</span>{exercise.libraryId && <button type="button" className="df-remove-library-move" title="Remove this exercise from your workout" aria-label={'Remove ' + exercise.name} onClick={() => { setData(old => ({ ...old, libraryMoves: (old.libraryMoves || []).filter(move => move.id !== exercise.libraryId) })); setCheckedExercises([]); }}>×</button>}</article>)}</div>
+            <section className="df-session-footer"><div className="df-session-fields"><label>Minutes completed<input type="number" min="1" max="300" value={sessionMinutes} onChange={e => setSessionMinutes(e.target.value)}/></label><label>Session note (optional)<input maxLength="240" value={sessionNote} onChange={e => setSessionNote(e.target.value)} placeholder="Energy, how it felt…"/></label></div><div className="df-session-summary"><span>{checkedExercises.length} of {sessionExercises.length} exercises checked</span><div className="df-mini-progress"><i style={{ width: checkedExercises.length / sessionExercises.length * 100 + '%' }}/></div></div><button type="button" className="df-primary-button df-complete-button" onClick={completeWorkout}><CheckCircle2 size={17}/> Log completed workout</button></section>
             <p className="df-disclaimer">Warm up first. Stop if you feel sharp pain, dizziness, chest pain, or unusual shortness of breath. Get professional guidance if you have an injury or medical concern.</p>
           </>}
 
@@ -271,7 +407,7 @@ export default function Deffitness({ userId, onClose }) {
           </>}
           {notice && <div className="df-toast" role="status"><CheckCircle2 size={16}/><span>{notice}</span><button type="button" onClick={() => setNotice('')} aria-label="Dismiss"><X size={14}/></button></div>}
         </div>
-        <footer className="df-footer"><span><HeartPulse size={13}/> Train for how you feel, not just a number.</span><span>deffitness · free for everyone</span></footer>
+        <footer className="df-footer"><span><HeartPulse size={13}/> Train for how you feel, not just a number.</span><span>deffitness · free for everyone</span><a href="https://repdb.co" target="_blank" rel="nofollow noopener noreferrer">Exercise data by RepDB</a></footer>
       </main>
     </section>
   </div>;

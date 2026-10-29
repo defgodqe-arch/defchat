@@ -89,10 +89,66 @@ export default function ClipStudio({ onClose, db: supabase }) {
     let inputDuration = duration;
     if (mode === 'link') {
       if (!sourceUrl.trim()) { setError('Paste a video URL first.'); return; }
-      if (youtubeId) { setError('YouTube preview is available here, but YouTube does not provide the downloadable video file needed to render MP4 clips. Upload a video file you have permission to process, or use a direct video-file URL.'); return; }
       let parsed;
       try { parsed = new URL(sourceUrl.trim()); } catch { setError('Enter a valid https:// video URL.'); return; }
       if (parsed.protocol !== 'https:' && parsed.hostname !== 'localhost') { setError('For safety, video URLs must use HTTPS.'); return; }
+      // Platform pages (YouTube/Vimeo/Twitch) cannot be fetched as media files
+      // in the browser. Send them to the authenticated server-side processor.
+      if (source) {
+        if (!supabase?.auth?.getSession) {
+          setError('Your signed-in Supabase session is unavailable. Sign out and back in, then retry.');
+          return;
+        }
+        setBusy(true);
+        setNotice('Sending the video link to defchat’s secure clip processor…');
+        try {
+          const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+          const accessToken = sessionData?.session?.access_token;
+          if (sessionError || !accessToken) throw new Error('Your session has expired. Sign in again and retry.');
+          const response = await fetch(CLIP_FUNCTION_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + accessToken,
+              'apikey': SUPABASE_KEY
+            },
+            body: JSON.stringify({
+              sourceType: 'url',
+              url: sourceUrl.trim(),
+              clipLength: Number(clipLength),
+              clipCount: Number(clipCount),
+              aspectRatio: aspect,
+              captionStyle
+            })
+          });
+          const result = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(result.error || ('Clip processor returned HTTP ' + response.status + '.'));
+          const serverClips = Array.isArray(result.clips) ? result.clips : [];
+          const normalized = serverClips.map((clip, index) => ({
+            id: clip.id || clip.path || ('server-clip-' + index),
+            title: clip.title || ('Clip ' + (index + 1)),
+            start: Number(clip.start || 0),
+            end: Number(clip.end || 0),
+            caption: clip.caption || '',
+            videoUrl: clip.videoUrl || clip.video_url || clip.url || clip.downloadUrl || clip.download_url || '',
+            downloadUrl: clip.downloadUrl || clip.download_url || clip.videoUrl || clip.video_url || clip.url || '',
+            thumbnailUrl: clip.thumbnailUrl || clip.thumbnail_url || ''
+          }));
+          setClips(normalized);
+          if (result.status === 'processing' || response.status === 202) {
+            setNotice(result.message || 'Your video was accepted and is processing. Refresh the clip list in a moment to see the finished MP4s.');
+          } else if (normalized.length) {
+            setNotice('Finished! ' + normalized.length + ' rendered clips are ready.');
+          } else {
+            setNotice(result.message || 'The processor accepted the request but has not returned finished clips yet.');
+          }
+        } catch (e) {
+          setError((e?.message || 'Could not submit this video to the clip processor.') + ' You can still upload a video file to render clips locally.');
+        } finally {
+          setBusy(false);
+        }
+        return;
+      }
     } else if (!inputFile) { setError('Choose a video file from your device first.'); return; }
     if (inputFile && inputFile.size > 500 * 1024 * 1024) { setError('Choose a video smaller than 500 MB for browser-based processing.'); return; }
     setBusy(true);

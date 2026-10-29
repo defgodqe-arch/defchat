@@ -15,8 +15,8 @@ const REPDB_DATA_URLS = [
 ];
 const localized = (exercise, field, language = 'en') =>
   exercise?.[field + '_' + language] || exercise?.[field + '_en'] || '';
-const humanize = value => String(value || '').replace(/_/g, ' ').replace(/\\b\\w/g, char => char.toUpperCase());
-const repdbImageUrl = path => path ? 'https://exercise-dataset.com/' + String(path).replace(/^\\/+/, '') : '';
+const humanize = value => String(value || '').replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
+const repdbImageUrl = path => path ? 'https://exercise-dataset.com/' + String(path).replace(/^\/+/, '') : '';
 const today = () => new Date().toISOString().slice(0, 10);
 const makeId = () => (globalThis.crypto?.randomUUID?.() || Date.now().toString(36) + Math.random().toString(36).slice(2, 8));
 const toKg = (v, unit) => Number(v) * (unit === 'lb' ? 0.45359237 : 1);

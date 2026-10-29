@@ -292,7 +292,7 @@ export default function Deffitness({ userId, onClose }) {
       <aside className="df-sidebar">
         <div className="df-brand"><span className="df-brand-mark"><Activity size={22}/></span><div><small>YOUR FREE FITNESS COACH</small><h2>deffitness</h2></div></div>
         <div className="df-nav-label">YOUR SPACE</div>
-        {nav.map(([key, Icon, label]) => <button type="button" key={key} className={'df-nav-item' + (tab === key ? ' active' : '')} onClick={() => { setTab(key); setNotice(''); }}><Icon size={17}/><span>{label}</span>{key === 'workout' && <span className="df-nav-hot">GO</span>}</button>)}
+        {nav.map(([key, Icon, label]) => <button type="button" key={key} className={'df-nav-item' + (tab === key ? ' active' : '')} onClick={() => { setTab(key); if (key === 'library') setShowSetup(false); setNotice(''); }}><Icon size={17}/><span>{label}</span>{key === 'workout' && <span className="df-nav-hot">GO</span>}</button>)}
         <div className="df-sidebar-bottom">
           <div className="df-local-note"><span className="df-local-dot"/><span>Private on this device</span></div>
           <button type="button" className="df-export-button" onClick={exportData}><Download size={15}/> Export my data</button>
@@ -314,6 +314,7 @@ export default function Deffitness({ userId, onClose }) {
               <label>Current weight (optional)<input type="number" min="1" max="700" step="0.1" placeholder={'Weight in ' + profileDraft.unit} value={profileDraft.currentWeightKg} onChange={e => setProfileDraft(p => ({ ...p, currentWeightKg: e.target.value }))}/></label>
               <label>Target weight (optional)<input type="number" min="1" max="700" step="0.1" placeholder={'Weight in ' + profileDraft.unit} value={profileDraft.targetWeightKg} onChange={e => setProfileDraft(p => ({ ...p, targetWeightKg: e.target.value }))}/></label>
               <button className="df-primary-button df-setup-submit" type="submit"><Sparkles size={16}/> Create my plan</button>
+              <button type="button" className="df-ghost-button df-setup-library-button" onClick={() => { setShowSetup(false); setTab('library'); setNotice(''); }}><BookOpen size={15}/> Browse exercise library first</button>
             </form>
             <p className="df-disclaimer">No paid tier, supplements, or special equipment required. This is general fitness guidance, not medical care.</p>
           </section>}
@@ -326,7 +327,7 @@ export default function Deffitness({ userId, onClose }) {
               <article className="df-stat-card"><span className="df-stat-icon"><Timer size={18}/></span><span className="df-stat-label">Total training time</span><strong>{prettyMinutes(totalMinutes)}</strong><span className="df-stat-foot">Across {data.workouts.length} logged sessions</span></article>
               <article className="df-stat-card"><span className="df-stat-icon"><Trophy size={18}/></span><span className="df-stat-label">Consistency</span><strong>{data.workouts.length ? Math.min(100, Math.round(data.workouts.length / Math.max(1, Math.ceil((Date.now() - (data.profile?.startDate ? Date.parse(data.profile.startDate + 'T12:00:00') : Date.now())) / 604800000)) * 100)) : 0}<small>%</small></strong><span className="df-stat-foot">Every session is progress</span></article>
             </div>
-            <div className="df-section-heading"><div><h2>This week’s plan</h2><p>Pick the workout that fits your energy today.</p></div><button type="button" className="df-text-button" onClick={() => setTab('plan')}>View plan <ChevronDown size={14}/></button></div>
+            <div className="df-section-heading"><div><h2>This week’s plan</h2><p>Pick the workout that fits your energy today.</p></div><div className="df-heading-actions"><button type="button" className="df-text-button" onClick={() => setTab('library')}><BookOpen size={14}/> Exercise library</button><button type="button" className="df-text-button" onClick={() => setTab('plan')}>View plan <ChevronDown size={14}/></button></div></div>
             <div className="df-routine-grid">{routines.slice(0, 3).map(item => <button type="button" key={item.id} className="df-routine-card" onClick={() => { setActiveRoutine(item.id); setCheckedExercises([]); setTab('workout'); }}><span className="df-routine-art">{item.icon}</span><span className="df-routine-title">{item.title}</span><span className="df-routine-focus">{item.focus}</span><span className="df-routine-meta"><Clock3 size={13}/> {data.profile?.minutes || 35} min <span>·</span> {item.exercises.length} exercises</span></button>)}</div>
             <div className="df-section-heading"><div><h2>Weight trend</h2><p>Focus on patterns, not day-to-day fluctuations.</p></div><button type="button" className="df-text-button" onClick={() => setTab('progress')}>View progress <ChevronDown size={14}/></button></div>
             <section className="df-panel"><div className="df-panel-head"><div><b>Your weight</b><small>{data.weightLogs.length} weigh-ins logged</small></div>{latestWeight && <strong>{showWeight(latestWeight.kg, unit)} {unit}</strong>}</div><TrendChart logs={data.weightLogs} unit={unit}/></section>

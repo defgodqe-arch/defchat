@@ -1,4 +1,6 @@
 FROM python:3.11-slim
+# yt-dlp requires a JS runtime plus its EJS challenge scripts for full YouTube support.
+COPY --from=denoland/deno:bin-2.3.1 /deno /usr/local/bin/deno
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /app

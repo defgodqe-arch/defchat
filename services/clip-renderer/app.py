@@ -115,7 +115,7 @@ def fetch_source(url, path):
         except socket.gaierror:
             raise ValueError("Redirect destination could not be resolved.")
         ctype = r.headers.get("content-type", "").lower()
-        if not ctype.startswith("video/") and not re.search(r"\\.(mp4|mov|webm|m4v|mkv)(?:$|\\?)", r.url, re.I):
+        if not ctype.startswith("video/") and not re.search(r"\.(mp4|mov|webm|m4v|mkv)(?:$|\?)", r.url, re.I):
             raise ValueError("URL did not return a direct video file.")
         with open(path, "wb") as f:
             for chunk in r.iter_content(1024 * 1024):

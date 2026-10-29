@@ -376,7 +376,7 @@ export default function ClipStudio({ onClose, db: supabase }) {
               <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
                 <span style={{width:34,height:34,borderRadius:10,display:'grid',placeItems:'center',background:'#29220c',color:'#facc15'}}><Youtube size={19}/></span>
                 <div style={{flex:1,minWidth:150}}><b style={{fontSize:12}}>Your YouTube library</b><div style={{fontSize:10,color:'#9292a0',marginTop:3}}>{youtubeChannel?.title ? 'Connected to ' + youtubeChannel.title : 'Sign in to browse videos uploaded to your channel'}</div></div>
-                {youtubeToken ? <button type="button" className="clip-studio-primary" onClick={disconnectYouTube}><LogOut size={14}/> Disconnect</button> : <button type="button" className="clip-studio-primary" onClick={connectYouTube}><Youtube size={14}/> Connect YouTube</button>}
+                {youtubeToken ? <button type="button" className="clip-studio-primary" onClick={disconnectYouTube}><LogOut size={14}/> Hide list</button> : <button type="button" className="clip-studio-primary" onClick={connectYouTube}><Youtube size={14}/> Connect YouTube</button>}
               </div>
               {youtubeLoading && <p className="clip-studio-hint" style={{marginBottom:0}}>Loading your channel uploads…</p>}
               {youtubeError && <p role="alert" className="clip-studio-hint" style={{color:'#fca5a5',marginBottom:0}}>{youtubeError}</p>}

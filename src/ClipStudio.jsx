@@ -26,7 +26,7 @@ const getSource = value => {
 };
 
 export default function ClipStudio({ onClose, db: supabase }) {
-  const [mode, setMode] = useState('link');
+  const [mode, setMode] = useState('upload');
   const [sourceUrl, setSourceUrl] = useState('');
   const [file, setFile] = useState(null);
   const [videoUrl, setVideoUrl] = useState('');
@@ -221,7 +221,7 @@ export default function ClipStudio({ onClose, db: supabase }) {
             </div>
           </div>
           {error && <div className="clip-studio-notice clip-studio-error" role="alert"><AlertCircle size={15} style={{verticalAlign:'-3px',marginRight:7}}/>{error}</div>}
-          {notice && <div className="clip-studio-notice clip-studio-success" role="status"><CheckCircle2 size={15} style={{verticalAlign:'-3px',marginRight:7}}/>{notice}</div>}
+          {notice && <div className="clip-studio-notice clip-studio-success" role="status"><CheckCircle2 size={15} style={{verticalAlign:'-3px',marginRight:7}}/>{notice}{busy && <div style={{height:5,background:'#3a3420',borderRadius:99,overflow:'hidden',marginTop:10}}><div style={{height:'100%',width:Math.max(4,progress)+'%',background:'linear-gradient(90deg,#facc15,#f59e0b)',transition:'width .25s'}}/></div>}</div>}
           <div className="clip-studio-footer"><AlertCircle size={15}/><span>Video processing runs inside your browser using the free FFmpeg WebAssembly engine. This version creates evenly spaced MP4 clips; AI highlight detection and burned-in captions are not included yet.</span></div>
         </section>
 

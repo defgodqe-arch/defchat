@@ -27,11 +27,6 @@ Deno.serve(async (req: Request) => {
 
   const processorUrl = Deno.env.get("CLIP_PROCESSOR_URL");
   const processorKey = Deno.env.get("CLIP_PROCESSOR_KEY");
-  if (!processorUrl) {
-    return json({
-      error: "Supabase is connected, but the video-rendering engine is not configured yet. Set the CLIP_PROCESSOR_URL secret to a service that supports highlight detection, captions, vertical reframing, and MP4 rendering. No fake clips were generated."
-    }, 503);
-  }
 
   let body: Record<string, unknown>;
   try { body = await req.json(); } catch { return json({ error: "Send a valid JSON request." }, 400); }
@@ -74,6 +69,11 @@ Deno.serve(async (req: Request) => {
     caption_style: captionStyle
   }).select("id").single();
   if (jobError || !job) return json({ error: "Could not create the clip job in Supabase." }, 500);
+  if (!processorUrl) {
+    const message = "Supabase is connected, but the video-rendering engine is not configured yet. Set the CLIP_PROCESSOR_URL secret to a service that supports highlight detection, captions, vertical reframing, and MP4 rendering. No fake clips were generated.";
+    await admin.from("clip_jobs").update({ status: "failed", error_message: message, updated_at: new Date().toISOString() }).eq("id", job.id);
+    return json({ error: message, jobId: job.id }, 503);
+  }
 
   try {
     const response = await fetch(processorUrl, {

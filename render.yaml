@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: defchat-ai-clip-processor
+    runtime: docker
+    dockerfilePath: ./clip-processor/Dockerfile
+    dockerContext: .
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: CLIP_PROCESSOR_KEY
+        generateValue: true
+      - key: WHISPER_MODEL
+        value: small
+      - key: MAX_SOURCE_BYTES
+        value: "2147483648"

@@ -1,31 +1,31 @@
-# defchat AI Clip Processor
+# defchat AI Clip Processor — 100% free local setup
 
-This is the real media-processing service for AI Clip Studio. It uses FFmpeg to render MP4s, faster-whisper to transcribe speech, transcript-based scoring to select non-overlapping highlight windows, burns captions into the video, and stores output clips in the private Supabase `clip-studio` bucket.
+This version processes videos on your own Windows PC. No Render account, payment card, or paid hosting is needed. Your PC must remain on while processing.
 
-## Deploy on Render
+## 1. Install prerequisites
 
-1. In Render, choose **New + → Blueprint** and connect `defgodqe-arch/defchat`. Render will read the repository's `render.yaml`.
-2. Set these environment variables on the service:
-   - `SUPABASE_URL=https://jklhnhnxyzqjvmqgfpjs.supabase.co`
-   - `SUPABASE_SERVICE_ROLE_KEY`: the project's service-role/secret key. Keep it server-side only.
-   - `CLIP_PROCESSOR_KEY`: generate a long random secret and keep it private.
-   - `WHISPER_MODEL=small` (first startup downloads the model).
-3. Wait for the deployment to finish and check `https://YOUR-RENDER-SERVICE.onrender.com/health`. It should return JSON with `"ok": true` and `"configured": true`.
+1. Install Python 3.11 from https://www.python.org/downloads/windows/ and enable **Add Python to PATH**.
+2. Open PowerShell and install FFmpeg:
+   `winget install --id Gyan.FFmpeg.Shared --exact`
+3. Copy `.env.example` to `.env` in this folder.
+4. Open `.env` and set `SUPABASE_SERVICE_ROLE_KEY` to your project's private server-side key from Supabase Dashboard → Project Settings → API Keys. Do not share it or commit the real `.env` file.
 
-The worker needs a container that can run FFmpeg and Whisper. Processing can take several minutes. The first model download can make startup slower.
+## 2. Start the processor
 
-## Connect Supabase Edge Function
+Double-click `start-windows.bat` in this folder. It creates a Python virtual environment, installs dependencies, and starts the local API. The first install can take a while; Whisper also downloads its model the first time it processes audio.
 
-In Supabase Dashboard → Edge Functions → Secrets, set these function secrets:
+Open http://127.0.0.1:8765/health. The response should include `"ok": true` and `"configured": true`. Keep the terminal window open while using AI Clip Studio.
 
-- `CLIP_PROCESSOR_URL=https://YOUR-RENDER-SERVICE.onrender.com/process`
-- `CLIP_PROCESSOR_KEY=` the exact same secret configured in Render
+## 3. Use AI Clip Studio
 
-Do not put the service-role key or processor key into frontend code or commit them to GitHub. The public frontend only uses the Supabase publishable key.
+1. Open https://defgodqe-arch.github.io/defchat/ and sign in.
+2. Open AI Clip Studio and upload a video you own for your first test.
+3. Start processing and keep your PC and processor terminal running until the clips finish.
 
-## Processing notes
+## Free-tier and safety notes
 
-- Uploads are stored in a private bucket, and rendered outputs stay private; the worker returns signed URLs that expire after seven days.
-- YouTube/Vimeo/Twitch links work only when the source is accessible to the downloader and platform rules permit it. Upload a video you own if the platform blocks access.
-- The current highlight selection uses speech transcription and transcript heuristics, not a proprietary multimodal highlight model.
-- Render may require a paid container plan for reliable memory/CPU while running Whisper and FFmpeg. Do not upgrade to a paid plan without reviewing the cost first.
+- Processing runs locally; it will not work while your PC is off or the local processor is stopped.
+- Supabase free-tier storage and bandwidth limits still apply.
+- YouTube/Vimeo/Twitch may block downloading. Uploading a video you have permission to use is the most reliable test.
+- Do not port-forward or expose port 8765 to the internet.
+- The engine selects highlights using speech transcription and transcript heuristics; it is not a proprietary multimodal highlight model.

@@ -162,8 +162,15 @@ export default function ClipStudio({ onClose, db: supabase }) {
       let parsed;
       try { parsed = new URL(sourceUrl.trim()); } catch { setError('Enter a valid https:// video URL.'); return; }
       if (parsed.protocol !== 'https:' && parsed.hostname !== 'localhost') { setError('For safety, video URLs must use HTTPS.'); return; }
-      // Platform pages (YouTube/Vimeo/Twitch) cannot be fetched as media files
-      // in the browser. Send them to the authenticated server-side processor.
+      // YouTube's Data API can list channel uploads but does not expose original
+      // media downloads. Do not send YouTube page URLs to the server extractor:
+      // switch directly to the local-file workflow instead.
+      if (source === 'YouTube') {
+        setMode('upload');
+        setError('YouTube links can be previewed here, but YouTube does not provide Defchat a download stream. Select the original video file you own to create clips in your browser.');
+        return;
+      }
+      // Other supported platform pages are sent to the authenticated processor.
       if (source) {
         if (!authorizedSource) { setError('Confirm that you own this video or have permission to download and process it.'); return; }
         if (!supabase?.auth?.getSession) {
@@ -395,9 +402,9 @@ export default function ClipStudio({ onClose, db: supabase }) {
               <p className="clip-studio-hint" style={{marginBottom:0}}>YouTube sign-in lets Defchat browse your channel uploads. YouTube does not provide an API to download the original video file, so choose the video file below to create clips.</p>
             </div>
             <label className="clip-studio-field-label" htmlFor="clip-source-url">Video URL</label>
-            <div className="clip-studio-url-row"><input id="clip-source-url" className="clip-studio-input" type="url" value={sourceUrl} onChange={event => {setSourceUrl(event.target.value);resetResults()}} placeholder="Paste a supported video-page link or direct video URL…"/><button className="clip-studio-primary" type="button" onClick={analyze} disabled={busy || (Boolean(source) && !authorizedSource)}>{busy ? <LoaderCircle size={16} className="spin"/> : <Sparkles size={16}/>} Import & create clips</button></div>
-            <p className="clip-studio-hint">{source ? <><Play size={12} style={{verticalAlign:'-2px',marginRight:5,color:'#facc15'}}/>{source} link detected. Defchat can import supported public videos when you confirm you have permission to use them.</> : 'Paste a supported public video link or a direct HTTPS video-file URL. Private, login-only, and DRM-protected videos are not supported.'}</p>
-            {source && <label style={{display:'flex',alignItems:'flex-start',gap:9,margin:'0 0 14px',fontSize:11,lineHeight:1.5,color:'#c8c8d2'}}><input type="checkbox" checked={authorizedSource} onChange={event=>setAuthorizedSource(event.target.checked)} style={{marginTop:2,accentColor:'#facc15'}}/><span>I own this video or have permission to download and process it.</span></label>}
+            <div className="clip-studio-url-row"><input id="clip-source-url" className="clip-studio-input" type="url" value={sourceUrl} onChange={event => {setSourceUrl(event.target.value);resetResults()}} placeholder="Paste a supported video-page link or direct video URL…"/><button className="clip-studio-primary" type="button" onClick={() => source === 'YouTube' ? (setMode('upload'), setError('Select the original video file you own. YouTube links are preview-only; the browser cannot download the video stream from YouTube.')) : analyze()} disabled={busy || (Boolean(source) && source !== 'YouTube' && !authorizedSource)}>{busy ? <LoaderCircle size={16} className="spin"/> : source === 'YouTube' ? <Upload size={16}/> : <Sparkles size={16}/>} {source === 'YouTube' ? 'Choose video file' : 'Import & create clips'}</button></div>
+            <p className="clip-studio-hint">{source === 'YouTube' ? <><Play size={12} style={{verticalAlign:'-2px',marginRight:5,color:'#facc15'}}/>YouTube link detected. Preview and browse your channel here, then choose the original video file to create clips locally.</> : source ? <><Play size={12} style={{verticalAlign:'-2px',marginRight:5,color:'#facc15'}}/>{source} link detected. Defchat can import supported public videos when you confirm you have permission to use them.</> : 'Paste a supported public video link or a direct HTTPS video-file URL. Private, login-only, and DRM-protected videos are not supported.'}</p>
+            {source && source !== 'YouTube' && <label style={{display:'flex',alignItems:'flex-start',gap:9,margin:'0 0 14px',fontSize:11,lineHeight:1.5,color:'#c8c8d2'}}><input type="checkbox" checked={authorizedSource} onChange={event=>setAuthorizedSource(event.target.checked)} style={{marginTop:2,accentColor:'#facc15'}}/><span>I own this video or have permission to download and process it.</span></label>}
           </> : <>
             <label className="clip-studio-field-label">Video file</label>
             <input ref={fileInput} type="file" accept="video/*,.mp4,.mov,.webm,.m4v" hidden onChange={event => {setFile(event.target.files?.[0] || null);resetResults()}}/>

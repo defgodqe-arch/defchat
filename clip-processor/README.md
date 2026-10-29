@@ -1,31 +1,17 @@
-# defchat AI Clip Processor — 100% free local setup
+# AI Clip Studio processing
 
-This version processes videos on your own Windows PC. No Render account, payment card, or paid hosting is needed. Your PC must remain on while processing.
+The public defchat website now renders uploaded video clips directly in the user's browser with FFmpeg WebAssembly. You do not need to deploy this Python processor, use Render, add a payment card, or install a local server.
 
-## 1. Install prerequisites
+## Using it
+1. Open https://defgodqe-arch.github.io/defchat/ and open AI Clip Studio.
+2. Choose **Upload video** and select a local video file under 500 MB.
+3. Choose clip length, number of clips, and aspect ratio, then select **Create clips in browser**.
+4. Wait for the MP4 files to render, then preview or download each clip.
 
-1. Install Python 3.11 from https://www.python.org/downloads/windows/ and enable **Add Python to PATH**.
-2. Open PowerShell and install FFmpeg:
-   `winget install --id Gyan.FFmpeg.Shared --exact`
-3. Copy `.env.example` to `.env` in this folder.
-4. Open `.env` and set `SUPABASE_SERVICE_ROLE_KEY` to your project's private server-side key from Supabase Dashboard → Project Settings → API Keys. Do not share it or commit the real `.env` file.
+The first run downloads the FFmpeg WebAssembly core from jsDelivr; it runs in the browser. Processing consumes your device's CPU and memory, so shorter MP4 videos work best.
 
-## 2. Start the processor
-
-Double-click `start-windows.bat` in this folder. It creates a Python virtual environment, installs dependencies, and starts the local API. The first install can take a while; Whisper also downloads its model the first time it processes audio.
-
-Open http://127.0.0.1:8765/health. The response should include `"ok": true` and `"configured": true`. Keep the terminal window open while using AI Clip Studio.
-
-## 3. Use AI Clip Studio
-
-1. Open https://defgodqe-arch.github.io/defchat/ and sign in.
-2. Open AI Clip Studio and upload a video you own for your first test.
-3. Start processing and keep your PC and processor terminal running until the clips finish.
-
-## Free-tier and safety notes
-
-- Processing runs locally; it will not work while your PC is off or the local processor is stopped.
-- Supabase free-tier storage and bandwidth limits still apply.
-- YouTube/Vimeo/Twitch may block downloading. Uploading a video you have permission to use is the most reliable test.
-- Do not port-forward or expose port 8765 to the internet.
-- The engine selects highlights using speech transcription and transcript heuristics; it is not a proprietary multimodal highlight model.
+## Current limits
+- This browser version creates evenly spaced MP4 clips. It does not yet use AI to detect the most interesting moments or burn captions into the video.
+- YouTube, Vimeo, and Twitch links cannot be downloaded reliably from a browser due to platform restrictions; upload a video file instead.
+- Files are processed locally in the browser and are not uploaded to Supabase by this flow.
+- Browser support and available memory vary by device. A failed render should be retried with a smaller/shorter MP4.

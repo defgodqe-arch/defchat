@@ -26,7 +26,7 @@ const getSource = value => {
 };
 
 export default function ClipStudio({ onClose, db: supabase }) {
-  const [mode, setMode] = useState('upload');
+  const [mode, setMode] = useState('link');
   const [sourceUrl, setSourceUrl] = useState('');
   const [file, setFile] = useState(null);
   const [videoUrl, setVideoUrl] = useState('');
@@ -69,32 +69,60 @@ export default function ClipStudio({ onClose, db: supabase }) {
 
   async function analyze() {
     setError(''); setNotice(''); setClips([]); setActiveClip(null); setProgress(0);
-    if (mode === 'link') { setError('To keep processing free and inside defchat, switch to Upload video. Video-platform links cannot be downloaded reliably from a browser.'); return; }
-    if (!file) { setError('Choose a video file from your device first.'); return; }
-    if (file.size > 500 * 1024 * 1024) { setError('Choose a video smaller than 500 MB for browser-based processing.'); return; }
-    if (!Number.isFinite(duration) || duration < 1) { setError('Wait for the video preview to load its duration, then try again.'); return; }
+    let inputFile = file;
+    let inputDuration = duration;
+    if (mode === 'link') {
+      if (!sourceUrl.trim()) { setError('Paste a direct video file URL first.'); return; }
+      let parsed;
+      try { parsed = new URL(sourceUrl.trim()); } catch { setError('Enter a valid https:// video URL.'); return; }
+      if (parsed.protocol !== 'https:' && parsed.hostname !== 'localhost') { setError('For safety, video URLs must use HTTPS.'); return; }
+    } else if (!inputFile) { setError('Choose a video file from your device first.'); return; }
+    if (inputFile && inputFile.size > 500 * 1024 * 1024) { setError('Choose a video smaller than 500 MB for browser-based processing.'); return; }
     setBusy(true);
     let ffmpeg;
     try {
+      if (mode === 'link') {
+        setNotice('Fetching the video URL into your browser…');
+        let response;
+        try { response = await fetch(sourceUrl.trim(), { mode: 'cors', credentials: 'omit' }); }
+        catch { throw new Error('This website blocks browser access to the video (CORS). Use a direct .mp4/.mov/.webm file URL from a host that allows cross-origin downloads, or upload the file. YouTube/Vimeo/Twitch page links are not direct video files.'); }
+        if (!response.ok) throw new Error('The video host returned HTTP ' + response.status + '. Check that the URL is public and points directly to a video file.');
+        const type = (response.headers.get('content-type') || '').toLowerCase();
+        if (!type.startsWith('video/') && !/\.mp4|\.mov|\.webm|\.m4v|\.mkv|\.mpeg|\.mpg/i.test(new URL(sourceUrl.trim()).pathname)) throw new Error('That URL does not appear to point directly to a video file. Paste a direct MP4, MOV, or WebM URL rather than a webpage link.');
+        const blob = await response.blob();
+        if (!blob.size) throw new Error('The video URL returned an empty file.');
+        if (blob.size > 500 * 1024 * 1024) throw new Error('This video is larger than the 500 MB browser-processing limit.');
+        inputFile = new File([blob], (new URL(sourceUrl.trim()).pathname.split('/').pop() || 'remote-video.mp4').split('?')[0], { type: blob.type || 'video/mp4' });
+        const metadataUrl = URL.createObjectURL(inputFile);
+        inputDuration = await new Promise((resolve, reject) => {
+          const probe = document.createElement('video');
+          probe.preload = 'metadata';
+          probe.onloadedmetadata = () => { const d = probe.duration; URL.revokeObjectURL(metadataUrl); resolve(Number.isFinite(d) ? d : 0); };
+          probe.onerror = () => { URL.revokeObjectURL(metadataUrl); reject(new Error('The browser could not read this video format.')); };
+          probe.src = metadataUrl;
+        });
+      }
+      if (!inputFile) throw new Error('Choose a video file or paste a direct video file URL.');
+      if (!Number.isFinite(inputDuration) || inputDuration < 1) throw new Error('Could not read the video duration. Try an MP4 with H.264 video and AAC audio.');
       setNotice('Loading the free video engine into your browser. The first load may take a minute…');
       ffmpeg = new FFmpeg();
       ffmpeg.on('progress', ({ progress: value }) => { const percent = Math.max(0, Math.min(100, Math.round((Number(value) || 0) * 100))); setProgress(percent); setNotice('Rendering clips in your browser… ' + percent + '%'); });
       const base = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd';
       await ffmpeg.load({ coreURL: await toBlobURL(base + '/ffmpeg-core.js', 'text/javascript'), wasmURL: await toBlobURL(base + '/ffmpeg-core.wasm', 'application/wasm') });
       setNotice('Preparing your video in this browser…');
-      const extMatch = file.name.match(/\.[a-zA-Z0-9]{1,8}$/);
+      const extMatch = inputFile.name.match(/\.[a-zA-Z0-9]{1,8}$/);
       const inputName = 'defchat-input-' + Date.now() + (extMatch ? extMatch[0] : '.mp4');
-      await ffmpeg.writeFile(inputName, new Uint8Array(await file.arrayBuffer()));
+      await ffmpeg.writeFile(inputName, new Uint8Array(await inputFile.arrayBuffer()));
       const seconds = Number(clipLength);
-      const count = Math.min(Number(clipCount), Math.max(1, Math.ceil(duration / seconds)));
-      const maxStart = Math.max(0, duration - seconds);
+      const count = Math.min(Number(clipCount), Math.max(1, Math.ceil(inputDuration / seconds)));
+      const maxStart = Math.max(0, inputDuration - seconds);
       const starts = count === 1 ? [0] : Array.from({ length: count }, (_, i) => Math.round((maxStart * i / (count - 1)) * 100) / 100);
       const dims = aspect === '9:16' ? [720, 1280] : aspect === '1:1' ? [720, 720] : [1280, 720];
       const generated = [];
       for (let i = 0; i < starts.length; i++) {
         const outputName = 'defchat-clip-' + (i + 1) + '-' + Date.now() + '.mp4';
         const startAt = starts[i];
-        const actualLength = Math.max(1, Math.min(seconds, duration - startAt));
+        const actualLength = Math.max(1, Math.min(seconds, inputDuration - startAt));
         const filter = 'scale=' + dims[0] + ':' + dims[1] + ':force_original_aspect_ratio=increase,crop=' + dims[0] + ':' + dims[1];
         setNotice('Rendering clip ' + (i + 1) + ' of ' + starts.length + ' in your browser…');
         const exitCode = await ffmpeg.exec(['-ss', String(startAt), '-i', inputName, '-t', String(actualLength), '-vf', filter, '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '27', '-c:a', 'aac', '-b:a', '128k', '-movflags', '+faststart', '-y', outputName]);
@@ -201,8 +229,8 @@ export default function ClipStudio({ onClose, db: supabase }) {
           </div>
           {mode === 'link' ? <>
             <label className="clip-studio-field-label" htmlFor="clip-source-url">Video URL</label>
-            <div className="clip-studio-url-row"><input id="clip-source-url" className="clip-studio-input" type="url" value={sourceUrl} onChange={event => {setSourceUrl(event.target.value);resetResults()}} placeholder="Paste a YouTube, Vimeo, or Twitch link…"/><button className="clip-studio-primary" type="button" onClick={analyze} disabled={busy}>{busy ? <LoaderCircle size={16} className="spin"/> : <Sparkles size={16}/>} Create clips</button></div>
-            <p className="clip-studio-hint">{source ? <><CheckCircle2 size={12} style={{verticalAlign:'-2px',marginRight:5,color:'#86efac'}}/>{source} link recognized.</> : 'Paste a public video link. Direct video links require a backend and may be blocked by the platform. Upload a video to process it inside your browser.'}</p>
+            <div className="clip-studio-url-row"><input id="clip-source-url" className="clip-studio-input" type="url" value={sourceUrl} onChange={event => {setSourceUrl(event.target.value);resetResults()}} placeholder="Paste a direct MP4, MOV, or WebM URL…"/><button className="clip-studio-primary" type="button" onClick={analyze} disabled={busy}>{busy ? <LoaderCircle size={16} className="spin"/> : <Sparkles size={16}/>} Create clips</button></div>
+            <p className="clip-studio-hint">{source ? <><AlertCircle size={12} style={{verticalAlign:'-2px',marginRight:5,color:'#facc15'}}/>{source} page link detected. Paste a direct video file URL instead; platform page links cannot be processed by this browser-only engine.</> : 'Direct video-file URLs work when the host allows browser access (CORS). YouTube, Vimeo, and Twitch page links are not direct video files.'}</p>
           </> : <>
             <label className="clip-studio-field-label">Video file</label>
             <input ref={fileInput} type="file" accept="video/*,.mp4,.mov,.webm,.m4v" hidden onChange={event => {setFile(event.target.files?.[0] || null);resetResults()}}/>

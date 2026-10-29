@@ -1,11 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Upload, Link2, Sparkles, Scissors, Captions, Download, ExternalLink, Film, LoaderCircle, Play, X, Clock3, AlertCircle, CheckCircle2, Settings2 } from 'lucide-react';
 
-import { createClient } from '@supabase/supabase-js';
-
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://jklhnhnxyzqjvmqgfpjs.supabase.co';
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_MMXxKZkJT0H7-oayT60ddA_8nC0kFjn';
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 const CLIP_FUNCTION_URL = SUPABASE_URL + '/functions/v1/clip-studio';
 const formatTime = value => {
   const seconds = Math.max(0, Math.floor(Number(value) || 0));
@@ -26,7 +23,7 @@ const getSource = value => {
   } catch { return null; }
 };
 
-export default function ClipStudio({ onClose }) {
+export default function ClipStudio({ onClose, db: supabase }) {
   const [mode, setMode] = useState('link');
   const [sourceUrl, setSourceUrl] = useState('');
   const [file, setFile] = useState(null);

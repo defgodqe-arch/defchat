@@ -2,6 +2,7 @@ import os, re, math, secrets, tempfile, subprocess, time, socket, ipaddress
 from pathlib import Path
 from urllib.parse import urlparse
 import requests
+import yt_dlp
 import numpy as np
 from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
@@ -39,19 +40,68 @@ def probe(path):
     raw = run(["ffprobe","-v","error","-show_entries","format=duration","-of","default=nw=1:nk=1",str(path)], 60)
     return float(raw.decode().strip())
 
+PLATFORM_HOSTS = ("youtube.com", "youtu.be", "vimeo.com", "twitch.tv", "tiktok.com", "instagram.com", "facebook.com", "fb.watch")
+
+def is_platform_host(host):
+    host = (host or "").lower().rstrip(".")
+    return any(host == domain or host.endswith("." + domain) for domain in PLATFORM_HOSTS)
+
+def fetch_platform_source(url, path):
+    parsed = urlparse(url)
+    if parsed.scheme != "https" or not parsed.hostname or not is_platform_host(parsed.hostname):
+        raise ValueError("Only supported public video-platform links can be imported.")
+    # No cookies, credentials, browser sessions, or DRM workarounds are used.
+    # The user confirms they own the video or have permission to process it.
+    base = path.with_suffix("")
+    options = {
+        "format": "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/bv*+ba/b",
+        "outtmpl": str(base),
+        "merge_output_format": "mp4",
+        "noplaylist": True,
+        "max_filesize": MAX_BYTES,
+        "socket_timeout": 25,
+        "retries": 2,
+        "fragment_retries": 2,
+        "quiet": True,
+        "no_warnings": True,
+        "restrictfilenames": True,
+    }
+    try:
+        with yt_dlp.YoutubeDL(options) as downloader:
+            info = downloader.extract_info(url, download=True)
+            if not info or info.get("_type") == "playlist":
+                raise ValueError("Paste a link to one video, not a playlist or channel.")
+        candidates = [item for item in path.parent.glob(base.name + ".*") if item.is_file()]
+        if not candidates:
+            raise ValueError("The platform did not provide a downloadable video stream.")
+        downloaded = max(candidates, key=lambda item: item.stat().st_size)
+        if downloaded.stat().st_size > MAX_BYTES:
+            downloaded.unlink(missing_ok=True)
+            raise ValueError("Source exceeds the configured upload size limit.")
+        if downloaded != path:
+            downloaded.replace(path)
+    except ValueError:
+        raise
+    except Exception as error:
+        message = str(error)
+        if "DRM" in message.upper() or "protected" in message.lower():
+            raise ValueError("This video is DRM-protected and cannot be imported.")
+        raise ValueError("Could not import this video. It may be private, restricted, unavailable, or unsupported. Use a video you own or an authorized direct file URL.")
+
 def fetch_source(url, path):
     parsed = urlparse(url)
     if parsed.scheme != "https" or not parsed.hostname:
         raise ValueError("Only HTTPS video URLs are accepted.")
     host = parsed.hostname.lower()
+    if is_platform_host(host):
+        fetch_platform_source(url, path)
+        return
     try:
         addresses = socket.getaddrinfo(host, None)
         if not addresses or any(not ipaddress.ip_address(item[4][0]).is_global for item in addresses):
             raise ValueError("Video URL host resolves to a non-public network address.")
     except socket.gaierror:
         raise ValueError("Video URL host could not be resolved.")
-    if host == "youtube.com" or host.endswith(".youtube.com") or host == "youtu.be" or host == "vimeo.com" or host.endswith(".vimeo.com") or host == "twitch.tv" or host.endswith(".twitch.tv"):
-        raise ValueError("Platform webpage links are not downloadable video files. Upload a video you own or provide an authorized direct HTTPS video-file URL.")
     total = 0
     with requests.get(url, stream=True, timeout=(15, 90), allow_redirects=True) as r:
         r.raise_for_status()
@@ -65,13 +115,15 @@ def fetch_source(url, path):
         except socket.gaierror:
             raise ValueError("Redirect destination could not be resolved.")
         ctype = r.headers.get("content-type", "").lower()
-        if not ctype.startswith("video/") and not re.search(r"\.(mp4|mov|webm|m4v|mkv)(?:$|\?)", r.url, re.I):
+        if not ctype.startswith("video/") and not re.search(r"\\.(mp4|mov|webm|m4v|mkv)(?:$|\\?)", r.url, re.I):
             raise ValueError("URL did not return a direct video file.")
         with open(path, "wb") as f:
             for chunk in r.iter_content(1024 * 1024):
-                if not chunk: continue
+                if not chunk:
+                    continue
                 total += len(chunk)
-                if total > MAX_BYTES: raise ValueError("Source exceeds the configured upload size limit.")
+                if total > MAX_BYTES:
+                    raise ValueError("Source exceeds the configured upload size limit.")
                 f.write(chunk)
 
 def highlight_starts(path, duration, length, count):

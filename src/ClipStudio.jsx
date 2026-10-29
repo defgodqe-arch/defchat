@@ -1,7 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Upload, Link2, Sparkles, Scissors, Captions, Download, ExternalLink, Film, LoaderCircle, Play, X, Clock3, AlertCircle, CheckCircle2, Settings2 } from 'lucide-react';
 
-const API_BASE = (import.meta.env.VITE_DEFGODQE_CLIP_API || '').replace(/\/$/, '');
+import { createClient } from '@supabase/supabase-js';
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://jklhnhnxyzqjvmqgfpjs.supabase.co';
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_MMXxKZkJT0H7-oayT60ddA_8nC0kFjn';
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+const CLIP_FUNCTION_URL = SUPABASE_URL + '/functions/v1/clip-studio';
 const formatTime = value => {
   const seconds = Math.max(0, Math.floor(Number(value) || 0));
   return Math.floor(seconds / 60) + ':' + String(seconds % 60).padStart(2, '0');
@@ -62,60 +67,48 @@ export default function ClipStudio({ onClose }) {
   }
 
   async function analyze() {
-    setError('');
-    setNotice('');
-    setClips([]);
-    setActiveClip(null);
-    if (mode === 'link') {
-      if (!source) { setError('Paste a valid YouTube, Vimeo, or Twitch URL first.'); return; }
-      if (!API_BASE) {
-        setError('The clip-processing backend is not connected yet. Set VITE_DEFGODQE_CLIP_API to your clip API URL to enable AI analysis and exports. You can still upload a local video to preview it here.');
-        return;
-      }
-    } else if (!file) {
-      setError('Choose a video file from your device first.');
-      return;
-    }
-    if (!API_BASE) {
-      setError('Video preview is ready, but AI highlight detection and clip rendering need the clip backend. Set VITE_DEFGODQE_CLIP_API to enable processing.');
-      return;
-    }
+    setError(''); setNotice(''); setClips([]); setActiveClip(null);
+    if (mode === 'link' && !source) { setError('Paste a valid YouTube, Vimeo, or Twitch URL first.'); return; }
+    if (mode === 'upload' && !file) { setError('Choose a video file from your device first.'); return; }
+    if (mode === 'upload' && file.size > 1024 * 1024 * 1024) { setError('This upload is larger than 1 GB. Choose a smaller video for now.'); return; }
     setBusy(true);
     try {
-      let response;
-      if (mode === 'link') {
-        response = await fetch(API_BASE + '/clips/analyze', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: sourceUrl.trim(), clipLength: Number(clipLength), clipCount: Number(clipCount), aspectRatio: aspect, captionStyle })
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      const session = sessionData?.session;
+      if (sessionError || !session?.access_token || !session.user?.id) throw new Error('Sign in to defchat first. Clip Studio uses your Supabase account to protect your videos.');
+      const requestBody = {
+        sourceType: mode === 'link' ? 'url' : 'upload',
+        url: mode === 'link' ? sourceUrl.trim() : undefined,
+        clipLength: Number(clipLength), clipCount: Number(clipCount),
+        aspectRatio: aspect, captionStyle: captionStyle === 'boxed' ? 'bold' : captionStyle
+      };
+      if (mode === 'upload') {
+        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-100) || 'video.mp4';
+        const sourcePath = session.user.id + '/' + crypto.randomUUID() + '-' + safeName;
+        const { error: uploadError } = await supabase.storage.from('clip-studio').upload(sourcePath, file, {
+          contentType: file.type || 'video/mp4', cacheControl: '3600', upsert: false
         });
-      } else {
-        const form = new FormData();
-        form.append('video', file);
-        form.append('clipLength', clipLength);
-        form.append('clipCount', clipCount);
-        form.append('aspectRatio', aspect);
-        form.append('captionStyle', captionStyle);
-        response = await fetch(API_BASE + '/clips/analyze', { method: 'POST', body: form });
+        if (uploadError) throw new Error('Could not upload your video to Supabase Storage: ' + uploadError.message);
+        requestBody.sourcePath = sourcePath;
       }
+      const response = await fetch(CLIP_FUNCTION_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: 'Bearer ' + session.access_token },
+        body: JSON.stringify(requestBody)
+      });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || payload.message || 'The clip service could not process this video.');
       const results = Array.isArray(payload.clips) ? payload.clips : Array.isArray(payload.results) ? payload.results : [];
-      if (!results.length) throw new Error(payload.message || 'The clip service returned no clips. Check that the backend supports POST /clips/analyze.');
+      if (!results.length) { setNotice(payload.message || 'Your clip job was accepted. It will appear here when the video processor returns finished clips.'); return; }
       setClips(results.map((clip, index) => ({
-        id: clip.id || 'clip-' + index,
-        title: clip.title || clip.caption || 'Highlight ' + (index + 1),
-        start: Number(clip.start ?? clip.startSeconds ?? 0),
-        end: Number(clip.end ?? clip.endSeconds ?? 0),
-        caption: clip.captionText || clip.caption || '',
-        videoUrl: clip.videoUrl || clip.video_url || '',
-        downloadUrl: clip.downloadUrl || clip.download_url || '',
-        thumbnailUrl: clip.thumbnailUrl || clip.thumbnail_url || ''
+        id: clip.id || 'clip-' + index, title: clip.title || clip.caption || 'Highlight ' + (index + 1),
+        start: Number(clip.start ?? clip.startSeconds ?? 0), end: Number(clip.end ?? clip.endSeconds ?? 0),
+        caption: clip.captionText || clip.caption || '', videoUrl: clip.videoUrl || clip.video_url || '',
+        downloadUrl: clip.downloadUrl || clip.download_url || '', thumbnailUrl: clip.thumbnailUrl || clip.thumbnail_url || ''
       })));
       setNotice('Highlights are ready. Preview each clip or download the rendered file.');
-    } catch (e) {
-      setError(e.message || 'Could not analyze this video. Please try again.');
-    } finally { setBusy(false); }
+    } catch (e) { setError(e.message || 'Could not analyze this video. Please try again.'); }
+    finally { setBusy(false); }
   }
 
   function seekTo(clip) {

@@ -18,11 +18,11 @@ const parseTime = value => {
 const getYouTubeId = value => {
   try {
     const url = new URL(value);
-    const host = url.hostname.replace(/^www\\./, '').toLowerCase();
+    const host = url.hostname.replace(/^www\./, '').toLowerCase();
     if (host === 'youtu.be') return url.pathname.split('/').filter(Boolean)[0] || null;
     if (host === 'youtube.com' || host.endsWith('.youtube.com')) {
       if (url.pathname === '/watch') return url.searchParams.get('v');
-      const match = url.pathname.match(/^\\/(?:embed|shorts|live)\\/([^/?]+)/);
+      const match = url.pathname.match(/^\/(?:embed|shorts|live)\/([^/?]+)/);
       return match?.[1] || null;
     }
     return null;

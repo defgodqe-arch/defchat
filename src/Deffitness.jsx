@@ -327,7 +327,7 @@ export default function Deffitness({ userId, onClose }) {
       <aside className="df-sidebar">
         <div className="df-brand"><span className="df-brand-mark"><Activity size={22}/></span><div><small>YOUR FREE FITNESS COACH</small><h2>deffitness</h2></div></div>
         <div className="df-nav-label">YOUR SPACE</div>
-        {nav.map(([key, Icon, label]) => <button type="button" key={key} className={'df-nav-item' + (tab === key ? ' active' : '')} onClick={() => { setTab(key); if (key === 'library') setShowSetup(false); setNotice(''); }}><Icon size={17}/><span>{label}</span>{key === 'workout' && <span className="df-nav-hot">GO</span>}</button>)}
+        {nav.map(([key, Icon, label]) => <button type="button" key={key} className={'df-nav-item' + (tab === key ? ' active' : '')} onClick={() => { setTab(key); if (key === 'library' || key === 'studio') setShowSetup(false); setNotice(''); }}><Icon size={17}/><span>{label}</span>{key === 'workout' && <span className="df-nav-hot">GO</span>}</button>)}
         <div className="df-sidebar-bottom">
           <div className="df-local-note"><span className="df-local-dot"/><span>Private on this device</span></div>
           <button type="button" className="df-export-button" onClick={exportData}><Download size={15}/> Export my data</button>

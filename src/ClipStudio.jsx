@@ -88,13 +88,37 @@ export default function ClipStudio({ onClose, db: supabase }) {
         if (uploadError) throw new Error('Could not upload your video to Supabase Storage: ' + uploadError.message);
         requestBody.sourcePath = sourcePath;
       }
-      const response = await fetch('http://localhost:8765/process-local', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody)
-      });
+      let processorSource = requestBody.url || '';
+      if (mode === 'upload') {
+        const { data: signedData, error: signedError } = await supabase.storage.from('clip-studio').createSignedUrl(requestBody.sourcePath, 60 * 60);
+        if (signedError || !signedData?.signedUrl) throw new Error('Could not create a temporary link for your uploaded video: ' + (signedError?.message || 'No signed URL returned.'));
+        processorSource = signedData.signedUrl;
+      }
+      const { data: createdJob, error: createJobError } = await supabase.from('clip_jobs').insert({
+        user_id: session.user.id, status: 'processing', source_type: requestBody.sourceType,
+        source_url: mode === 'link' ? requestBody.url : null,
+        source_path: mode === 'upload' ? requestBody.sourcePath : null,
+        clip_length: Number(clipLength), clip_count: Number(clipCount),
+        aspect_ratio: aspect, caption_style: requestBody.captionStyle
+      }).select('id').single();
+      if (createJobError || !createdJob?.id) throw new Error('Could not create your clip job: ' + (createJobError?.message || 'No job ID returned.'));
+      let response;
+      try {
+        response = await fetch('http://localhost:8765/process-local', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jobId: createdJob.id, userId: session.user.id, sourceType: requestBody.sourceType,
+            sourceUrl: processorSource, clipLength: Number(clipLength), clipCount: Number(clipCount),
+            aspectRatio: aspect, captionStyle: requestBody.captionStyle,
+            output: { bucket: 'clip-studio', prefix: session.user.id + '/' + createdJob.id + '/' }
+          })
+        });
+      } catch {
+        await supabase.from('clip_jobs').update({ status: 'failed', error_message: 'Local processor is not running.' }).eq('id', createdJob.id);
+        throw new Error('The free local processor is not running. Start clip-processor/start-windows.bat, then retry.');
+      }
       const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(payload.error || payload.message || 'The clip service could not process this video.');
+      if (!response.ok) throw new Error(payload.detail || payload.error || 'The local clip processor could not accept this video.');
       let results = Array.isArray(payload.clips) ? payload.clips : Array.isArray(payload.results) ? payload.results : [];
       if (!results.length && payload.jobId) {
         setNotice('Your video is queued. AI is transcribing, finding highlights, adding captions, and rendering MP4 clips…');

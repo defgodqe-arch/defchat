@@ -14,6 +14,21 @@ const parseTime = value => {
   const parts = String(value || '0').split(':').map(Number);
   return parts.length === 2 ? parts[0] * 60 + parts[1] : Number(value) || 0;
 };
+
+const getYouTubeId = value => {
+  try {
+    const url = new URL(value);
+    const host = url.hostname.replace(/^www\\./, '').toLowerCase();
+    if (host === 'youtu.be') return url.pathname.split('/').filter(Boolean)[0] || null;
+    if (host === 'youtube.com' || host.endsWith('.youtube.com')) {
+      if (url.pathname === '/watch') return url.searchParams.get('v');
+      const match = url.pathname.match(/^\\/(?:embed|shorts|live)\\/([^/?]+)/);
+      return match?.[1] || null;
+    }
+    return null;
+  } catch { return null; }
+};
+
 const getSource = value => {
   try {
     const url = new URL(value);
@@ -44,6 +59,7 @@ export default function ClipStudio({ onClose, db: supabase }) {
   const fileInput = useRef(null);
   const videoRef = useRef(null);
   const source = useMemo(() => getSource(sourceUrl.trim()), [sourceUrl]);
+  const youtubeId = useMemo(() => getYouTubeId(sourceUrl.trim()), [sourceUrl]);
 
   useEffect(() => {
     if (!file) { setVideoUrl(''); setDuration(0); return; }
@@ -72,7 +88,8 @@ export default function ClipStudio({ onClose, db: supabase }) {
     let inputFile = file;
     let inputDuration = duration;
     if (mode === 'link') {
-      if (!sourceUrl.trim()) { setError('Paste a direct video file URL first.'); return; }
+      if (!sourceUrl.trim()) { setError('Paste a video URL first.'); return; }
+      if (youtubeId) { setError('YouTube preview is available here, but YouTube does not provide the downloadable video file needed to render MP4 clips. Upload a video file you have permission to process, or use a direct video-file URL.'); return; }
       let parsed;
       try { parsed = new URL(sourceUrl.trim()); } catch { setError('Enter a valid https:// video URL.'); return; }
       if (parsed.protocol !== 'https:' && parsed.hostname !== 'localhost') { setError('For safety, video URLs must use HTTPS.'); return; }
@@ -229,8 +246,8 @@ export default function ClipStudio({ onClose, db: supabase }) {
           </div>
           {mode === 'link' ? <>
             <label className="clip-studio-field-label" htmlFor="clip-source-url">Video URL</label>
-            <div className="clip-studio-url-row"><input id="clip-source-url" className="clip-studio-input" type="url" value={sourceUrl} onChange={event => {setSourceUrl(event.target.value);resetResults()}} placeholder="Paste a direct MP4, MOV, or WebM URL…"/><button className="clip-studio-primary" type="button" onClick={analyze} disabled={busy}>{busy ? <LoaderCircle size={16} className="spin"/> : <Sparkles size={16}/>} Create clips</button></div>
-            <p className="clip-studio-hint">{source ? <><AlertCircle size={12} style={{verticalAlign:'-2px',marginRight:5,color:'#facc15'}}/>{source} page link detected. Paste a direct video file URL instead; platform page links cannot be processed by this browser-only engine.</> : 'Direct video-file URLs work when the host allows browser access (CORS). YouTube, Vimeo, and Twitch page links are not direct video files.'}</p>
+            <div className="clip-studio-url-row"><input id="clip-source-url" className="clip-studio-input" type="url" value={sourceUrl} onChange={event => {setSourceUrl(event.target.value);resetResults()}} placeholder="Paste a YouTube link or direct MP4/MOV/WebM URL…"/><button className="clip-studio-primary" type="button" onClick={analyze} disabled={busy}>{busy ? <LoaderCircle size={16} className="spin"/> : <Sparkles size={16}/>} Create clips</button></div>
+            <p className="clip-studio-hint">{youtubeId ? <><Play size={12} style={{verticalAlign:'-2px',marginRight:5,color:'#facc15'}}/>YouTube link detected. You can preview it here. To create downloadable clips, upload a video file you have permission to process.</> : source ? <><AlertCircle size={12} style={{verticalAlign:'-2px',marginRight:5,color:'#facc15'}}/>{source} preview is not supported for this link type yet. Use a direct video-file URL or upload a file.</> : 'Direct video-file URLs work when the host allows browser access (CORS). YouTube watch, Shorts, and youtu.be links can be previewed below.'}</p>
           </> : <>
             <label className="clip-studio-field-label">Video file</label>
             <input ref={fileInput} type="file" accept="video/*,.mp4,.mov,.webm,.m4v" hidden onChange={event => {setFile(event.target.files?.[0] || null);resetResults()}}/>
@@ -254,10 +271,10 @@ export default function ClipStudio({ onClose, db: supabase }) {
         </section>
 
         <section className="clip-studio-panel">
-          <div className="clip-studio-panel-head"><span className="clip-studio-panel-icon"><Play size={18}/></span><div><h2>Source preview</h2><p>{file ? 'Local file preview' : source ? source + ' source link' : 'Your video appears here'}</p></div></div>
+          <div className="clip-studio-panel-head"><span className="clip-studio-panel-icon"><Play size={18}/></span><div><h2>Source preview</h2><p>{file ? 'Local file preview' : youtubeId ? 'YouTube preview' : source ? source + ' source link' : 'Your video appears here'}</p></div></div>
           <div className="clip-studio-preview">
-            {videoUrl ? <video ref={videoRef} src={videoUrl} controls playsInline onLoadedMetadata={onVideoReady} /> : <div className="clip-studio-empty-preview"><Film size={30}/><div><b>Ready for your next highlight</b><p>Upload a video to preview it in the workspace. Upload a video to create clips entirely inside defchat.</p></div></div>}
-            <div className="clip-studio-video-meta"><span>{file ? file.name : source || 'No source selected'}</span><span className="clip-studio-pill">{duration ? formatTime(duration) : 'No duration'}</span></div>
+            {videoUrl ? <video ref={videoRef} src={videoUrl} controls playsInline onLoadedMetadata={onVideoReady} /> : youtubeId ? <iframe title="YouTube video preview" src={'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(youtubeId)} style={{display:'block',width:'100%',aspectRatio:'16/9',border:0,background:'#050506'}} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen /> : <div className="clip-studio-empty-preview"><Film size={30}/><div><b>Ready for your next highlight</b><p>Paste a YouTube link to preview it here, or upload a video file to create downloadable clips inside defchat.</p></div></div>}
+            <div className="clip-studio-video-meta"><span>{file ? file.name : youtubeId ? 'YouTube video' : source || 'No source selected'}</span><span className="clip-studio-pill">{duration ? formatTime(duration) : youtubeId ? 'YouTube player' : 'No duration'}</span></div>
           </div>
           {sourceUrl && source && <div style={{marginTop:12,fontSize:11,color:'#a3a3b2'}}>Source link: <a href={sourceUrl} target="_blank" rel="noopener noreferrer" style={{color:'#facc15',wordBreak:'break-all'}}><ExternalLink size={11} style={{verticalAlign:'-2px',marginRight:4}}/>Open original video</a></div>}
         </section>

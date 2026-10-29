@@ -1,0 +1,6 @@
+fastapi==0.115.12
+uvicorn[standard]==0.34.2
+requests==2.32.3
+faster-whisper==1.1.1
+yt-dlp==2025.3.31
+pydantic==2.11.4

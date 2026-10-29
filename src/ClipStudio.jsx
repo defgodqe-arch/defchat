@@ -88,9 +88,9 @@ export default function ClipStudio({ onClose, db: supabase }) {
         if (uploadError) throw new Error('Could not upload your video to Supabase Storage: ' + uploadError.message);
         requestBody.sourcePath = sourcePath;
       }
-      const response = await fetch(CLIP_FUNCTION_URL, {
+      const response = await fetch('http://localhost:8765/process-local', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: 'Bearer ' + session.access_token },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody)
       });
       const payload = await response.json().catch(() => ({}));

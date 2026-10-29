@@ -2,12 +2,15 @@ import os, re, time, tempfile, subprocess, threading
 from pathlib import Path
 from urllib.parse import urlparse
 import requests
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import FastAPI, Header, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from faster_whisper import WhisperModel
 import yt_dlp
 
-app = FastAPI(title="defchat AI Clip Processor", version="1.0.0")
+app = FastAPI(title="defchat AI Clip Processor", version="1.1.0")
+ALLOWED_ORIGINS = {"https://defgodqe-arch.github.io", "http://localhost:5173", "http://127.0.0.1:5173"}
+app.add_middleware(CORSMiddleware, allow_origins=list(ALLOWED_ORIGINS), allow_credentials=False, allow_methods=["GET", "POST", "OPTIONS"], allow_headers=["Authorization", "Content-Type"])
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
 SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
 PROCESSOR_KEY = os.environ.get("CLIP_PROCESSOR_KEY", "")
@@ -166,7 +169,27 @@ def process(payload):
 
 @app.get("/health")
 def health():
-    return {"ok":True,"service":"defchat-ai-clip-processor","configured":bool(SUPABASE_URL and SERVICE_KEY and PROCESSOR_KEY)}
+    return {"ok":True,"service":"defchat-ai-clip-processor","configured":bool(SUPABASE_URL and SERVICE_KEY),"mode":"local"}
+
+@app.post("/process-local")
+def process_local(payload: ClipRequest, request: Request):
+    if request.headers.get("origin", "") not in ALLOWED_ORIGINS:
+        raise HTTPException(403, "This local processor only accepts requests from the defchat website.")
+    if not SUPABASE_URL or not SERVICE_KEY:
+        raise HTTPException(503, "Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in clip-processor/.env first.")
+    if payload.output.get("prefix", "").split("/")[0] != payload.userId:
+        raise HTTPException(400, "Output prefix must be scoped to the signed-in user.")
+    if payload.sourceType not in ("url", "upload"):
+        raise HTTPException(400, "Unsupported source type.")
+    if payload.aspectRatio not in ("9:16", "1:1", "16:9"):
+        raise HTTPException(400, "Unsupported aspect ratio.")
+    if payload.captionStyle not in ("bold", "minimal", "karaoke"):
+        raise HTTPException(400, "Unsupported caption style.")
+    if payload.jobId in _jobs and _jobs[payload.jobId].get("status") == "processing":
+        return {"jobId": payload.jobId, "status": "processing", "clips": []}
+    _jobs[payload.jobId] = {"status": "processing"}
+    threading.Thread(target=process, args=(payload.model_dump(),), daemon=True).start()
+    return {"jobId": payload.jobId, "status": "processing", "clips": []}
 
 @app.post("/process")
 def process_endpoint(payload: ClipRequest, authorization: str | None = Header(default=None)):

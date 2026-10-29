@@ -22,6 +22,8 @@
   "dependencies": {
     "@capacitor/android": "^7.4.3",
     "@capacitor/core": "^7.4.3",
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.2",
     "@capacitor/ios": "^7.4.3",
     "@supabase/supabase-js": "^2.57.0",
     "lucide-react": "^0.468.0",

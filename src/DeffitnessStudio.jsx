@@ -3,7 +3,7 @@ import {
   Activity, AlarmClock, BrainCircuit, CalendarDays, CalendarCheck, CheckCircle2,
   Clock3, Download, Footprints, Heart, Medal, Moon, Pause, Play, Plus,
   RotateCcw, Save, ShieldCheck, Sparkles, Target, Timer, Trophy, Users, Watch,
-  X, Zap, Dumbbell
+  X, Zap, Dumbbell, Film, Upload, Link2, Scissors, Captions, DownloadCloud, AlertTriangle
 } from 'lucide-react';
 import './DeffitnessStudio.css';
 
@@ -14,6 +14,116 @@ const load = key => {
   try { return { ...empty, ...JSON.parse(localStorage.getItem(key) || '{}') }; }
   catch { return { ...empty }; }
 };
+
+
+function ClipStudio() {
+  const [url, setUrl] = useState('');
+  const [file, setFile] = useState(null);
+  const [caption, setCaption] = useState('Wait for it…');
+  const [duration, setDuration] = useState(30);
+  const [maxClips, setMaxClips] = useState(5);
+  const [status, setStatus] = useState('');
+  const [error, setError] = useState('');
+  const [job, setJob] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const fileRef = React.useRef(null);
+  const clipApi = import.meta.env.VITE_DEFFITNESS_CLIP_API || '';
+  const sourceType = value => {
+    try {
+      const parsed = new URL(value);
+      if (/youtube\.com$|youtu\.be$/.test(parsed.hostname.replace(/^www\./, ''))) return 'YouTube';
+      if (/vimeo\.com$/.test(parsed.hostname.replace(/^www\./, ''))) return 'Vimeo';
+      if (/twitch\.tv$/.test(parsed.hostname.replace(/^www\./, ''))) return 'Twitch';
+    } catch {}
+    return '';
+  };
+  async function analyzeUrl(event) {
+    event.preventDefault();
+    setError(''); setStatus(''); setJob(null);
+    const provider = sourceType(url.trim());
+    if (!provider) { setError('Paste a valid YouTube, Vimeo, or Twitch URL.'); return; }
+    if (!clipApi) {
+      setError(provider + ' link detected. URL downloading, transcript analysis, and AI moment detection need a server-side clip API. This deployment has no clip API configured yet; set VITE_DEFFITNESS_CLIP_API to your authenticated backend endpoint to enable it.'); return;
+    }
+    setBusy(true); setStatus('Sending the link for analysis…');
+    try {
+      const response = await fetch(clipApi.replace(/\/$/, '') + '/analyze', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: url.trim(), clipDuration: duration, maxClips, aspectRatio: '9:16', captions: true })
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || 'The clip service returned HTTP ' + response.status + '.');
+      setJob(result); setStatus(result.status === 'completed' ? 'Analysis complete.' : 'Clip job submitted. Refresh status when your backend reports completion.');
+    } catch (e) { setError(e.message || 'Could not reach the clip service.'); }
+    finally { setBusy(false); }
+  }
+  async function uploadFile(event) {
+    const selected = event.target.files?.[0];
+    setError(''); setStatus(''); setJob(null);
+    if (!selected) return;
+    if (!selected.type.startsWith('video/')) { setError('Choose a video file.'); return; }
+    if (selected.size > 1024 * 1024 * 1024) { setError('This file is over 1 GB. Choose a smaller video or use a configured server upload.'); return; }
+    setFile(selected);
+    setBusy(true); setProgress(0); setStatus('Inspecting local video…');
+    try {
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      const objectUrl = URL.createObjectURL(selected);
+      video.src = objectUrl;
+      await new Promise((resolve, reject) => { video.onloadedmetadata = resolve; video.onerror = () => reject(new Error('The browser could not read this video format.')); });
+      const seconds = Math.floor(video.duration || 0);
+      URL.revokeObjectURL(objectUrl);
+      if (!seconds) throw new Error('Could not read the video duration.');
+      if (clipApi) {
+        setStatus('Uploading video to the configured clip service…');
+        const form = new FormData();
+        form.append('video', selected);
+        form.append('clipDuration', String(duration));
+        form.append('maxClips', String(maxClips));
+        form.append('aspectRatio', '9:16');
+        form.append('captions', 'true');
+        const response = await fetch(clipApi.replace(/\/$/, '') + '/upload', { method: 'POST', body: form });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(result.error || 'The clip service returned HTTP ' + response.status + '.');
+        setJob(result); setStatus('Video uploaded. ' + (result.status || 'Processing has started') + '.');
+      } else {
+        const count = Math.min(maxClips, Math.max(1, Math.ceil(seconds / Math.max(duration * 4, 120))));
+        const windows = [];
+        for (let i = 0; i < count; i++) {
+          const start = Math.max(0, Math.min(Math.max(0, seconds - duration), Math.round((seconds - duration) * (count === 1 ? .5 : i / (count - 1))));
+          windows.push({ id: i + 1, start, end: Math.min(seconds, start + duration), title: 'Candidate ' + (i + 1), score: null });
+        }
+        setJob({ localOnly: true, duration: seconds, candidates: windows });
+        setStatus('Video metadata loaded. These are evenly spaced candidate windows, not AI-ranked highlights; configure the clip API for transcript/audio/visual analysis and rendered captioned exports.');
+      }
+    } catch (e) { setError(e.message || 'Could not inspect this file.'); }
+    finally { setBusy(false); }
+  }
+  function downloadFile() {
+    if (!file) return;
+    const href = URL.createObjectURL(file);
+    const a = document.createElement('a'); a.href = href; a.download = file.name; a.click();
+    setTimeout(() => URL.revokeObjectURL(href), 1000);
+    setStatus('Downloaded the original video. Clip rendering requires the configured clip API.');
+  }
+  function fmt(value) { const n = Math.max(0, Number(value) || 0); return Math.floor(n / 60) + ':' + String(Math.floor(n % 60)).padStart(2, '0'); }
+  return <div className="dfs-clips">
+    <div className="dfs-section-title"><h3>AI Clip Studio</h3><p>Turn long videos into short-form vertical highlights. Paste a link or upload a video to get started.</p></div>
+    <div className="dfs-clip-steps">{[['1','Add a source','YouTube, Vimeo, Twitch, or a local video'],['2','Find the moments','Transcript, audio energy, and scene analysis'],['3','Caption & reframe','9:16 vertical clips with animated captions'],['4','Export','Download clips individually or in a batch']].map(([n,title,desc]) => <article key={n}><span>{n}</span><b>{title}</b><small>{desc}</small></article>)}</div>
+    <div className="dfs-clip-source-grid">
+      <form className="dfs-panel dfs-clip-link" onSubmit={analyzeUrl}><div className="dfs-clip-icon"><Link2 size={20}/></div><h4>Paste a video link</h4><p>Accepts YouTube, Vimeo, or Twitch URLs when a clip backend is configured.</p><label>Video URL<input type="url" value={url} onChange={e => setUrl(e.target.value)} placeholder="https://www.youtube.com/watch?v=…" required /></label><button type="submit" disabled={busy}><Scissors size={15}/>{busy ? 'Working…' : 'Find best moments'}</button></form>
+      <div className="dfs-panel dfs-clip-upload"><div className="dfs-clip-icon"><Upload size={20}/></div><h4>Upload a video</h4><p>Choose a video file from your device. Local metadata inspection works without uploading it to a server.</p><button type="button" className="dfs-dropzone" onClick={() => fileRef.current?.click()}><Upload size={23}/><b>{file ? file.name : 'Choose a video or drop it here'}</b><small>{file ? (file.size / 1024 / 1024).toFixed(1) + ' MB' : 'MP4, WebM, MOV · up to 1 GB'}</small></button><input ref={fileRef} className="dfs-file-input" type="file" accept="video/*" onChange={uploadFile} /></div>
+    </div>
+    <div className="dfs-panel dfs-clip-settings"><div><h4><Settings2 size={16}/> Clip settings</h4><p>Choose the target length and how many highlights to request.</p></div><label>Clip length<select value={duration} onChange={e => setDuration(Number(e.target.value))}><option value={15}>15 seconds</option><option value={30}>30 seconds</option><option value={45}>45 seconds</option><option value={60}>60 seconds</option><option value={90}>90 seconds</option></select></label><label>Maximum clips<select value={maxClips} onChange={e => setMaxClips(Number(e.target.value))}><option value={3}>3 clips</option><option value={5}>5 clips</option><option value={10}>10 clips</option></select></label><div className="dfs-clip-caption"><Captions size={16}/><span><b>Animated captions</b><small>Request speech-to-text captions and vertical 9:16 reframing from the clip backend.</small></span><span className="dfs-clip-tag">ON</span></div></div>
+    {busy && <div className="dfs-clip-progress"><i style={{width: Math.max(5,progress)+'%'}}/></div>}
+    {error && <div className="dfs-clip-error" role="alert"><AlertTriangle size={17}/><span>{error}</span></div>}
+    {status && <div className="dfs-clip-status" role="status"><CheckCircle2 size={16}/><span>{status}</span></div>}
+    {job?.candidates && <section className="dfs-panel"><div className="dfs-panel-head"><div><h3>Candidate clip windows</h3><p>{job.localOnly ? 'Preview windows based on duration only — not AI-ranked.' : 'Candidate segments returned by the configured backend.'}</p></div>{file && <button type="button" className="dfs-outline" onClick={downloadFile}><DownloadCloud size={15}/> Download original</button>}</div>{job.candidates.map(item => <article className="dfs-candidate" key={item.id}><div><span className="dfs-candidate-time">{fmt(item.start)} – {fmt(item.end)}</span><b>{item.title || 'Highlight ' + item.id}</b><small>{item.score != null ? 'Highlight score: ' + item.score : 'Needs AI scoring'}</small></div><button type="button" className="dfs-outline" onClick={() => { setStatus('Selected ' + fmt(item.start) + '–' + fmt(item.end) + '. Actual trim/render/download requires the configured clip backend.'); }}>Select</button></article>)}</section>}
+    {job && !job.candidates && <section className="dfs-panel"><h3>Clip job</h3><p>Job status: {job.status || 'submitted'}</p>{job.jobId && <p>Job ID: <code>{job.jobId}</code></p>}{Array.isArray(job.clips) && job.clips.map((clip, i) => <article className="dfs-candidate" key={clip.id || i}><div><b>{clip.title || 'Clip ' + (i + 1)}</b><small>{clip.duration ? fmt(clip.duration) : ''} {clip.url ? ' · Ready to download' : ''}</small></div>{clip.url && <a className="dfs-outline" href={clip.url} target="_blank" rel="noreferrer noopener" download><DownloadCloud size={15}/> Download</a>}</article>)}</section>}
+    <div className="dfs-clip-footnote"><AlertTriangle size={15}/><p><b>Backend required for full automation.</b> Browsers cannot directly download and process most third-party YouTube/Vimeo/Twitch streams because of platform restrictions. Real AI highlight ranking, transcript captions, vertical rendering, batch exports, and social posting require a configured server-side clip service. This UI will call <code>VITE_DEFFITNESS_CLIP_API</code> when provided; no API key is exposed in the browser.</p></div>
+  </div>;
+}
 
 export default function DeffitnessStudio({ userId, workouts = [], libraryMoves = [], onOpenLibrary, onOpenWorkout }) {
   const storageKey = 'defchat:deffitness-studio:v1:' + (userId || 'device');
@@ -121,7 +231,7 @@ export default function DeffitnessStudio({ userId, workouts = [], libraryMoves =
     ['dashboard', Activity, 'Dashboard'], ['planner', CalendarDays, 'Weekly planner'],
     ['records', Medal, 'Personal records'], ['recovery', Heart, 'Recovery'],
     ['coach', BrainCircuit, 'Fitness coach'], ['challenges', Zap, 'Challenges'],
-    ['connections', Watch, 'Connections']
+    ['connections', Watch, 'Connections'], ['clips', Film, 'AI Clip Studio']
   ];
 
   return <section className="dfs-root">
@@ -145,6 +255,8 @@ export default function DeffitnessStudio({ userId, workouts = [], libraryMoves =
     {view === 'coach' && <><section className="dfs-coach-hero"><BrainCircuit size={28}/><div><span className="dfs-kicker">BUILT-IN FITNESS COACH</span><h3>Ask about your next step.</h3><p>This first version uses local guidance rules, not a connected AI model. It cannot diagnose health conditions.</p></div></section><div className="dfs-prompt-list">{['I am a beginner. How should I start?','How can I build strength?','How should I approach recovery?','How do I use the exercise dataset?'].map(item => <button type="button" key={item} onClick={() => { setQuestion(item); setAnswer(item.includes('beginner') ? 'Start with a few dataset movements you can perform comfortably, schedule two or three manageable sessions, and learn the instructions before increasing load.' : item.includes('strength') ? 'Prioritize regular resistance training, controlled technique, and gradual progression. Record your sets, reps, and loads so you can compare sessions.' : item.includes('recovery') ? 'Track sleep, energy, and soreness in Recovery. If unusually fatigued, consider an easier session or rest.' : 'Search the Exercise Library by muscle group, equipment, and difficulty, then add only the dataset exercises you want in your checklist.'); }}><Sparkles size={14}/>{item}</button>)}</div><form className="dfs-panel dfs-coach-form" onSubmit={askCoach}><label htmlFor="dfs-question">Your question</label><textarea id="dfs-question" rows="3" maxLength="500" value={question} onChange={event => setQuestion(event.target.value)} placeholder="Ask about training, recovery, planning, or exercise data…"/><button type="submit"><BrainCircuit size={15}/> Get guidance</button>{answer && <div className="dfs-answer"><b><Sparkles size={14}/> COACH RESPONSE</b><p>{answer}</p></div>}</form><p className="dfs-note">General educational guidance only. For injury, medical conditions, or persistent pain, consult a qualified professional.</p></>}
 
     {view === 'challenges' && <><div className="dfs-section-title"><h3>Challenges and milestones</h3><p>Set personal goals that encourage consistency, not unsafe amounts of exercise.</p></div><form className="dfs-form dfs-panel" onSubmit={saveChallenge}><label>Challenge name<input required maxLength="100" value={challenge.title} onChange={event => setChallenge(old => ({ ...old, title: event.target.value }))}/></label><label>Target<input type="number" min="1" max="1000" required value={challenge.target} onChange={event => setChallenge(old => ({ ...old, target: event.target.value }))}/></label><label>Measure<select value={challenge.kind} onChange={event => setChallenge(old => ({ ...old, kind: event.target.value }))}><option value="workouts">Completed workouts</option><option value="minutes">Total training minutes</option><option value="exercises">Logged exercises</option></select></label><button type="submit"><Plus size={15}/> Create challenge</button></form><div className="dfs-record-grid">{data.challenges.map(item => { const value = item.kind === 'workouts' ? workouts.length : item.kind === 'minutes' ? totalMinutes : workouts.reduce((sum, workout) => sum + (workout.exercises?.length || 0), 0); const percent = Math.min(100, Math.round(value / Math.max(1, Number(item.target)) * 100)); return <article key={item.id}><Zap size={19}/><small>{percent >= 100 ? 'GOAL REACHED' : 'YOUR CHALLENGE'}</small><h4>{item.title}</h4><strong>{Math.min(value, item.target)} / {item.target}</strong><div className="dfs-progress"><i style={{ width: percent + '%' }}/></div><p>{percent >= 100 ? 'Goal complete — great work.' : 'Keep going at a sustainable pace.'}</p><button type="button" className="dfs-text-button" onClick={() => setData(old => ({ ...old, challenges: old.challenges.filter(ch => ch.id !== item.id) }))}>Remove</button></article>; })}</div>{data.challenges.length === 0 && <div className="dfs-empty"><Trophy size={25}/><b>Your next milestone starts here.</b><span>Create a challenge to track workouts, minutes, or exercise completions.</span></div>}</>}
+
+    {view === 'clips' && <ClipStudio />}
 
     {view === 'connections' && <><div className="dfs-section-title"><h3>Health, devices, reminders, and privacy</h3><p>Connection cards are transparent about what is and is not active.</p></div><div className="dfs-connections"><article><Watch size={22}/><div><h4>Apple Health / Health Connect</h4><p>Wearable syncing for steps, activity, and heart-rate data is not connected in this web build. A native/mobile permission flow and platform-specific integration are required.</p><small>Not connected</small></div></article><article><CalendarCheck size={22}/><div><h4>Workout reminders</h4><p>This panel does not schedule background notifications. Use your device calendar for reminders; browser notifications would need permission and service-worker support.</p><small>Not configured</small></div></article><article><Users size={22}/><div><h4>Friends and shared challenges</h4><p>Challenges are private and local right now. Shared leaderboards require a secure backend, authentication, access rules, and explicit opt-in.</p><small>Local-only</small></div></article><article><ShieldCheck size={22}/><div><h4>Privacy and backup</h4><p>Your Studio entries are saved in this browser's local storage. Export a backup before clearing browser data. Use the dashboard to export or clear Studio entries.</p><small>Device storage</small></div></article></div></>}
     {notice && <div className="dfs-notice" role="status"><CheckCircle2 size={15}/>{notice}<button type="button" onClick={() => setNotice('')} aria-label="Dismiss notice"><X size={14}/></button></div>}

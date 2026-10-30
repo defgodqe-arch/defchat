@@ -35,7 +35,7 @@ export default function ClipStudio({onClose}){
   if(!file||!segments.length){setError('Import a video and keep at least one timeline clip.');return}
   setBusy(true);setProgress(0);setError('');setNotice('Loading the local MP4 export engine…');let engine;
   try{
-   engine=new FFmpeg();engine.on('progress',({progress:p})=>setProgress(Math.min(100,Math.max(0,Math.round((Number(p)||0)*100))));
+   engine=new FFmpeg();engine.on('progress',({progress:p})=>setProgress(Math.min(100,Math.max(0,Math.round((Number(p)||0)*100)))));
    const base='https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd';await engine.load({coreURL:await toBlobURL(base+'/ffmpeg-core.js','text/javascript'),wasmURL:await toBlobURL(base+'/ffmpeg-core.wasm','application/wasm')});
    const ext=(file.name.match(/\.[a-zA-Z0-9]{1,8}$/)||[])[0]||'.mp4',input='source'+ext;await engine.writeFile(input,new Uint8Array(await file.arrayBuffer()));
    const outputs=[];

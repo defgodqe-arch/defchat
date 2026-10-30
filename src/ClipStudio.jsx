@@ -56,7 +56,8 @@ export default function ClipStudio({onClose}){
     probe.play().then(()=>{raf=requestAnimationFrame(sample)}).catch(finish);
    });
    if(frames.length<7)throw new Error('Not enough frames could be analyzed to create 7 clips. Try a longer video.');
-   const clipLength=Math.max(1,Math.min(clipDuration,duration)),stride=Math.max(.35,clipLength/5),candidates=[];\n   if(duration<clipLength*7)throw new Error('This video needs at least '+Math.round(clipLength*7)+' seconds to make 7 separate clips of '+clipLength+' seconds. Choose a shorter clip length or use a longer video.');
+   const clipLength=Math.max(1,Math.min(clipDuration,duration)),stride=Math.max(.35,clipLength/5),candidates=[];
+   if(duration<clipLength*7)throw new Error('This video needs at least '+Math.round(clipLength*7)+' seconds to make 7 separate clips of '+clipLength+' seconds. Choose a shorter clip length or use a longer video.');
    for(let startAt=0;startAt+clipLength<=duration+.001;startAt+=stride){
     const endAt=Math.min(duration,startAt+clipLength),window=frames.filter(f=>f.t>=startAt&&f.t<endAt);
     if(window.length<2)continue;

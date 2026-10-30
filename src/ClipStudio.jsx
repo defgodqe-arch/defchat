@@ -15,6 +15,8 @@ const parseTime = value => {
   return parts.length === 2 ? parts[0] * 60 + parts[1] : Number(value) || 0;
 };
 
+const isZipFile = value => /\.zip$/i.test(value?.name || '') || ['application/zip','application/x-zip-compressed'].includes((value?.type || '').toLowerCase());
+
 const getYouTubeId = value => {
   try {
     const url = new URL(value);
@@ -236,12 +238,12 @@ export default function ClipStudio({ onClose, db: supabase }) {
         const accessToken = sessionData?.session?.access_token;
         const userId = sessionData?.session?.user?.id;
         if (sessionError || !accessToken || !userId) throw new Error('Your session has expired. Sign in again and retry.');
-        const safeName = uploadFile.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-100) || 'source-video.mp4';
+        const safeName = inputFile.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-100) || 'source-video.mp4';
         const sourcePath = userId + '/source-' + crypto.randomUUID() + '-' + safeName;
-        const { error: uploadError } = await supabase.storage.from('clip-studio').upload(sourcePath, uploadFile, {
-          contentType: uploadFile.type || 'video/mp4', cacheControl: '3600', upsert: false
+        const { error: uploadError } = await supabase.storage.from('clip-studio').upload(sourcePath, inputFile, {
+          contentType: isZipFile(inputFile) ? 'application/zip' : (inputFile.type || 'video/mp4'), cacheControl: '3600', upsert: false
         });
-        if (uploadError) throw new Error('Video upload failed: ' + uploadError.message + '. Check the clip-studio Storage bucket file-size limit.');
+        if (uploadError) throw new Error('Upload failed: ' + uploadError.message + (uploadError.message?.toLowerCase().includes('mime') ? ' The ZIP MIME type must be enabled in the clip-studio bucket.' : uploadError.message?.toLowerCase().includes('size') ? ' The bucket allows up to 2 GB; Defchat processing is limited to 1 GB.' : ''));
         setNotice('Upload complete. Rendering clips on Defchat’s server…');
         const response = await fetch(CLIP_FUNCTION_URL, {
           method: 'POST',
@@ -268,7 +270,7 @@ export default function ClipStudio({ onClose, db: supabase }) {
         else if (normalized.length) setNotice('Finished! ' + normalized.length + ' server-rendered clips are ready.');
         else setNotice(result.message || 'The processor accepted the request but has not returned finished clips yet.');
       } catch (e) {
-        setError((e?.message || 'Could not upload and process this video.') + ' Check the upload limit and retry.');
+        setError(e?.message || 'Could not upload and process this video.');
       } finally { setBusy(false); }
       return;
     }
@@ -450,9 +452,9 @@ export default function ClipStudio({ onClose, db: supabase }) {
             {source && <label style={{display:'flex',alignItems:'flex-start',gap:9,margin:'0 0 14px',fontSize:11,lineHeight:1.5,color:'#c8c8d2'}}><input type="checkbox" checked={authorizedSource} onChange={event=>setAuthorizedSource(event.target.checked)} style={{marginTop:2,accentColor:'#facc15'}}/><span>I own this video or have permission to download and process it.</span></label>}
           </> : <>
             <label className="clip-studio-field-label">Video file</label>
-            <input ref={fileInput} type="file" accept="video/*,.mp4,.mov,.webm,.m4v" hidden onChange={event => {setFile(event.target.files?.[0] || null);resetResults()}}/>
-            <button type="button" className="clip-studio-drop" onClick={() => fileInput.current?.click()} onDragOver={event => event.preventDefault()} onDrop={event => {event.preventDefault();const dropped=event.dataTransfer.files?.[0];if(dropped&&dropped.type.startsWith('video/')){setFile(dropped);resetResults()}else setError('Drop a supported video file.')}}>
-              <span className="clip-studio-drop-icon"><Upload size={22}/></span><b>{file ? file.name : 'Choose a video or drag it here'}</b><span>{file ? ((file.size / 1024 / 1024).toFixed(1) + ' MB · local preview ready') : 'MP4, MOV, WebM · uploaded securely for server processing'}</span>
+            <input ref={fileInput} type="file" accept="video/*,.mp4,.mov,.webm,.m4v,.mkv,.zip,application/zip,application/x-zip-compressed" hidden onChange={event => {setFile(event.target.files?.[0] || null);resetResults()}}/>
+            <button type="button" className="clip-studio-drop" onClick={() => fileInput.current?.click()} onDragOver={event => event.preventDefault()} onDrop={event => {event.preventDefault();const dropped=event.dataTransfer.files?.[0];if(dropped&&(dropped.type.startsWith('video/')||isZipFile(dropped))){setFile(dropped);resetResults()}else setError('Choose a supported video file or a ZIP containing one video.')}}>
+              <span className="clip-studio-drop-icon"><Upload size={22}/></span><b>{file ? file.name : 'Choose a video or drag it here'}</b><span>{file ? ((file.size / 1024 / 1024).toFixed(1) + ' MB · ' + (isZipFile(file) ? 'ZIP archive · server will extract the video' : 'video ready')) : 'MP4, MOV, WebM, MKV, or ZIP containing one video'}</span>
             </button>
             <label style={{display:'flex',alignItems:'flex-start',gap:9,marginTop:14,padding:12,border:'1px solid #34343f',borderRadius:11,background:'#111117',fontSize:11,color:'#d4d4dc',lineHeight:1.5}}>
               <input type="checkbox" checked={compressBeforeUpload} onChange={event => setCompressBeforeUpload(event.target.checked)} disabled={busy} style={{marginTop:2,accentColor:'#facc15'}}/>
@@ -471,13 +473,13 @@ export default function ClipStudio({ onClose, db: supabase }) {
           </div>
           {error && <div className="clip-studio-notice clip-studio-error" role="alert"><AlertCircle size={15} style={{verticalAlign:'-3px',marginRight:7}}/>{error}</div>}
           {notice && <div className="clip-studio-notice clip-studio-success" role="status"><CheckCircle2 size={15} style={{verticalAlign:'-3px',marginRight:7}}/>{notice}{busy && <div style={{height:5,background:'#3a3420',borderRadius:99,overflow:'hidden',marginTop:10}}><div style={{height:'100%',width:Math.max(4,progress)+'%',background:'linear-gradient(90deg,#facc15,#f59e0b)',transition:'width .25s'}}/></div>}</div>}
-          <div className="clip-studio-footer"><AlertCircle size={15}/><span>Uploaded videos are processed on Defchat’s server. Files up to 1 GB are supported when your Supabase Storage upload limit permits; large uploads may take time.</span></div>
+          <div className="clip-studio-footer"><AlertCircle size={15}/><span>Uploaded videos are processed on Defchat’s server. Video files and ZIP archives up to 1 GB are supported; the Storage bucket allows up to 2 GB. ZIP archives must contain one supported video file.</span></div>
         </section>
 
         <section className="clip-studio-panel">
           <div className="clip-studio-panel-head"><span className="clip-studio-panel-icon"><Play size={18}/></span><div><h2>Source preview</h2><p>{file ? 'Local file preview' : youtubeId ? 'Video link preview' : source ? source + ' source link' : 'Your video appears here'}</p></div></div>
           <div className="clip-studio-preview">
-            {videoUrl ? <video ref={videoRef} src={videoUrl} controls playsInline onLoadedMetadata={onVideoReady} /> : youtubeId ? <iframe title="YouTube video preview" src={'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(youtubeId)} style={{display:'block',width:'100%',aspectRatio:'16/9',border:0,background:'#050506'}} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen /> : <div className="clip-studio-empty-preview"><Film size={30}/><div><b>Ready for your next highlight</b><p>Paste a supported video link and confirm permission to import it, or upload a video file.</p></div></div>}
+            {videoUrl && file && !isZipFile(file) ? <video ref={videoRef} src={videoUrl} controls playsInline onLoadedMetadata={onVideoReady} /> : file && isZipFile(file) ? <div className="clip-studio-empty-preview"><Film size={30}/><div><b>ZIP archive selected</b><p>Defchat will safely extract the video on the server before processing. ZIP files do not preview here.</p></div></div> : youtubeId ? <iframe title="YouTube video preview" src={'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(youtubeId)} style={{display:'block',width:'100%',aspectRatio:'16/9',border:0,background:'#050506'}} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen /> : <div className="clip-studio-empty-preview"><Film size={30}/><div><b>Ready for your next highlight</b><p>Paste a supported video link and confirm permission to import it, or upload a video file.</p></div></div>}
             <div className="clip-studio-video-meta"><span>{file ? file.name : youtubeId ? 'YouTube video' : source || 'No source selected'}</span><span className="clip-studio-pill">{duration ? formatTime(duration) : youtubeId ? 'Link preview' : 'No duration'}</span></div>
           </div>
           {sourceUrl && source && <div style={{marginTop:12,fontSize:11,color:'#a3a3b2'}}>Source link: <a href={sourceUrl} target="_blank" rel="noopener noreferrer" style={{color:'#facc15',wordBreak:'break-all'}}><ExternalLink size={11} style={{verticalAlign:'-2px',marginRight:4}}/>Open original video</a></div>}

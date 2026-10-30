@@ -30,6 +30,7 @@ class Job(BaseModel):
     clipCount: int = Field(5, ge=1, le=20)
     aspectRatio: str = "9:16"
     captionStyle: str = "bold"
+    compressVideo: bool = False
     output: dict
 
 def run(args, timeout=900):
@@ -207,6 +208,12 @@ def process(job: Job, authorization: str = Header(default="")):
         root=Path(tmp); source=root/"source.mp4"
         try:
             fetch_source(job.sourceUrl, source)
+            if job.compressVideo:
+                compressed=root/"source-compressed.mp4"
+                run(["ffmpeg","-y","-i",str(source),"-vf","scale='min(1920,iw)':-2","-c:v","libx264","-preset","veryfast","-crf","30","-c:a","aac","-b:a","96k","-movflags","+faststart",str(compressed)],1800)
+                if not compressed.exists() or compressed.stat().st_size == 0:
+                    raise RuntimeError("Server-side video compression did not produce an output file.")
+                source=compressed
             duration=probe(source)
             if duration <= 0 or duration > MAX_SECONDS: raise ValueError("Video duration is outside the allowed limit.")
             starts=highlight_starts(source,duration,job.clipLength,job.clipCount)

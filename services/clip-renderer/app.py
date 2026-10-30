@@ -1,4 +1,4 @@
-import os, re, math, secrets, tempfile, subprocess, time, socket, ipaddress
+import os, re, math, secrets, tempfile, subprocess, time, socket, ipaddress, zipfile
 from pathlib import Path
 from urllib.parse import urlparse
 import requests
@@ -125,7 +125,7 @@ def fetch_source(url, path):
         except socket.gaierror:
             raise ValueError("Redirect destination could not be resolved.")
         ctype = r.headers.get("content-type", "").lower()
-        if not ctype.startswith("video/") and not re.search(r"\.(mp4|mov|webm|m4v|mkv)(?:$|\?)", r.url, re.I):
+        if not ctype.startswith("video/") and ctype not in ("application/zip", "application/x-zip-compressed", "application/octet-stream") and not re.search(r"\.(mp4|mov|webm|m4v|mkv|zip)(?:$|\?)", r.url, re.I):
             raise ValueError("URL did not return a direct video file.")
         with open(path, "wb") as f:
             for chunk in r.iter_content(1024 * 1024):
@@ -135,6 +135,51 @@ def fetch_source(url, path):
                 if total > MAX_BYTES:
                     raise ValueError("Source exceeds the configured upload size limit.")
                 f.write(chunk)
+
+
+VIDEO_EXTENSIONS = {".mp4", ".mov", ".webm", ".m4v", ".mkv", ".mpeg", ".mpg"}
+
+def extract_video_archive(archive_path, work_dir):
+    """Extract exactly one video from a ZIP without trusting archive paths or sizes."""
+    try:
+        with zipfile.ZipFile(archive_path) as archive:
+            candidates = []
+            total_uncompressed = 0
+            for info in archive.infolist():
+                if info.is_dir():
+                    continue
+                name = info.filename.replace("\\", "/")
+                parts = Path(name).parts
+                if name.startswith("/") or any(part in ("..", "") for part in parts):
+                    raise ValueError("ZIP contains an unsafe file path.")
+                if name.startswith("__MACOSX/") or Path(name).name == ".DS_Store":
+                    continue
+                if Path(name).suffix.lower() in VIDEO_EXTENSIONS:
+                    if info.flag_bits & 0x1:
+                        raise ValueError("Password-protected ZIP files are not supported. Upload an unencrypted archive.")
+                    candidates.append(info)
+                    total_uncompressed += info.file_size
+            if len(candidates) != 1:
+                raise ValueError("ZIP must contain exactly one supported video file (MP4, MOV, WebM, or MKV).")
+            info = candidates[0]
+            if info.file_size <= 0 or info.file_size > MAX_BYTES * 2 or total_uncompressed > MAX_BYTES * 2:
+                raise ValueError("The video inside this ZIP exceeds the renderer's safe extraction limit.")
+            target = work_dir / ("extracted-video" + Path(info.filename).suffix.lower())
+            written = 0
+            with archive.open(info) as source, open(target, "wb") as destination:
+                while True:
+                    chunk = source.read(1024 * 1024)
+                    if not chunk:
+                        break
+                    written += len(chunk)
+                    if written > min(info.file_size, MAX_BYTES * 2):
+                        raise ValueError("ZIP expanded beyond the allowed extraction size.")
+                    destination.write(chunk)
+            if written != info.file_size:
+                raise ValueError("The video inside the ZIP is incomplete or corrupted.")
+            return target
+    except zipfile.BadZipFile:
+        raise ValueError("The uploaded ZIP archive is invalid or corrupted.")
 
 def highlight_starts(path, duration, length, count):
     # Rank non-overlapping windows by mean audio energy; fall back to evenly spaced windows.
@@ -208,6 +253,8 @@ def process(job: Job, authorization: str = Header(default="")):
         root=Path(tmp); source=root/"source.mp4"
         try:
             fetch_source(job.sourceUrl, source)
+            if zipfile.is_zipfile(source):
+                source = extract_video_archive(source, root)
             if job.compressVideo:
                 compressed=root/"source-compressed.mp4"
                 run(["ffmpeg","-y","-i",str(source),"-vf","scale='min(1920,iw)':-2","-c:v","libx264","-preset","veryfast","-crf","30","-c:a","aac","-b:a","96k","-movflags","+faststart",str(compressed)],1800)

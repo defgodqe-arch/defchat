@@ -247,7 +247,7 @@ export default function ClipStudio({ onClose, db: supabase }) {
             coreURL: await toBlobURL(base + '/ffmpeg-core.js', 'text/javascript'),
             wasmURL: await toBlobURL(base + '/ffmpeg-core.wasm', 'application/wasm')
           });
-          const ext = (inputFile.name.match(/\\.[a-zA-Z0-9]{1,8}$/) || ['.mp4'])[0];
+          const ext = (inputFile.name.match(/\.[a-zA-Z0-9]{1,8}$/) || ['.mp4'])[0];
           const inputName = 'defchat-compress-input' + ext;
           const outputName = 'defchat-compressed.mp4';
           await compressionEngine.writeFile(inputName, new Uint8Array(await inputFile.arrayBuffer()));

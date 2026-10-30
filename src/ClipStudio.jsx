@@ -100,7 +100,7 @@ export default function ClipStudio({onClose}){
     for(let i=0;i<targetSegments.length;i++){
      const seg=targetSegments[i],out='segment-'+i+'.mp4',args=['-ss',String(seg.sourceStart),'-i',input,'-t',String(seg.sourceEnd-seg.sourceStart)];
      const dims=aspect==='9:16'?[720,1280]:aspect==='1:1'?[1080,1080]:aspect==='16:9'?[1280,720]:null;
-     const vf=[dims?'scale='+dims[0]+':'+dims[1]+':force_original_aspect_ratio=decrease,pad='+dims[0]+':'+dims[1]+':(ow-iw)/2:(oh-ih)/2:black':"scale=w='min(1280,iw)':h=-2"];
+     const vf=[dims?'scale='+dims[0]+':'+dims[1]+':force_original_aspect_ratio=decrease,pad='+dims[0]+':'+dims[1]+':(ow-iw)/2:(oh-ih)/2:black':"scale=w='min(1280,iw)':h='min(1280,ih)':force_original_aspect_ratio=decrease:force_divisible_by=2"];
      if(filter==='warm')vf.push('colorbalance=rs=.08:gs=.02:bs=-.06');if(filter==='cool')vf.push('colorbalance=rs=-.05:gs=.01:bs=.08');if(filter==='mono')vf.push('hue=s=0');if(filter==='vivid')vf.push('eq=saturation=1.35:contrast=1.06');
      vf.push('eq=brightness='+((brightness-100)/100)+':contrast='+(contrast/100)+':saturation='+(saturation/100));
      if(fadeIn>0)vf.push('fade=t=in:st=0:d='+Math.min(fadeIn,seg.sourceEnd-seg.sourceStart));if(fadeOut>0)vf.push('fade=t=out:st='+Math.max(0,(seg.sourceEnd-seg.sourceStart)-fadeOut)+':d='+Math.min(fadeOut,seg.sourceEnd-seg.sourceStart));if(speed!==1)vf.push('setpts='+(1/speed)+'*(PTS-STARTPTS)');

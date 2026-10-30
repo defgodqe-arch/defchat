@@ -59,6 +59,7 @@ export default function ClipStudio({ onClose, db: supabase }) {
   const [clipCount, setClipCount] = useState('5');
   const [captionStyle, setCaptionStyle] = useState('bold');
   const [aspect, setAspect] = useState('9:16');
+  const [compressBeforeUpload, setCompressBeforeUpload] = useState(false);
   const [activeClip, setActiveClip] = useState(null);
   const [youtubeToken, setYoutubeToken] = useState('');
   const [youtubeChannel, setYoutubeChannel] = useState(null);
@@ -229,16 +230,46 @@ export default function ClipStudio({ onClose, db: supabase }) {
       const MAX_SERVER_UPLOAD = 1024 * 1024 * 1024;
       if (inputFile.size > MAX_SERVER_UPLOAD) { setError('This file is larger than Defchat’s current 1 GB server-processing limit.'); return; }
       if (!supabase?.auth?.getSession || !supabase?.storage?.from) { setError('Server uploads are unavailable. Sign in again and retry.'); return; }
-      setBusy(true); setProgress(0); setNotice('Uploading your video securely to Defchat…');
+      setBusy(true); setProgress(0); setNotice(compressBeforeUpload ? 'Compressing your video to reduce its file size…' : 'Uploading your video securely to Defchat…');
+      let uploadFile = inputFile;
+      let compressionEngine;
       try {
+        if (compressBeforeUpload) {
+          if (inputFile.size > 300 * 1024 * 1024) throw new Error('Browser compression is limited to 300 MB per source video. Turn compression off to upload this larger file as-is.');
+          compressionEngine = new FFmpeg();
+          compressionEngine.on('progress', ({ progress: value }) => {
+            const percent = Math.max(0, Math.min(100, Math.round((Number(value) || 0) * 100)));
+            setProgress(percent);
+            setNotice('Compressing video… ' + percent + '%');
+          });
+          const base = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd';
+          await compressionEngine.load({
+            coreURL: await toBlobURL(base + '/ffmpeg-core.js', 'text/javascript'),
+            wasmURL: await toBlobURL(base + '/ffmpeg-core.wasm', 'application/wasm')
+          });
+          const ext = (inputFile.name.match(/\\.[a-zA-Z0-9]{1,8}$/) || ['.mp4'])[0];
+          const inputName = 'defchat-compress-input' + ext;
+          const outputName = 'defchat-compressed.mp4';
+          await compressionEngine.writeFile(inputName, new Uint8Array(await inputFile.arrayBuffer()));
+          const exitCode = await compressionEngine.exec([
+            '-i', inputName, '-c:v', 'libx264', '-preset', 'ultrafast',
+            '-crf', '30', '-c:a', 'aac', '-b:a', '96k',
+            '-movflags', '+faststart', '-y', outputName
+          ]);
+          if (exitCode !== 0) throw new Error('Could not compress this video. Try turning compression off or use an MP4 file.');
+          const compressedData = await compressionEngine.readFile(outputName);
+          if (!compressedData?.length) throw new Error('Video compression returned an empty file.');
+          uploadFile = new File([compressedData], 'defchat-compressed.mp4', { type: 'video/mp4' });
+          setNotice('Compressed from ' + (inputFile.size / 1024 / 1024).toFixed(1) + ' MB to ' + (uploadFile.size / 1024 / 1024).toFixed(1) + ' MB. Uploading…');
+        }
         const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
         const accessToken = sessionData?.session?.access_token;
         const userId = sessionData?.session?.user?.id;
         if (sessionError || !accessToken || !userId) throw new Error('Your session has expired. Sign in again and retry.');
-        const safeName = inputFile.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-100) || 'source-video.mp4';
+        const safeName = uploadFile.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-100) || 'source-video.mp4';
         const sourcePath = userId + '/source-' + crypto.randomUUID() + '-' + safeName;
-        const { error: uploadError } = await supabase.storage.from('clip-studio').upload(sourcePath, inputFile, {
-          contentType: inputFile.type || 'video/mp4', cacheControl: '3600', upsert: false
+        const { error: uploadError } = await supabase.storage.from('clip-studio').upload(sourcePath, uploadFile, {
+          contentType: uploadFile.type || 'video/mp4', cacheControl: '3600', upsert: false
         });
         if (uploadError) throw new Error('Video upload failed: ' + uploadError.message + '. Check the clip-studio Storage bucket file-size limit.');
         setNotice('Upload complete. Rendering clips on Defchat’s server…');
@@ -268,7 +299,7 @@ export default function ClipStudio({ onClose, db: supabase }) {
         else setNotice(result.message || 'The processor accepted the request but has not returned finished clips yet.');
       } catch (e) {
         setError((e?.message || 'Could not upload and process this video.') + ' Check the upload limit and retry.');
-      } finally { setBusy(false); }
+      } finally { if (compressionEngine) { try { compressionEngine.terminate(); } catch {} } setBusy(false); }
       return;
     }
     setBusy(true);
@@ -453,7 +484,11 @@ export default function ClipStudio({ onClose, db: supabase }) {
             <button type="button" className="clip-studio-drop" onClick={() => fileInput.current?.click()} onDragOver={event => event.preventDefault()} onDrop={event => {event.preventDefault();const dropped=event.dataTransfer.files?.[0];if(dropped&&dropped.type.startsWith('video/')){setFile(dropped);resetResults()}else setError('Drop a supported video file.')}}>
               <span className="clip-studio-drop-icon"><Upload size={22}/></span><b>{file ? file.name : 'Choose a video or drag it here'}</b><span>{file ? ((file.size / 1024 / 1024).toFixed(1) + ' MB · local preview ready') : 'MP4, MOV, WebM · uploaded securely for server processing'}</span>
             </button>
-            <div style={{display:'flex',justifyContent:'flex-end',marginTop:13}}><button className="clip-studio-primary" type="button" onClick={analyze} disabled={busy || !file}>{busy ? <LoaderCircle size={16} className="spin"/> : <Sparkles size={16}/>} Upload & create clips</button></div>
+            <label style={{display:'flex',alignItems:'flex-start',gap:9,marginTop:14,padding:12,border:'1px solid #34343f',borderRadius:11,background:'#111117',fontSize:11,color:'#d4d4dc',lineHeight:1.5}}>
+              <input type="checkbox" checked={compressBeforeUpload} onChange={event => setCompressBeforeUpload(event.target.checked)} disabled={busy} style={{marginTop:2,accentColor:'#facc15'}}/>
+              <span><b style={{display:'block',color:'#f8fafc'}}>Compress video before uploading</b>Re-encodes to a smaller MP4 (H.264, lower bitrate). Best for files up to 300 MB; compression can take a while. ZIP files usually do not shrink videos much.</span>
+            </label>
+            <div style={{display:'flex',justifyContent:'flex-end',marginTop:13}}><button className="clip-studio-primary" type="button" onClick={analyze} disabled={busy || !file}>{busy ? <LoaderCircle size={16} className="spin"/> : <Sparkles size={16}/>} {busy ? 'Uploading & creating clips…' : 'Upload & create clips'}</button></div>
           </>}
           <div className="clip-studio-settings">
             <h3><Settings2 size={14} style={{verticalAlign:'-3px',marginRight:6}}/> Clip settings</h3>

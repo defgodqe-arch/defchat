@@ -82,16 +82,16 @@ export default function ClipStudio({onClose}){
  function addText(){if(!title.trim()){setError('Enter text before adding a title layer.');return}const layer={id:makeId(),text:title.trim(),start:playhead,end:Math.min(duration,playhead+4),color:titleColor,size:titleSize};setTitles(items=>[...items,layer]);setTitle('');setNotice('Text added to the timeline.')}
  function restore(){dbGet().then(p=>{if(!p?.file)return;setFile(p.file);setMusicFile(p.musicFile||null);setMusicVolume(p.musicVolume??65);setBrightness(p.brightness??100);setContrast(p.contrast??100);setSaturation(p.saturation??100);setFadeIn(p.fadeIn??0);setFadeOut(p.fadeOut??0);setDuration(p.duration||0);setSourceAspect(p.file.type&&p.file.type.startsWith('video/')?sourceAspect:16/9);setSegments(p.segments||[]);setSelectedId(p.selectedId||'');setAspect(p.aspect||'original');setFilter(p.filter||'none');setSpeed(p.speed||1);setVolume(p.volume??100);setMuted(Boolean(p.muted));setTitles(p.titles||[]);setRestoreAvailable(false);setNotice('Local project restored.')}).catch(e=>setError(e.message))}
  async function save(){if(!file){setError('Import a video first.');return}try{await dbPut({id:'last',file,musicFile,duration,segments,selectedId,aspect,filter,speed,volume,muted,musicVolume,brightness,contrast,saturation,fadeIn,fadeOut,titles});setSavedAt(new Date().toLocaleTimeString());setNotice('Project saved on this device.')}catch(e){setError(e.message||'Could not save project.')}}
- async function exportEdit(){
-  if(!file||!segments.length){setError('Import a video and keep at least one timeline clip.');return}
+ async function exportEdit(targetSegments=segments,downloadName='defchat-edit.mp4'){
+  if(!file||!targetSegments.length){setError('Import a video and keep at least one timeline clip.');return}
   setBusy(true);setProgress(0);setError('');setNotice('Loading the local MP4 export engine…');let engine;
   try{
    engine=new FFmpeg();engine.on('progress',({progress:p})=>setProgress(Math.min(100,Math.max(0,Math.round((Number(p)||0)*100)))));
    const base='https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd';await engine.load({coreURL:await toBlobURL(base+'/ffmpeg-core.js','text/javascript'),wasmURL:await toBlobURL(base+'/ffmpeg-core.wasm','application/wasm')});
    const ext=(file.name.match(/\.[a-zA-Z0-9]{1,8}$/)||[])[0]||'.mp4',input='source'+ext;await engine.writeFile(input,new Uint8Array(await file.arrayBuffer()));
    const outputs=[];
-   for(let i=0;i<segments.length;i++){
-    const seg=segments[i],out='segment-'+i+'.mp4',args=['-ss',String(seg.sourceStart),'-i',input,'-t',String(seg.sourceEnd-seg.sourceStart)];
+   for(let i=0;i<targetSegments.length;i++){
+    const seg=targetSegments[i],out='segment-'+i+'.mp4',args=['-ss',String(seg.sourceStart),'-i',input,'-t',String(seg.sourceEnd-seg.sourceStart)];
     const dims=aspect==='9:16'?[720,1280]:aspect==='1:1'?[1080,1080]:aspect==='16:9'?[1280,720]:null;
     const vf=[dims?'scale='+dims[0]+':'+dims[1]+':force_original_aspect_ratio=decrease,pad='+dims[0]+':'+dims[1]+':(ow-iw)/2:(oh-ih)/2:black':'scale=trunc(iw/2)*2:trunc(ih/2)*2'];
     if(filter==='warm')vf.push('colorbalance=rs=.08:gs=.02:bs=-.06');if(filter==='cool')vf.push('colorbalance=rs=-.05:gs=.01:bs=.08');if(filter==='mono')vf.push('hue=s=0');if(filter==='vivid')vf.push('eq=saturation=1.35:contrast=1.06');vf.push('eq=brightness='+((brightness-100)/100)+':contrast='+(contrast/100)+':saturation='+(saturation/100));if(fadeIn>0)vf.push('fade=t=in:st=0:d='+Math.min(fadeIn,seg.sourceEnd-seg.sourceStart));if(fadeOut>0)vf.push('fade=t=out:st='+Math.max(0,(seg.sourceEnd-seg.sourceStart)-fadeOut)+':d='+Math.min(fadeOut,seg.sourceEnd-seg.sourceStart));if(speed!==1)vf.push('setpts='+(1/speed)+'*(PTS-STARTPTS)');

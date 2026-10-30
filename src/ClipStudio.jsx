@@ -90,8 +90,28 @@ export default function ClipStudio({onClose}){
    try{
     engine=new FFmpeg();engine.on('log',({message})=>{if(message)logTail=(logTail+' '+message).slice(-900)});
     engine.on('progress',({progress:p})=>setProgress(Math.min(100,Math.max(0,Math.round((Number(p)||0)*100)))));
-    const base='https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd';
-    await engine.load({coreURL:await toBlobURL(base+'/ffmpeg-core.js','text/javascript'),wasmURL:await toBlobURL(base+'/ffmpeg-core.wasm','application/wasm')});
+    const cdnBases=[
+     'https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd',
+     'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd'
+    ];
+    let loaded=false,lastLoadError=null;
+    for(const base of cdnBases){
+     try{
+      const [coreURL,wasmURL]=await Promise.all([
+       toBlobURL(base+'/ffmpeg-core.js','text/javascript'),
+       toBlobURL(base+'/ffmpeg-core.wasm','application/wasm')
+      ]);
+      await engine.load({coreURL,wasmURL});
+      loaded=true;break;
+     }catch(loadError){
+      lastLoadError=loadError;
+      try{engine.terminate()}catch{}
+      engine=new FFmpeg();
+      engine.on('log',({message})=>{if(message)logTail=(logTail+' '+message).slice(-900)});
+      engine.on('progress',({progress:p})=>setProgress(Math.min(100,Math.max(0,Math.round((Number(p)||0)*100)))));
+     }
+    }
+    if(!loaded)throw new Error('Could not load the FFmpeg engine from either CDN. Check your connection, browser extensions, and Content Security Policy. '+(lastLoadError?.message||''));
     const ext=(file.name.match(/\.[a-zA-Z0-9]{1,8}$/)||[])[0]||'.mp4',input='source'+ext;
     await engine.writeFile(input,new Uint8Array(await file.arrayBuffer()));
     let soundtrackInput='';

@@ -32,34 +32,58 @@ export default function ClipStudio({onClose}){
 
  async function autoClip(){
   if(!file||!duration){setError('Import a video and wait for it to finish loading first.');return}
-  setAutoClipBusy(true);setError('');setNotice('Scanning audio peaks and visual scene activity…');
-  let probe,ctx,probeUrl;
+  setAutoClipBusy(true);setError('');setNotice('Fast scan starting…');
+  let probe,probeUrl,raf=0;
   try{
-   const frames=[],step=.5;
    probe=document.createElement('video');probeUrl=URL.createObjectURL(file);probe.src=probeUrl;probe.muted=true;probe.playsInline=true;probe.preload='auto';
-   await new Promise((resolve,reject)=>{probe.onloadedmetadata=resolve;probe.onerror=()=>reject(new Error('Could not analyze this video format.'))});
-   const canvas=document.createElement('canvas');canvas.width=64;canvas.height=36;const g=canvas.getContext('2d',{willReadFrequently:true});let previous=null;
-   for(let t=0;t<duration;t+=step){
-    probe.currentTime=Math.min(t,Math.max(0,duration-.05));
-    await new Promise(resolve=>{const done=()=>{probe.removeEventListener('seeked',done);resolve()};probe.addEventListener('seeked',done,{once:true});setTimeout(done,1200)});
-    let motion=0;try{g.drawImage(probe,0,0,64,36);const data=g.getImageData(0,0,64,36).data;if(previous){let diff=0;for(let i=0;i<data.length;i+=16)diff+=Math.abs(data[i]-previous[i])+Math.abs(data[i+1]-previous[i+1])+Math.abs(data[i+2]-previous[i+2]);motion=diff/(data.length/16*3*255)}previous=data}catch{}
-    frames.push({t,motion});
+   await new Promise((resolve,reject)=>{probe.onloadedmetadata=resolve;probe.onerror=()=>reject(new Error('This video could not be decoded by your browser.'))});
+   const canvas=document.createElement('canvas');canvas.width=48;canvas.height=27;
+   const ctx=canvas.getContext('2d',{willReadFrequently:true});let previous=null,lastSample=-1,frames=[];
+   probe.currentTime=0;probe.playbackRate=6;
+   await new Promise((resolve,reject)=>{
+    let settled=false;
+    const finish=err=>{if(settled)return;settled=true;if(raf)cancelAnimationFrame(raf);probe.pause();probe.onended=null;probe.onerror=null;err?reject(err):resolve()};
+    probe.onended=()=>finish();probe.onerror=()=>finish(new Error('Video decoding stopped during the scan.'));
+    const sample=()=>{
+     if(settled)return;
+     const t=probe.currentTime;
+     if(t-lastSample>=.45&&probe.readyState>=2){
+      lastSample=t;
+      try{
+       ctx.drawImage(probe,0,0,48,27);const px=ctx.getImageData(0,0,48,27).data;
+       let motion=0,brightness=0;
+       for(let i=0;i<px.length;i+=4){brightness+=(px[i]*.2126+px[i+1]*.7152+px[i+2]*.0722)/255;if(previous)motion+=(Math.abs(px[i]-previous[i])+Math.abs(px[i+1]-previous[i+1])+Math.abs(px[i+2]-previous[i+2]))/(3*255)}
+       brightness/=48*27;if(previous)motion/=(48*27);
+       frames.push({t,motion,brightness});previous=new Uint8ClampedArray(px);
+       if(frames.length%8===0)setNotice('Fast-scanning video… '+Math.min(99,Math.round(t/duration*100))+'%');
+      }catch{}
+     }
+     if(probe.ended||probe.currentTime>=duration-.05){finish();return}
+     raf=requestAnimationFrame(sample);
+    };
+    probe.play().then(()=>{raf=requestAnimationFrame(sample)}).catch(finish);
+   });
+   if(frames.length<3)throw new Error('Not enough frames could be analyzed. Try another video format.');
+   const clipLength=Math.min(20,Math.max(5,duration*.22)),stride=.75,candidates=[];
+   for(let startAt=0;startAt+clipLength<=duration+.001;startAt+=stride){
+    const endAt=Math.min(duration,startAt+clipLength),window=frames.filter(f=>f.t>=startAt&&f.t<endAt);
+    if(!window.length)continue;
+    const avgMotion=window.reduce((s,f)=>s+f.motion,0)/window.length;
+    const peakMotion=Math.max(...window.map(f=>f.motion));
+    const brightnessRange=Math.max(...window.map(f=>f.brightness))-Math.min(...window.map(f=>f.brightness));
+    const sceneChanges=window.reduce((s,f)=>s+(f.motion>.18?1:0),0)/window.length;
+    const score=avgMotion*.58+peakMotion*.22+sceneChanges*.12+brightnessRange*.08;
+    candidates.push({start:startAt,end:endAt,score});
    }
-   const audio=[];
-   try{ctx=new (window.AudioContext||window.webkitAudioContext)();const decoded=await ctx.decodeAudioData(await file.arrayBuffer());const channel=decoded.getChannelData(0),hop=Math.max(1,Math.floor(decoded.sampleRate));for(let start=0;start<channel.length;start+=hop){let sum=0,n=Math.min(hop,channel.length-start);for(let j=0;j<n;j+=4)sum+=channel[start+j]*channel[start+j];audio.push({t:start/decoded.sampleRate,rms:Math.sqrt(sum/Math.max(1,Math.ceil(n/4)))})}}catch{}
-   const windowSize=Math.min(30,Math.max(8,duration/3)),stride=Math.max(3,windowSize/3),candidates=[];
-   for(let start=0;start+Math.min(4,duration)<=duration;start+=stride){
-    const end=Math.min(duration,start+windowSize),fs=frames.filter(x=>x.t>=start&&x.t<end),as=audio.filter(x=>x.t>=start&&x.t<end);
-    const avg=(arr,key)=>arr.length?arr.reduce((s,x)=>s+x[key],0)/arr.length:0;
-    const motion=avg(fs,'motion'),peak=as.length?Math.max(...as.map(x=>x.rms)):0,rms=avg(as,'rms');
-    candidates.push({start,end,score:motion*.55+peak*.25+rms*.2});
-   }
-   const max=Math.max(0,...candidates.map(x=>x.score));if(!max)throw new Error('No clear highlight signals were detected. Try a video with audio or more movement.');
-   const chosen=[];for(const item of [...candidates].sort((a,b)=>b.score-a.score)){if(chosen.every(x=>item.end<=x.start||item.start>=x.end)){chosen.push(item);if(chosen.length===3)break}}
-   chosen.sort((a,b)=>a.start-b.start);const next=chosen.map(x=>({id:makeId(),start:x.start,end:x.end,sourceStart:x.start,sourceEnd:x.end}));
-   setSegments(next);setSelectedId(next[0]?.id||'');setTitles([]);seek(next[0]?.start||0);setPlaying(false);setNotice('Found '+next.length+' highlight clips, ranked by audio intensity and visual activity. Review them before exporting.');
-  }catch(e){setError(e.message||'Auto Clips analysis failed.')}finally{if(probeUrl)URL.revokeObjectURL(probeUrl);if(ctx)ctx.close().catch(()=>{});setAutoClipBusy(false)}
+   if(!candidates.length)throw new Error('This video is shorter than the minimum highlight length.');
+   const best=candidates.reduce((a,b)=>b.score>a.score?b:a,candidates[0]);
+   let cutStart=best.start,cutEnd=best.end;
+   const next=[{id:makeId(),start:cutStart,end:cutEnd,sourceStart:cutStart,sourceEnd:cutEnd}];
+   setSegments(next);setSelectedId(next[0].id);setTitles([]);seek(cutStart);setPlaying(false);
+   setNotice('Best highlight found: '+timeLabel(cutStart)+' – '+timeLabel(cutEnd)+'. One ready-to-edit clip was created. Export MP4 when ready.');
+  }catch(e){setError(e.message||'Auto Clips scan failed.')}finally{if(raf)cancelAnimationFrame(raf);if(probe){probe.pause();probe.removeAttribute('src');probe.load()}if(probeUrl)URL.revokeObjectURL(probeUrl);setAutoClipBusy(false)}
  }
+
  function duplicateClip(){if(!selected)return;const offset=selected.end-selected.start;const copy={...selected,id:makeId(),start:Math.min(duration,selected.end),end:Math.min(duration,selected.end)+offset};if(copy.end>duration){setError('There is not enough empty timeline space to duplicate this clip.');return}setSegments(items=>[...items,copy]);setSelectedId(copy.id);setNotice('Clip duplicated on the timeline.')}
  function captureFrame(){if(!video.current)return;try{const canvas=document.createElement('canvas');canvas.width=video.current.videoWidth;canvas.height=video.current.videoHeight;canvas.getContext('2d').drawImage(video.current,0,0);canvas.toBlob(blob=>{if(!blob)return;const a=document.createElement('a'),u=URL.createObjectURL(blob);a.href=u;a.download='defchat-frame-'+Math.floor(playhead)+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(u),10000)},'image/png')}catch{setError('This video does not allow frame capture in the browser.')}}
  function addText(){if(!title.trim()){setError('Enter text before adding a title layer.');return}const layer={id:makeId(),text:title.trim(),start:playhead,end:Math.min(duration,playhead+4),color:titleColor,size:titleSize};setTitles(items=>[...items,layer]);setTitle('');setNotice('Text added to the timeline.')}
